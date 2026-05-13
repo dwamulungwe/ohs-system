@@ -1,3 +1,4 @@
+from typing import Optional
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.orm import Session
 
@@ -52,11 +53,11 @@ SELF_SERVICE_ACTION_FIELDS = {
 def list_corrective_actions(
     skip: int = Query(default=0, ge=0),
     limit: int = Query(default=100, ge=1, le=500),
-    action_status: CorrectiveActionStatus | None = Query(default=None, alias="status"),
-    priority: CorrectiveActionPriority | None = None,
-    site_id: int | None = None,
-    assigned_to_user_id: int | None = None,
-    source_type: CorrectiveActionSourceType | None = None,
+    action_status: Optional[CorrectiveActionStatus] = Query(default=None, alias="status"),
+    priority: Optional[CorrectiveActionPriority] = None,
+    site_id: Optional[int] = None,
+    assigned_to_user_id: Optional[int] = None,
+    source_type: Optional[CorrectiveActionSourceType] = None,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ) -> dict:

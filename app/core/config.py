@@ -1,6 +1,6 @@
 from functools import lru_cache
 from pathlib import Path
-from typing import Any
+from typing import Any, Optional
 
 from pydantic import field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
@@ -17,7 +17,7 @@ class Settings(BaseSettings):
     POSTGRES_USER: str = "ohs"
     POSTGRES_PASSWORD: str = "ohs"
     POSTGRES_DB: str = "ohs"
-    DATABASE_URL: str | None = None
+    DATABASE_URL: Optional[str] = None
 
     SECRET_KEY: str
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 60
@@ -27,8 +27,8 @@ class Settings(BaseSettings):
     SMTP_ENABLED: bool = False
     SMTP_HOST: str = "localhost"
     SMTP_PORT: int = 25
-    SMTP_USERNAME: str | None = None
-    SMTP_PASSWORD: str | None = None
+    SMTP_USERNAME: Optional[str] = None
+    SMTP_PASSWORD: Optional[str] = None
     SMTP_FROM_EMAIL: str = "no-reply@ohs.local"
     SMTP_USE_TLS: bool = False
     SMS_ENABLED: bool = False
@@ -49,7 +49,7 @@ class Settings(BaseSettings):
 
     @field_validator("DATABASE_URL", mode="before")
     @classmethod
-    def assemble_database_url(cls, value: str | None, info: Any) -> str:
+    def assemble_database_url(cls, value: Optional[str], info: Any) -> str:
         if value:
             return value
         data = info.data

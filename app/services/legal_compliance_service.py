@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from typing import Optional
 from datetime import date, datetime, timedelta, timezone
 
 from sqlalchemy import Select, select
@@ -32,7 +33,7 @@ def _today() -> date:
     return datetime.now(timezone.utc).date()
 
 
-def _ensure_site_exists(db: Session, site_id: int | None) -> None:
+def _ensure_site_exists(db: Session, site_id: Optional[int]) -> None:
     if site_id is not None and db.get(Site, site_id) is None:
         raise LegalComplianceValidationError("Site not found")
 
@@ -79,9 +80,9 @@ def list_legal_compliance_items(
     *,
     skip: int = 0,
     limit: int = 100,
-    compliance_status: LegalComplianceStatus | None = None,
-    site_id: int | None = None,
-    owner_user_id: int | None = None,
+    compliance_status: Optional[LegalComplianceStatus] = None,
+    site_id: Optional[int] = None,
+    owner_user_id: Optional[int] = None,
 ) -> dict:
     statement: Select[tuple[LegalComplianceItem]] = select(LegalComplianceItem)
     if compliance_status is not None:
@@ -109,7 +110,7 @@ def create_legal_compliance_item(
     db: Session,
     item_in: LegalComplianceCreate,
     *,
-    actor_id: int | None,
+    actor_id: Optional[int],
 ) -> LegalComplianceItem:
     data = item_in.model_dump()
     _ensure_site_exists(db, data.get("site_id"))
@@ -135,7 +136,7 @@ def update_legal_compliance_item(
     item: LegalComplianceItem,
     item_in: LegalComplianceUpdate,
     *,
-    actor_id: int | None,
+    actor_id: Optional[int],
 ) -> LegalComplianceItem:
     update_data = item_in.model_dump(exclude_unset=True)
     if "site_id" in update_data:

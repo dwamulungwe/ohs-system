@@ -1,3 +1,4 @@
+from typing import Optional
 import enum
 from datetime import date, datetime
 
@@ -44,7 +45,7 @@ class CorrectiveAction(TimestampMixin, Base):
         default=CorrectiveActionSourceType.manual,
         nullable=False,
     )
-    source_id: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    source_id: Mapped[Optional[int]] = mapped_column(Integer, nullable=True)
     priority: Mapped[CorrectiveActionPriority] = mapped_column(
         Enum(CorrectiveActionPriority),
         default=CorrectiveActionPriority.medium,
@@ -55,33 +56,33 @@ class CorrectiveAction(TimestampMixin, Base):
         default=CorrectiveActionStatus.open,
         nullable=False,
     )
-    due_date: Mapped[date | None] = mapped_column(Date, nullable=True)
-    started_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
-    completed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
-    closure_notes: Mapped[str | None] = mapped_column(Text, nullable=True)
+    due_date: Mapped[Optional[date]] = mapped_column(Date, nullable=True)
+    started_at: Mapped[Optional[datetime]] = mapped_column(DateTime(timezone=True), nullable=True)
+    completed_at: Mapped[Optional[datetime]] = mapped_column(DateTime(timezone=True), nullable=True)
+    closure_notes: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
     closure_evidence_metadata: Mapped[list[dict]] = mapped_column(
         MutableList.as_mutable(JSON),
         default=list,
         nullable=False,
     )
-    verification_notes: Mapped[str | None] = mapped_column(Text, nullable=True)
-    assigned_to_user_id: Mapped[int | None] = mapped_column(
+    verification_notes: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
+    assigned_to_user_id: Mapped[Optional[int]] = mapped_column(
         ForeignKey("users.id", ondelete="SET NULL"),
         index=True,
         nullable=True,
     )
-    created_by_user_id: Mapped[int | None] = mapped_column(
+    created_by_user_id: Mapped[Optional[int]] = mapped_column(
         ForeignKey("users.id", ondelete="SET NULL"),
         index=True,
         nullable=True,
     )
-    verified_by_user_id: Mapped[int | None] = mapped_column(
+    verified_by_user_id: Mapped[Optional[int]] = mapped_column(
         ForeignKey("users.id", ondelete="SET NULL"),
         nullable=True,
     )
-    verified_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    verified_at: Mapped[Optional[datetime]] = mapped_column(DateTime(timezone=True), nullable=True)
 
     site: Mapped["Site"] = relationship(lazy="selectin")
-    assigned_to: Mapped["User | None"] = relationship(foreign_keys=[assigned_to_user_id], lazy="selectin")
-    created_by: Mapped["User | None"] = relationship(foreign_keys=[created_by_user_id], lazy="selectin")
-    verified_by: Mapped["User | None"] = relationship(foreign_keys=[verified_by_user_id], lazy="selectin")
+    assigned_to: Mapped[Optional["User"]] = relationship(foreign_keys=[assigned_to_user_id], lazy="selectin")
+    created_by: Mapped[Optional["User"]] = relationship(foreign_keys=[created_by_user_id], lazy="selectin")
+    verified_by: Mapped[Optional["User"]] = relationship(foreign_keys=[verified_by_user_id], lazy="selectin")

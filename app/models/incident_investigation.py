@@ -1,3 +1,4 @@
+from typing import Optional
 import enum
 from datetime import date, datetime
 
@@ -28,7 +29,7 @@ class IncidentInvestigation(TimestampMixin, Base):
         nullable=False,
     )
     site_id: Mapped[int] = mapped_column(ForeignKey("sites.id", ondelete="RESTRICT"), index=True, nullable=False)
-    investigation_lead_user_id: Mapped[int | None] = mapped_column(
+    investigation_lead_user_id: Mapped[Optional[int]] = mapped_column(
         ForeignKey("users.id", ondelete="SET NULL"),
         nullable=True,
     )
@@ -36,7 +37,7 @@ class IncidentInvestigation(TimestampMixin, Base):
     witness_statements: Mapped[list[dict]] = mapped_column(MutableList.as_mutable(JSON), default=list, nullable=False)
     immediate_causes: Mapped[list[str]] = mapped_column(MutableList.as_mutable(JSON), default=list, nullable=False)
     underlying_causes: Mapped[list[str]] = mapped_column(MutableList.as_mutable(JSON), default=list, nullable=False)
-    root_cause: Mapped[str | None] = mapped_column(Text, nullable=True)
+    root_cause: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
     five_whys: Mapped[list[str]] = mapped_column(MutableList.as_mutable(JSON), default=list, nullable=False)
     contributing_factors: Mapped[list[str]] = mapped_column(MutableList.as_mutable(JSON), default=list, nullable=False)
     recommendations: Mapped[list[str]] = mapped_column(MutableList.as_mutable(JSON), default=list, nullable=False)
@@ -46,13 +47,13 @@ class IncidentInvestigation(TimestampMixin, Base):
         index=True,
         nullable=False,
     )
-    target_completion_date: Mapped[date | None] = mapped_column(Date, nullable=True)
-    completed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
-    approved_by_user_id: Mapped[int | None] = mapped_column(
+    target_completion_date: Mapped[Optional[date]] = mapped_column(Date, nullable=True)
+    completed_at: Mapped[Optional[datetime]] = mapped_column(DateTime(timezone=True), nullable=True)
+    approved_by_user_id: Mapped[Optional[int]] = mapped_column(
         ForeignKey("users.id", ondelete="SET NULL"),
         nullable=True,
     )
-    approved_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    approved_at: Mapped[Optional[datetime]] = mapped_column(DateTime(timezone=True), nullable=True)
     attachments_metadata: Mapped[list[dict]] = mapped_column(
         MutableList.as_mutable(JSON),
         default=list,
@@ -61,11 +62,11 @@ class IncidentInvestigation(TimestampMixin, Base):
 
     incident: Mapped["Incident"] = relationship(lazy="selectin")
     site: Mapped["Site"] = relationship(lazy="selectin")
-    investigation_lead: Mapped["User | None"] = relationship(
+    investigation_lead: Mapped[Optional["User"]] = relationship(
         foreign_keys=[investigation_lead_user_id],
         lazy="selectin",
     )
-    approved_by: Mapped["User | None"] = relationship(
+    approved_by: Mapped[Optional["User"]] = relationship(
         foreign_keys=[approved_by_user_id],
         lazy="selectin",
     )

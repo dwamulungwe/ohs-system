@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from typing import Optional
 from fastapi import HTTPException, status
 
 ROLE_ADMIN = "admin"
@@ -349,7 +350,7 @@ def get_normalized_role_names(user) -> set[str]:
     }
 
 
-def get_primary_role_name(user) -> str | None:
+def get_primary_role_name(user) -> Optional[str]:
     role_names = get_normalized_role_names(user)
     for role_name in ROLE_PRIORITY:
         if role_name in role_names:
@@ -396,7 +397,7 @@ def ensure_site_assignment(user) -> int:
     return assigned_site_id
 
 
-def resolve_site_scope(user, requested_site_id: int | None = None) -> int | None:
+def resolve_site_scope(user, requested_site_id: Optional[int] = None) -> Optional[int]:
     if not is_site_scoped(user):
         return requested_site_id
 
@@ -409,7 +410,7 @@ def resolve_site_scope(user, requested_site_id: int | None = None) -> int | None
     return assigned_site_id
 
 
-def ensure_site_access(user, site_id: int | None, detail: str = "Not authorized for this site") -> None:
+def ensure_site_access(user, site_id: Optional[int], detail: str = "Not authorized for this site") -> None:
     if site_id is None or not is_site_scoped(user):
         return
 

@@ -1,3 +1,4 @@
+from typing import Optional
 from datetime import date, datetime
 
 from pydantic import BaseModel
@@ -83,32 +84,32 @@ class DashboardSiteRiskRead(BaseModel):
 class DashboardHazardAlertRead(BaseModel):
     id: int
     title: str
-    site_id: int | None = None
-    site_name: str | None = None
+    site_id: Optional[int] = None
+    site_name: Optional[str] = None
     risk_level: str
     status: str
-    review_date: date | None = None
+    review_date: Optional[date] = None
     created_at: datetime
-    reviewed_at: datetime | None = None
+    reviewed_at: Optional[datetime] = None
 
 
 class DashboardCorrectiveActionItemRead(BaseModel):
     id: int
     title: str
-    site_id: int | None = None
-    site_name: str | None = None
+    site_id: Optional[int] = None
+    site_name: Optional[str] = None
     status: str
     priority: str
-    due_date: date | None = None
-    assigned_to_user_id: int | None = None
+    due_date: Optional[date] = None
+    assigned_to_user_id: Optional[int] = None
 
 
 class DashboardPermitItemRead(BaseModel):
     id: int
     permit_number: str
     title: str
-    site_id: int | None = None
-    site_name: str | None = None
+    site_id: Optional[int] = None
+    site_name: Optional[str] = None
     status: str
     permit_type: str
     end_datetime: datetime
@@ -118,20 +119,20 @@ class DashboardApprovalItemRead(BaseModel):
     id: int
     entity_type: str
     entity_id: int
-    site_id: int | None = None
-    site_name: str | None = None
+    site_id: Optional[int] = None
+    site_name: Optional[str] = None
     action_type: str
     status: str
-    requested_by_user_id: int | None = None
-    assigned_approver_user_id: int | None = None
+    requested_by_user_id: Optional[int] = None
+    assigned_approver_user_id: Optional[int] = None
     created_at: datetime
 
 
 class DashboardCommunicationItemRead(BaseModel):
     id: int
     title: str
-    site_id: int | None = None
-    site_name: str | None = None
+    site_id: Optional[int] = None
+    site_name: Optional[str] = None
     communication_type: str
     status: str
     issued_at: datetime
@@ -142,15 +143,15 @@ class DashboardUrgentItemRead(BaseModel):
     entity_type: str
     entity_id: int
     title: str
-    site_id: int | None = None
-    site_name: str | None = None
-    status: str | None = None
-    priority: str | None = None
-    action_type: str | None = None
+    site_id: Optional[int] = None
+    site_name: Optional[str] = None
+    status: Optional[str] = None
+    priority: Optional[str] = None
+    action_type: Optional[str] = None
     reason: str
-    due_date: date | None = None
-    end_datetime: datetime | None = None
-    created_at: datetime | None = None
+    due_date: Optional[date] = None
+    end_datetime: Optional[datetime] = None
+    created_at: Optional[datetime] = None
 
 
 class DashboardRiskRead(BaseModel):

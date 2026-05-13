@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from typing import Optional
 from sqlalchemy import Select, select
 from sqlalchemy.orm import Session
 
@@ -38,9 +39,9 @@ def list_safety_communications(
     *,
     skip: int = 0,
     limit: int = 100,
-    communication_type: SafetyCommunicationType | None = None,
-    communication_status: SafetyCommunicationStatus | None = None,
-    site_id: int | None = None,
+    communication_type: Optional[SafetyCommunicationType] = None,
+    communication_status: Optional[SafetyCommunicationStatus] = None,
+    site_id: Optional[int] = None,
 ) -> dict:
     statement: Select[tuple[SafetyCommunication]] = select(SafetyCommunication)
     if communication_type is not None:
@@ -65,7 +66,7 @@ def create_safety_communication(
     db: Session,
     communication_in: SafetyCommunicationCreate,
     *,
-    actor_id: int | None,
+    actor_id: Optional[int],
 ) -> SafetyCommunication:
     _ensure_site_exists(db, communication_in.site_id)
     communication = SafetyCommunication(**communication_in.model_dump())
@@ -88,7 +89,7 @@ def update_safety_communication(
     communication: SafetyCommunication,
     communication_in: SafetyCommunicationUpdate,
     *,
-    actor_id: int | None,
+    actor_id: Optional[int],
 ) -> SafetyCommunication:
     update_data = communication_in.model_dump(exclude_unset=True)
     if "site_id" in update_data:

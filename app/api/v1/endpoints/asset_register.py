@@ -1,3 +1,4 @@
+from typing import Optional
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.orm import Session
 
@@ -29,10 +30,10 @@ router = APIRouter()
 def read_assets(
     skip: int = Query(default=0, ge=0),
     limit: int = Query(default=100, ge=1, le=500),
-    site_id: int | None = None,
-    asset_type: AssetType | None = None,
-    condition_status: AssetConditionStatus | None = None,
-    assigned_to_user_id: int | None = None,
+    site_id: Optional[int] = None,
+    asset_type: Optional[AssetType] = None,
+    condition_status: Optional[AssetConditionStatus] = None,
+    assigned_to_user_id: Optional[int] = None,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ) -> dict:

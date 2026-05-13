@@ -1,3 +1,4 @@
+from typing import Optional
 from datetime import date, datetime, time, timezone
 
 from sqlalchemy import Select, func, select
@@ -6,19 +7,19 @@ from sqlalchemy.orm import Session
 from app.models.corrective_action import CorrectiveAction, CorrectiveActionStatus
 
 
-def date_start(value: date | None) -> datetime | None:
+def date_start(value: Optional[date]) -> Optional[datetime]:
     if value is None:
         return None
     return datetime.combine(value, time.min, tzinfo=timezone.utc)
 
 
-def date_end(value: date | None) -> datetime | None:
+def date_end(value: Optional[date]) -> Optional[datetime]:
     if value is None:
         return None
     return datetime.combine(value, time.max, tzinfo=timezone.utc)
 
 
-def apply_date_filters(statement: Select, date_field, *, date_from: date | None, date_to: date | None) -> Select:
+def apply_date_filters(statement: Select, date_field, *, date_from: Optional[date], date_to: Optional[date]) -> Select:
     start_at = date_start(date_from)
     end_at = date_end(date_to)
     if start_at is not None:
@@ -34,7 +35,7 @@ def paginate(db: Session, statement: Select, *, skip: int, limit: int) -> tuple[
     return items, total
 
 
-def is_corrective_action_overdue(action: CorrectiveAction, *, today: date | None = None) -> bool:
+def is_corrective_action_overdue(action: CorrectiveAction, *, today: Optional[date] = None) -> bool:
     today = today or date.today()
     if action.status == CorrectiveActionStatus.overdue:
         return True

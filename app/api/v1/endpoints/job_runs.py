@@ -1,3 +1,4 @@
+from typing import Optional
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.orm import Session
 
@@ -20,8 +21,8 @@ router = APIRouter()
 def read_job_runs(
     skip: int = Query(default=0, ge=0),
     limit: int = Query(default=100, ge=1, le=500),
-    job_name: str | None = None,
-    job_status: JobRunStatus | None = None,
+    job_name: Optional[str] = None,
+    job_status: Optional[JobRunStatus] = None,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ) -> dict:

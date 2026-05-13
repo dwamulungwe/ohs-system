@@ -1,3 +1,4 @@
+from typing import Optional
 import enum
 from datetime import date, datetime
 
@@ -40,18 +41,18 @@ class JobSafetyAnalysis(TimestampMixin, Base):
         default=ResidualRiskLevel.medium,
         nullable=False,
     )
-    approved_by_user_id: Mapped[int | None] = mapped_column(
+    approved_by_user_id: Mapped[Optional[int]] = mapped_column(
         ForeignKey("users.id", ondelete="SET NULL"),
         nullable=True,
     )
-    approved_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    approved_at: Mapped[Optional[datetime]] = mapped_column(DateTime(timezone=True), nullable=True)
     status: Mapped[JSAStatus] = mapped_column(
         Enum(JSAStatus),
         default=JSAStatus.draft,
         index=True,
         nullable=False,
     )
-    review_date: Mapped[date | None] = mapped_column(Date, nullable=True)
+    review_date: Mapped[Optional[date]] = mapped_column(Date, nullable=True)
     attachments_metadata: Mapped[list[dict]] = mapped_column(
         MutableList.as_mutable(JSON),
         default=list,
@@ -59,4 +60,4 @@ class JobSafetyAnalysis(TimestampMixin, Base):
     )
 
     site: Mapped["Site"] = relationship(lazy="selectin")
-    approved_by: Mapped["User | None"] = relationship(lazy="selectin")
+    approved_by: Mapped[Optional["User"]] = relationship(lazy="selectin")

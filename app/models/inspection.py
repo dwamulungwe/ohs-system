@@ -1,3 +1,4 @@
+from typing import Optional
 import enum
 from datetime import datetime
 
@@ -45,8 +46,8 @@ class Inspection(TimestampMixin, Base):
         default=InspectionStatus.draft,
         nullable=False,
     )
-    notes: Mapped[str | None] = mapped_column(Text, nullable=True)
-    findings_summary: Mapped[str | None] = mapped_column(Text, nullable=True)
+    notes: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
+    findings_summary: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
     overall_result: Mapped[InspectionOverallResult] = mapped_column(Enum(InspectionOverallResult), nullable=False)
     number_of_non_conformities: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
     number_of_observations: Mapped[int] = mapped_column(Integer, default=0, nullable=False)

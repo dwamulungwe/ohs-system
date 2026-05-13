@@ -1,3 +1,4 @@
+from typing import Optional
 from datetime import datetime
 
 from pydantic import BaseModel, ConfigDict, Field, model_validator
@@ -13,12 +14,12 @@ class SafetyCommunicationBase(BaseModel):
     communication_type: SafetyCommunicationType
     status: SafetyCommunicationStatus = SafetyCommunicationStatus.draft
     summary: str = Field(min_length=2)
-    details: str | None = None
-    audience: str | None = Field(default=None, max_length=200)
+    details: Optional[str] = None
+    audience: Optional[str] = Field(default=None, max_length=200)
     requires_acknowledgement: bool = False
     issued_at: datetime
-    expires_at: datetime | None = None
-    owner_user_id: int | None = None
+    expires_at: Optional[datetime] = None
+    owner_user_id: Optional[int] = None
     attachments_metadata: list[AttachmentMetadata] = Field(default_factory=list)
 
     @model_validator(mode="after")
@@ -33,18 +34,18 @@ class SafetyCommunicationCreate(SafetyCommunicationBase):
 
 
 class SafetyCommunicationUpdate(BaseModel):
-    site_id: int | None = None
-    title: str | None = Field(default=None, min_length=2, max_length=200)
-    communication_type: SafetyCommunicationType | None = None
-    status: SafetyCommunicationStatus | None = None
-    summary: str | None = Field(default=None, min_length=2)
-    details: str | None = None
-    audience: str | None = Field(default=None, max_length=200)
-    requires_acknowledgement: bool | None = None
-    issued_at: datetime | None = None
-    expires_at: datetime | None = None
-    owner_user_id: int | None = None
-    attachments_metadata: list[AttachmentMetadata] | None = None
+    site_id: Optional[int] = None
+    title: Optional[str] = Field(default=None, min_length=2, max_length=200)
+    communication_type: Optional[SafetyCommunicationType] = None
+    status: Optional[SafetyCommunicationStatus] = None
+    summary: Optional[str] = Field(default=None, min_length=2)
+    details: Optional[str] = None
+    audience: Optional[str] = Field(default=None, max_length=200)
+    requires_acknowledgement: Optional[bool] = None
+    issued_at: Optional[datetime] = None
+    expires_at: Optional[datetime] = None
+    owner_user_id: Optional[int] = None
+    attachments_metadata: Optional[list[AttachmentMetadata]] = None
 
 
 class SafetyCommunicationRead(SafetyCommunicationBase):

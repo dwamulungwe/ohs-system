@@ -1,3 +1,4 @@
+from typing import Optional
 import os
 from collections.abc import Generator
 
@@ -91,10 +92,10 @@ def create_user_for_role(db_session: Session, role_lookup: dict[str, Role]):
     def factory(
         role_name: str,
         *,
-        assigned_site_id: int | None = None,
-        email: str | None = None,
-        full_name: str | None = None,
-        extra_roles: list[str] | None = None,
+        assigned_site_id: Optional[int] = None,
+        email: Optional[str] = None,
+        full_name: Optional[str] = None,
+        extra_roles: Optional[list[str]] = None,
     ) -> User:
         user_id = next_user_id["value"]
         next_user_id["value"] += 1

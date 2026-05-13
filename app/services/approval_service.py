@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from typing import Optional
 from datetime import datetime, timezone
 
 from fastapi import HTTPException, status
@@ -101,7 +102,7 @@ def _get_entity(db: Session, entity_type: ApprovalEntityType, entity_id: int):
     return entity
 
 
-def _get_entity_site_id(entity) -> int | None:
+def _get_entity_site_id(entity) -> Optional[int]:
     return getattr(entity, "site_id", None)
 
 
@@ -110,7 +111,7 @@ def _ensure_entity_view_access(current_user: User, entity_type: ApprovalEntityTy
     ensure_site_access(current_user, _get_entity_site_id(entity))
 
 
-def _ensure_assigned_approver_is_valid(db: Session, assigned_approver_user_id: int | None) -> None:
+def _ensure_assigned_approver_is_valid(db: Session, assigned_approver_user_id: Optional[int]) -> None:
     if assigned_approver_user_id is None:
         return
     approver = db.get(User, assigned_approver_user_id)
@@ -329,7 +330,7 @@ def _write_entity_transition_audit_log(
     db: Session,
     *,
     approval: ApprovalWorkflow,
-    actor_id: int | None,
+    actor_id: Optional[int],
 ) -> None:
     action_by_approval = {
         ApprovalActionType.incident_closure: "incident.workflow_closed",
@@ -356,10 +357,10 @@ def list_approvals(
     current_user: User,
     skip: int = 0,
     limit: int = 100,
-    entity_type: ApprovalEntityType | None = None,
-    entity_id: int | None = None,
-    action_type: ApprovalActionType | None = None,
-    approval_status: ApprovalStatus | None = None,
+    entity_type: Optional[ApprovalEntityType] = None,
+    entity_id: Optional[int] = None,
+    action_type: Optional[ApprovalActionType] = None,
+    approval_status: Optional[ApprovalStatus] = None,
 ) -> dict:
     ensure_permission(current_user, Permission.APPROVALS_VIEW)
 

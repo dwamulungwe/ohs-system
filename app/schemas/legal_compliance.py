@@ -1,3 +1,4 @@
+from typing import Optional
 from datetime import date, datetime
 
 from pydantic import BaseModel, ConfigDict, Field
@@ -12,14 +13,14 @@ class LegalComplianceBase(BaseModel):
     regulatory_body: str = Field(min_length=2, max_length=200)
     legal_reference: str = Field(min_length=2, max_length=200)
     requirement_summary: str = Field(min_length=2)
-    site_id: int | None = None
+    site_id: Optional[int] = None
     owner_user_id: int
     compliance_status: LegalComplianceStatus = LegalComplianceStatus.pending_review
     review_frequency: str = Field(min_length=2, max_length=120)
-    next_review_date: date | None = None
-    last_reviewed_at: datetime | None = None
+    next_review_date: Optional[date] = None
+    last_reviewed_at: Optional[datetime] = None
     evidence_required: bool = False
-    notes: str | None = None
+    notes: Optional[str] = None
     attachments_metadata: list[AttachmentMetadata] = Field(default_factory=list)
 
 
@@ -28,19 +29,19 @@ class LegalComplianceCreate(LegalComplianceBase):
 
 
 class LegalComplianceUpdate(BaseModel):
-    title: str | None = Field(default=None, min_length=2, max_length=200)
-    regulatory_body: str | None = Field(default=None, min_length=2, max_length=200)
-    legal_reference: str | None = Field(default=None, min_length=2, max_length=200)
-    requirement_summary: str | None = Field(default=None, min_length=2)
-    site_id: int | None = None
-    owner_user_id: int | None = None
-    compliance_status: LegalComplianceStatus | None = None
-    review_frequency: str | None = Field(default=None, min_length=2, max_length=120)
-    next_review_date: date | None = None
-    last_reviewed_at: datetime | None = None
-    evidence_required: bool | None = None
-    notes: str | None = None
-    attachments_metadata: list[AttachmentMetadata] | None = None
+    title: Optional[str] = Field(default=None, min_length=2, max_length=200)
+    regulatory_body: Optional[str] = Field(default=None, min_length=2, max_length=200)
+    legal_reference: Optional[str] = Field(default=None, min_length=2, max_length=200)
+    requirement_summary: Optional[str] = Field(default=None, min_length=2)
+    site_id: Optional[int] = None
+    owner_user_id: Optional[int] = None
+    compliance_status: Optional[LegalComplianceStatus] = None
+    review_frequency: Optional[str] = Field(default=None, min_length=2, max_length=120)
+    next_review_date: Optional[date] = None
+    last_reviewed_at: Optional[datetime] = None
+    evidence_required: Optional[bool] = None
+    notes: Optional[str] = None
+    attachments_metadata: Optional[list[AttachmentMetadata]] = None
 
 
 class LegalComplianceRead(LegalComplianceBase):

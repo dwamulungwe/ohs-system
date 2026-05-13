@@ -1,3 +1,4 @@
+from typing import Optional
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.orm import Session
 
@@ -30,9 +31,9 @@ router = APIRouter()
 def read_documents(
     skip: int = Query(default=0, ge=0),
     limit: int = Query(default=100, ge=1, le=500),
-    status: DocumentStatus | None = None,
-    document_type: DocumentType | None = None,
-    site_id: int | None = None,
+    status: Optional[DocumentStatus] = None,
+    document_type: Optional[DocumentType] = None,
+    site_id: Optional[int] = None,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ) -> dict:

@@ -1,3 +1,4 @@
+from typing import Optional
 from datetime import date, datetime
 
 from pydantic import BaseModel, ConfigDict, Field
@@ -11,14 +12,14 @@ class DocumentControlBase(BaseModel):
     title: str = Field(min_length=2, max_length=200)
     document_type: DocumentType
     version: str = Field(min_length=1, max_length=80)
-    site_id: int | None = None
-    approved_by_user_id: int | None = None
-    approved_at: datetime | None = None
-    expiry_date: date | None = None
+    site_id: Optional[int] = None
+    approved_by_user_id: Optional[int] = None
+    approved_at: Optional[datetime] = None
+    expiry_date: Optional[date] = None
     status: DocumentStatus = DocumentStatus.draft
     acknowledgement_required: bool = False
     acknowledgement_user_ids: list[int] = Field(default_factory=list)
-    supersedes_document_id: int | None = None
+    supersedes_document_id: Optional[int] = None
     attachments_metadata: list[AttachmentMetadata] = Field(default_factory=list)
 
 
@@ -27,23 +28,23 @@ class DocumentControlCreate(DocumentControlBase):
 
 
 class DocumentControlUpdate(BaseModel):
-    title: str | None = Field(default=None, min_length=2, max_length=200)
-    document_type: DocumentType | None = None
-    version: str | None = Field(default=None, min_length=1, max_length=80)
-    site_id: int | None = None
-    approved_by_user_id: int | None = None
-    approved_at: datetime | None = None
-    expiry_date: date | None = None
-    status: DocumentStatus | None = None
-    acknowledgement_required: bool | None = None
-    acknowledgement_user_ids: list[int] | None = None
-    supersedes_document_id: int | None = None
-    attachments_metadata: list[AttachmentMetadata] | None = None
+    title: Optional[str] = Field(default=None, min_length=2, max_length=200)
+    document_type: Optional[DocumentType] = None
+    version: Optional[str] = Field(default=None, min_length=1, max_length=80)
+    site_id: Optional[int] = None
+    approved_by_user_id: Optional[int] = None
+    approved_at: Optional[datetime] = None
+    expiry_date: Optional[date] = None
+    status: Optional[DocumentStatus] = None
+    acknowledgement_required: Optional[bool] = None
+    acknowledgement_user_ids: Optional[list[int]] = None
+    supersedes_document_id: Optional[int] = None
+    attachments_metadata: Optional[list[AttachmentMetadata]] = None
 
 
 class DocumentControlRead(DocumentControlBase):
     id: int
-    created_by_user_id: int | None = None
+    created_by_user_id: Optional[int] = None
     attachments: list[AttachmentRead] = Field(default_factory=list)
     created_at: datetime
     updated_at: datetime

@@ -1,3 +1,4 @@
+from typing import Optional
 from datetime import date, datetime
 
 from pydantic import BaseModel, ConfigDict, Field
@@ -12,15 +13,15 @@ from app.schemas.common import AttachmentMetadata, PaginatedResponse
 
 class MedicalSurveillanceBase(BaseModel):
     employee_user_id: int
-    site_id: int | None = None
+    site_id: Optional[int] = None
     surveillance_type: str = Field(min_length=2, max_length=120)
     due_date: date
-    completed_at: datetime | None = None
+    completed_at: Optional[datetime] = None
     status: MedicalSurveillanceStatus = MedicalSurveillanceStatus.due
-    results_summary: str | None = None
+    results_summary: Optional[str] = None
     medical_clearance_status: MedicalClearanceStatus = MedicalClearanceStatus.pending
-    next_due_date: date | None = None
-    notes: str | None = None
+    next_due_date: Optional[date] = None
+    notes: Optional[str] = None
     attachments_metadata: list[AttachmentMetadata] = Field(default_factory=list)
 
 
@@ -29,17 +30,17 @@ class MedicalSurveillanceCreate(MedicalSurveillanceBase):
 
 
 class MedicalSurveillanceUpdate(BaseModel):
-    employee_user_id: int | None = None
-    site_id: int | None = None
-    surveillance_type: str | None = Field(default=None, min_length=2, max_length=120)
-    due_date: date | None = None
-    completed_at: datetime | None = None
-    status: MedicalSurveillanceStatus | None = None
-    results_summary: str | None = None
-    medical_clearance_status: MedicalClearanceStatus | None = None
-    next_due_date: date | None = None
-    notes: str | None = None
-    attachments_metadata: list[AttachmentMetadata] | None = None
+    employee_user_id: Optional[int] = None
+    site_id: Optional[int] = None
+    surveillance_type: Optional[str] = Field(default=None, min_length=2, max_length=120)
+    due_date: Optional[date] = None
+    completed_at: Optional[datetime] = None
+    status: Optional[MedicalSurveillanceStatus] = None
+    results_summary: Optional[str] = None
+    medical_clearance_status: Optional[MedicalClearanceStatus] = None
+    next_due_date: Optional[date] = None
+    notes: Optional[str] = None
+    attachments_metadata: Optional[list[AttachmentMetadata]] = None
 
 
 class MedicalSurveillanceRead(MedicalSurveillanceBase):

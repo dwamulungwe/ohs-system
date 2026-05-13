@@ -1,3 +1,4 @@
+from typing import Optional
 from datetime import datetime, timezone
 
 from sqlalchemy import Select, select
@@ -37,9 +38,9 @@ def list_incidents(
     *,
     skip: int = 0,
     limit: int = 100,
-    status: IncidentStatus | None = None,
-    severity: IncidentSeverity | None = None,
-    site_id: int | None = None,
+    status: Optional[IncidentStatus] = None,
+    severity: Optional[IncidentSeverity] = None,
+    site_id: Optional[int] = None,
 ) -> dict:
     statement: Select[tuple[Incident]] = select(Incident)
     if status is not None:
@@ -61,7 +62,7 @@ def get_incident(db: Session, incident_id: int) -> Incident:
     return incident
 
 
-def create_incident(db: Session, incident_in: IncidentCreate, *, reported_by_id: int | None) -> Incident:
+def create_incident(db: Session, incident_in: IncidentCreate, *, reported_by_id: Optional[int]) -> Incident:
     _ensure_site_exists(db, incident_in.site_id)
     incident_data = incident_in.model_dump()
     if incident_data.get("is_lost_time"):
@@ -89,7 +90,7 @@ def create_incident(db: Session, incident_in: IncidentCreate, *, reported_by_id:
     return incident
 
 
-def update_incident(db: Session, incident: Incident, incident_in: IncidentUpdate, *, actor_id: int | None = None) -> Incident:
+def update_incident(db: Session, incident: Incident, incident_in: IncidentUpdate, *, actor_id: Optional[int] = None) -> Incident:
     update_data = incident_in.model_dump(exclude_unset=True)
     if "site_id" in update_data:
         _ensure_site_exists(db, update_data["site_id"])

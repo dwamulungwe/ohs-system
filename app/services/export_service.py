@@ -3,7 +3,7 @@ import html
 import io
 import json
 from datetime import date, datetime
-from typing import Iterable
+from typing import Iterable, Optional
 
 from sqlalchemy import Select, select
 from sqlalchemy.orm import Session
@@ -72,7 +72,7 @@ def _csv(headers: list[str], rows: Iterable[dict]) -> str:
     return output.getvalue()
 
 
-def _apply_common_filters(statement: Select, model, *, site_id: int | None, date_field, date_from: date | None, date_to: date | None):
+def _apply_common_filters(statement: Select, model, *, site_id: Optional[int], date_field, date_from: Optional[date], date_to: Optional[date]):
     if site_id is not None:
         statement = statement.where(model.site_id == site_id)
     return apply_date_filters(statement, date_field, date_from=date_from, date_to=date_to)
@@ -664,11 +664,11 @@ def render_audit_management_report(db: Session, audit_id: int) -> str:
 def export_incidents_csv(
     db: Session,
     *,
-    site_id: int | None = None,
-    status: IncidentStatus | None = None,
-    severity: IncidentSeverity | None = None,
-    date_from: date | None = None,
-    date_to: date | None = None,
+    site_id: Optional[int] = None,
+    status: Optional[IncidentStatus] = None,
+    severity: Optional[IncidentSeverity] = None,
+    date_from: Optional[date] = None,
+    date_to: Optional[date] = None,
 ) -> str:
     statement = _apply_common_filters(select(Incident), Incident, site_id=site_id, date_field=Incident.occurred_at, date_from=date_from, date_to=date_to)
     if status is not None:
@@ -696,11 +696,11 @@ def export_incidents_csv(
 def export_hazards_csv(
     db: Session,
     *,
-    site_id: int | None = None,
-    status: HazardStatus | None = None,
-    risk_level: HazardRiskLevel | None = None,
-    date_from: date | None = None,
-    date_to: date | None = None,
+    site_id: Optional[int] = None,
+    status: Optional[HazardStatus] = None,
+    risk_level: Optional[HazardRiskLevel] = None,
+    date_from: Optional[date] = None,
+    date_to: Optional[date] = None,
 ) -> str:
     statement = _apply_common_filters(select(Hazard), Hazard, site_id=site_id, date_field=Hazard.created_at, date_from=date_from, date_to=date_to)
     if status is not None:
@@ -730,11 +730,11 @@ def export_hazards_csv(
 def export_inspections_csv(
     db: Session,
     *,
-    site_id: int | None = None,
-    status: InspectionStatus | None = None,
-    overall_result: InspectionOverallResult | None = None,
-    date_from: date | None = None,
-    date_to: date | None = None,
+    site_id: Optional[int] = None,
+    status: Optional[InspectionStatus] = None,
+    overall_result: Optional[InspectionOverallResult] = None,
+    date_from: Optional[date] = None,
+    date_to: Optional[date] = None,
 ) -> str:
     statement = _apply_common_filters(select(Inspection), Inspection, site_id=site_id, date_field=Inspection.inspection_date, date_from=date_from, date_to=date_to)
     if status is not None:
@@ -764,13 +764,13 @@ def export_inspections_csv(
 def export_corrective_actions_csv(
     db: Session,
     *,
-    site_id: int | None = None,
-    status: CorrectiveActionStatus | None = None,
-    priority: CorrectiveActionPriority | None = None,
-    assigned_to_user_id: int | None = None,
-    source_type: CorrectiveActionSourceType | None = None,
-    date_from: date | None = None,
-    date_to: date | None = None,
+    site_id: Optional[int] = None,
+    status: Optional[CorrectiveActionStatus] = None,
+    priority: Optional[CorrectiveActionPriority] = None,
+    assigned_to_user_id: Optional[int] = None,
+    source_type: Optional[CorrectiveActionSourceType] = None,
+    date_from: Optional[date] = None,
+    date_to: Optional[date] = None,
 ) -> str:
     statement = _apply_common_filters(select(CorrectiveAction), CorrectiveAction, site_id=site_id, date_field=CorrectiveAction.created_at, date_from=date_from, date_to=date_to)
     if status is not None:
@@ -805,11 +805,11 @@ def export_corrective_actions_csv(
 def export_incident_investigations_csv(
     db: Session,
     *,
-    site_id: int | None = None,
-    status: IncidentInvestigationStatus | None = None,
-    incident_id: int | None = None,
-    date_from: date | None = None,
-    date_to: date | None = None,
+    site_id: Optional[int] = None,
+    status: Optional[IncidentInvestigationStatus] = None,
+    incident_id: Optional[int] = None,
+    date_from: Optional[date] = None,
+    date_to: Optional[date] = None,
 ) -> str:
     statement = _apply_common_filters(
         select(IncidentInvestigation),
@@ -855,11 +855,11 @@ def export_incident_investigations_csv(
 def export_legal_compliance_csv(
     db: Session,
     *,
-    site_id: int | None = None,
-    compliance_status: LegalComplianceStatus | None = None,
-    owner_user_id: int | None = None,
-    date_from: date | None = None,
-    date_to: date | None = None,
+    site_id: Optional[int] = None,
+    compliance_status: Optional[LegalComplianceStatus] = None,
+    owner_user_id: Optional[int] = None,
+    date_from: Optional[date] = None,
+    date_to: Optional[date] = None,
 ) -> str:
     statement = _apply_common_filters(
         select(LegalComplianceItem),
@@ -909,11 +909,11 @@ def export_legal_compliance_csv(
 def export_jsas_csv(
     db: Session,
     *,
-    site_id: int | None = None,
-    status: JSAStatus | None = None,
-    residual_risk_level: ResidualRiskLevel | None = None,
-    date_from: date | None = None,
-    date_to: date | None = None,
+    site_id: Optional[int] = None,
+    status: Optional[JSAStatus] = None,
+    residual_risk_level: Optional[ResidualRiskLevel] = None,
+    date_from: Optional[date] = None,
+    date_to: Optional[date] = None,
 ) -> str:
     statement = _apply_common_filters(
         select(JobSafetyAnalysis),
@@ -959,11 +959,11 @@ def export_jsas_csv(
 def export_contractors_csv(
     db: Session,
     *,
-    site_id: int | None = None,
-    approved_for_work: bool | None = None,
-    onboarding_status: ContractorOnboardingStatus | None = None,
-    induction_status: ContractorInductionStatus | None = None,
-    compliance_documents_status: ContractorComplianceDocumentsStatus | None = None,
+    site_id: Optional[int] = None,
+    approved_for_work: Optional[bool] = None,
+    onboarding_status: Optional[ContractorOnboardingStatus] = None,
+    induction_status: Optional[ContractorInductionStatus] = None,
+    compliance_documents_status: Optional[ContractorComplianceDocumentsStatus] = None,
 ) -> str:
     statement = select(ContractorRecord)
     if site_id is not None:
@@ -1014,12 +1014,12 @@ def export_contractors_csv(
 def export_asset_register_csv(
     db: Session,
     *,
-    site_id: int | None = None,
-    asset_type: AssetType | None = None,
-    condition_status: AssetConditionStatus | None = None,
-    assigned_to_user_id: int | None = None,
-    date_from: date | None = None,
-    date_to: date | None = None,
+    site_id: Optional[int] = None,
+    asset_type: Optional[AssetType] = None,
+    condition_status: Optional[AssetConditionStatus] = None,
+    assigned_to_user_id: Optional[int] = None,
+    date_from: Optional[date] = None,
+    date_to: Optional[date] = None,
 ) -> str:
     statement = _apply_common_filters(
         select(AssetRegisterItem),
@@ -1071,12 +1071,12 @@ def export_asset_register_csv(
 def export_medical_surveillance_csv(
     db: Session,
     *,
-    site_id: int | None = None,
-    status: MedicalSurveillanceStatus | None = None,
-    employee_user_id: int | None = None,
-    medical_clearance_status: MedicalClearanceStatus | None = None,
-    date_from: date | None = None,
-    date_to: date | None = None,
+    site_id: Optional[int] = None,
+    status: Optional[MedicalSurveillanceStatus] = None,
+    employee_user_id: Optional[int] = None,
+    medical_clearance_status: Optional[MedicalClearanceStatus] = None,
+    date_from: Optional[date] = None,
+    date_to: Optional[date] = None,
 ) -> str:
     statement = _apply_common_filters(
         select(MedicalSurveillanceRecord),
@@ -1126,10 +1126,10 @@ def export_medical_surveillance_csv(
 def export_emergency_drills_csv(
     db: Session,
     *,
-    site_id: int | None = None,
-    status: EmergencyDrillStatus | None = None,
-    date_from: date | None = None,
-    date_to: date | None = None,
+    site_id: Optional[int] = None,
+    status: Optional[EmergencyDrillStatus] = None,
+    date_from: Optional[date] = None,
+    date_to: Optional[date] = None,
 ) -> str:
     statement = _apply_common_filters(
         select(EmergencyDrillRecord),
@@ -1160,11 +1160,11 @@ def export_emergency_drills_csv(
 def export_documents_csv(
     db: Session,
     *,
-    site_id: int | None = None,
-    status: DocumentStatus | None = None,
-    document_type: DocumentType | None = None,
-    date_from: date | None = None,
-    date_to: date | None = None,
+    site_id: Optional[int] = None,
+    status: Optional[DocumentStatus] = None,
+    document_type: Optional[DocumentType] = None,
+    date_from: Optional[date] = None,
+    date_to: Optional[date] = None,
 ) -> str:
     statement = _apply_common_filters(
         select(DocumentControlRecord),
@@ -1208,11 +1208,11 @@ def export_documents_csv(
 def export_audits_csv(
     db: Session,
     *,
-    site_id: int | None = None,
-    status: AuditStatus | None = None,
-    audit_type: AuditType | None = None,
-    date_from: date | None = None,
-    date_to: date | None = None,
+    site_id: Optional[int] = None,
+    status: Optional[AuditStatus] = None,
+    audit_type: Optional[AuditType] = None,
+    date_from: Optional[date] = None,
+    date_to: Optional[date] = None,
 ) -> str:
     statement = _apply_common_filters(
         select(AuditManagementRecord),
@@ -1243,7 +1243,7 @@ def export_audits_csv(
     return _csv(headers, rows)
 
 
-def render_executive_summary_report(db: Session, *, site_id: int | None = None, date_from: date | None = None, date_to: date | None = None) -> str:
+def render_executive_summary_report(db: Session, *, site_id: Optional[int] = None, date_from: Optional[date] = None, date_to: Optional[date] = None) -> str:
     overview = get_dashboard_overview(db, site_id=site_id, date_from=date_from, date_to=date_to)
     site_summaries = get_site_summaries(db, site_id=site_id, date_from=date_from, date_to=date_to)
     return _render_html(
@@ -1255,7 +1255,7 @@ def render_executive_summary_report(db: Session, *, site_id: int | None = None, 
     )
 
 
-def render_overdue_corrective_actions_report(db: Session, *, site_id: int | None = None) -> str:
+def render_overdue_corrective_actions_report(db: Session, *, site_id: Optional[int] = None) -> str:
     statement = select(CorrectiveAction)
     if site_id is not None:
         statement = statement.where(CorrectiveAction.site_id == site_id)
@@ -1266,7 +1266,7 @@ def render_overdue_corrective_actions_report(db: Session, *, site_id: int | None
     )
 
 
-def render_critical_hazards_report(db: Session, *, site_id: int | None = None) -> str:
+def render_critical_hazards_report(db: Session, *, site_id: Optional[int] = None) -> str:
     statement = select(Hazard).where(Hazard.risk_level == HazardRiskLevel.critical)
     if site_id is not None:
         statement = statement.where(Hazard.site_id == site_id)
@@ -1277,7 +1277,7 @@ def render_critical_hazards_report(db: Session, *, site_id: int | None = None) -
     )
 
 
-def render_incidents_summary_report(db: Session, *, site_id: int | None = None, date_from: date | None = None, date_to: date | None = None) -> str:
+def render_incidents_summary_report(db: Session, *, site_id: Optional[int] = None, date_from: Optional[date] = None, date_to: Optional[date] = None) -> str:
     overview = get_dashboard_overview(db, site_id=site_id, date_from=date_from, date_to=date_to)
     return _render_html(
         "Incidents Summary Report",

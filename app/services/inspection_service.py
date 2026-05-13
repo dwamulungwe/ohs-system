@@ -1,3 +1,4 @@
+from typing import Optional
 from sqlalchemy import Select, select
 from sqlalchemy.orm import Session
 
@@ -94,11 +95,11 @@ def list_inspections(
     *,
     skip: int = 0,
     limit: int = 100,
-    status: InspectionStatus | None = None,
-    overall_result: InspectionOverallResult | None = None,
-    site_id: int | None = None,
-    inspector_user_id: int | None = None,
-    inspection_type: str | None = None,
+    status: Optional[InspectionStatus] = None,
+    overall_result: Optional[InspectionOverallResult] = None,
+    site_id: Optional[int] = None,
+    inspector_user_id: Optional[int] = None,
+    inspection_type: Optional[str] = None,
 ) -> dict:
     statement: Select[tuple[Inspection]] = select(Inspection)
     if status is not None:
@@ -124,7 +125,7 @@ def get_inspection(db: Session, inspection_id: int) -> Inspection:
     return inspection
 
 
-def create_inspection(db: Session, inspection_in: InspectionCreate, *, actor_id: int | None = None) -> Inspection:
+def create_inspection(db: Session, inspection_in: InspectionCreate, *, actor_id: Optional[int] = None) -> Inspection:
     data = inspection_in.model_dump()
     linked_hazard_ids = data.pop("linked_hazard_ids", [])
     _dump_json_items(data)
@@ -158,7 +159,7 @@ def update_inspection(
     inspection: Inspection,
     inspection_in: InspectionUpdate,
     *,
-    actor_id: int | None = None,
+    actor_id: Optional[int] = None,
 ) -> Inspection:
     update_data = inspection_in.model_dump(exclude_unset=True)
     linked_hazard_ids = update_data.pop("linked_hazard_ids", None)

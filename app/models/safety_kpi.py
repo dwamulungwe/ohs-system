@@ -1,3 +1,4 @@
+from typing import Optional
 from datetime import date
 
 from sqlalchemy import Date, Float, ForeignKey, Integer, String, Text, UniqueConstraint
@@ -23,14 +24,14 @@ class SafetyKPIRecord(TimestampMixin, Base):
     period_start: Mapped[date] = mapped_column(Date, nullable=False)
     period_end: Mapped[date] = mapped_column(Date, nullable=False)
     hours_worked: Mapped[float] = mapped_column(Float, nullable=False)
-    reporting_label: Mapped[str | None] = mapped_column(String(120), nullable=True)
-    employees_count: Mapped[int | None] = mapped_column(Integer, nullable=True)
-    contractors_count: Mapped[int | None] = mapped_column(Integer, nullable=True)
-    notes: Mapped[str | None] = mapped_column(Text, nullable=True)
-    created_by_user_id: Mapped[int | None] = mapped_column(
+    reporting_label: Mapped[Optional[str]] = mapped_column(String(120), nullable=True)
+    employees_count: Mapped[Optional[int]] = mapped_column(Integer, nullable=True)
+    contractors_count: Mapped[Optional[int]] = mapped_column(Integer, nullable=True)
+    notes: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
+    created_by_user_id: Mapped[Optional[int]] = mapped_column(
         ForeignKey("users.id", ondelete="SET NULL"),
         nullable=True,
     )
 
     site: Mapped["Site"] = relationship(lazy="selectin")
-    created_by: Mapped["User | None"] = relationship(lazy="selectin")
+    created_by: Mapped[Optional["User"]] = relationship(lazy="selectin")

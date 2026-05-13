@@ -1,3 +1,4 @@
+from typing import Optional
 import enum
 from datetime import datetime
 
@@ -35,43 +36,77 @@ class ApprovalWorkflow(TimestampMixin, Base):
     __tablename__ = "approval_workflows"
 
     id: Mapped[int] = mapped_column(primary_key=True, index=True)
-    entity_type: Mapped[ApprovalEntityType] = mapped_column(Enum(ApprovalEntityType), index=True, nullable=False)
-    entity_id: Mapped[int] = mapped_column(Integer, index=True, nullable=False)
-    requested_by_user_id: Mapped[int | None] = mapped_column(
+
+    entity_type: Mapped[ApprovalEntityType] = mapped_column(
+        Enum(ApprovalEntityType),
+        index=True,
+        nullable=False,
+    )
+
+    entity_id: Mapped[int] = mapped_column(
+        Integer,
+        index=True,
+        nullable=False,
+    )
+
+    requested_by_user_id: Mapped[Optional[int]] = mapped_column(
         ForeignKey("users.id", ondelete="SET NULL"),
         index=True,
         nullable=True,
     )
-    assigned_approver_user_id: Mapped[int | None] = mapped_column(
+
+    assigned_approver_user_id: Mapped[Optional[int]] = mapped_column(
         ForeignKey("users.id", ondelete="SET NULL"),
         index=True,
         nullable=True,
     )
-    action_type: Mapped[ApprovalActionType] = mapped_column(Enum(ApprovalActionType), index=True, nullable=False)
+
+    action_type: Mapped[ApprovalActionType] = mapped_column(
+        Enum(ApprovalActionType),
+        index=True,
+        nullable=False,
+    )
+
     status: Mapped[ApprovalStatus] = mapped_column(
         Enum(ApprovalStatus),
         default=ApprovalStatus.pending,
         index=True,
         nullable=False,
     )
-    request_notes: Mapped[str | None] = mapped_column(Text, nullable=True)
-    decision_notes: Mapped[str | None] = mapped_column(Text, nullable=True)
-    decided_by_user_id: Mapped[int | None] = mapped_column(
+
+    request_notes: Mapped[Optional[str]] = mapped_column(
+        Text,
+        nullable=True,
+    )
+
+    decision_notes: Mapped[Optional[str]] = mapped_column(
+        Text,
+        nullable=True,
+    )
+
+    decided_by_user_id: Mapped[Optional[int]] = mapped_column(
         ForeignKey("users.id", ondelete="SET NULL"),
         index=True,
         nullable=True,
     )
-    decided_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
 
-    requested_by: Mapped["User | None"] = relationship(
+    decided_at: Mapped[Optional[datetime]] = mapped_column(
+        DateTime(timezone=True),
+        nullable=True,
+    )
+
+    # Relationships
+    requested_by: Mapped[Optional["User"]] = relationship(
         foreign_keys=[requested_by_user_id],
         lazy="selectin",
     )
-    assigned_approver: Mapped["User | None"] = relationship(
+
+    assigned_approver: Mapped[Optional["User"]] = relationship(
         foreign_keys=[assigned_approver_user_id],
         lazy="selectin",
     )
-    decided_by: Mapped["User | None"] = relationship(
+
+    decided_by: Mapped[Optional["User"]] = relationship(
         foreign_keys=[decided_by_user_id],
         lazy="selectin",
     )

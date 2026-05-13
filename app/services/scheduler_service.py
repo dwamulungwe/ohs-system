@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from typing import Optional
 from datetime import datetime, timedelta, timezone
 from threading import Event, Thread
 from time import sleep
@@ -48,7 +49,7 @@ from app.services.training_service import (
 )
 
 _scheduler_stop_event = Event()
-_scheduler_thread: Thread | None = None
+_scheduler_thread: Optional[Thread] = None
 
 
 class JobRunNotFoundError(Exception):
@@ -73,8 +74,8 @@ def _complete_job_run(
     *,
     status: JobRunStatus,
     records_processed: int,
-    details: dict | None = None,
-    error_message: str | None = None,
+    details: Optional[dict] = None,
+    error_message: Optional[str] = None,
 ) -> JobRun:
     job_run.status = status
     job_run.records_processed = records_processed
@@ -228,8 +229,8 @@ def list_job_runs(
     *,
     skip: int = 0,
     limit: int = 100,
-    job_name: str | None = None,
-    job_status: JobRunStatus | None = None,
+    job_name: Optional[str] = None,
+    job_status: Optional[JobRunStatus] = None,
 ) -> dict:
     statement: Select[tuple[JobRun]] = select(JobRun)
     if job_name is not None:

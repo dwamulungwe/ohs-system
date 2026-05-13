@@ -1,3 +1,4 @@
+from typing import Optional
 import enum
 from datetime import date, datetime
 
@@ -33,20 +34,20 @@ class AssetRegisterItem(TimestampMixin, Base):
     asset_tag: Mapped[str] = mapped_column(String(120), unique=True, index=True, nullable=False)
     site_id: Mapped[int] = mapped_column(ForeignKey("sites.id", ondelete="RESTRICT"), index=True, nullable=False)
     location: Mapped[str] = mapped_column(String(255), nullable=False)
-    assigned_to_user_id: Mapped[int | None] = mapped_column(
+    assigned_to_user_id: Mapped[Optional[int]] = mapped_column(
         ForeignKey("users.id", ondelete="SET NULL"),
         nullable=True,
     )
     inspection_frequency: Mapped[str] = mapped_column(String(120), nullable=False)
-    next_inspection_date: Mapped[date | None] = mapped_column(Date, nullable=True)
+    next_inspection_date: Mapped[Optional[date]] = mapped_column(Date, nullable=True)
     condition_status: Mapped[AssetConditionStatus] = mapped_column(
         Enum(AssetConditionStatus),
         default=AssetConditionStatus.good,
         index=True,
         nullable=False,
     )
-    last_inspected_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
-    notes: Mapped[str | None] = mapped_column(Text, nullable=True)
+    last_inspected_at: Mapped[Optional[datetime]] = mapped_column(DateTime(timezone=True), nullable=True)
+    notes: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
     attachments_metadata: Mapped[list[dict]] = mapped_column(
         MutableList.as_mutable(JSON),
         default=list,
@@ -54,4 +55,4 @@ class AssetRegisterItem(TimestampMixin, Base):
     )
 
     site: Mapped["Site"] = relationship(lazy="selectin")
-    assigned_to: Mapped["User | None"] = relationship(lazy="selectin")
+    assigned_to: Mapped[Optional["User"]] = relationship(lazy="selectin")

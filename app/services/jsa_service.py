@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from typing import Optional
 from datetime import date, datetime, timedelta, timezone
 
 from sqlalchemy import Select, select
@@ -41,7 +42,7 @@ def _ensure_site_exists(db: Session, site_id: int) -> None:
         raise JSAValidationError("Site not found")
 
 
-def _ensure_user_exists(db: Session, user_id: int | None) -> None:
+def _ensure_user_exists(db: Session, user_id: Optional[int]) -> None:
     if user_id is not None and db.get(User, user_id) is None:
         raise JSAValidationError("Referenced user not found")
 
@@ -49,8 +50,8 @@ def _ensure_user_exists(db: Session, user_id: int | None) -> None:
 def _apply_review_expiry(
     data: dict,
     *,
-    review_date: date | None,
-    existing_status: JSAStatus | None = None,
+    review_date: Optional[date],
+    existing_status: Optional[JSAStatus] = None,
 ) -> None:
     current_review_date = data.get("review_date", review_date)
     status = data.get("status", existing_status)
@@ -58,7 +59,7 @@ def _apply_review_expiry(
         data["status"] = JSAStatus.expired
 
 
-def _apply_approval(data: dict, *, actor_id: int | None, existing_approved_at: datetime | None = None) -> None:
+def _apply_approval(data: dict, *, actor_id: Optional[int], existing_approved_at: Optional[datetime] = None) -> None:
     status = data.get("status")
     if status == JSAStatus.approved:
         data["approved_at"] = data.get("approved_at") or existing_approved_at or _now()
@@ -119,8 +120,8 @@ def list_jsas(
     *,
     skip: int = 0,
     limit: int = 100,
-    status: JSAStatus | None = None,
-    site_id: int | None = None,
+    status: Optional[JSAStatus] = None,
+    site_id: Optional[int] = None,
 ) -> dict:
     statement: Select[tuple[JobSafetyAnalysis]] = select(JobSafetyAnalysis)
     if status is not None:
@@ -142,7 +143,7 @@ def get_jsa(db: Session, jsa_id: int) -> JobSafetyAnalysis:
     return jsa
 
 
-def create_jsa(db: Session, jsa_in: JSACreate, *, actor_id: int | None) -> JobSafetyAnalysis:
+def create_jsa(db: Session, jsa_in: JSACreate, *, actor_id: Optional[int]) -> JobSafetyAnalysis:
     data = jsa_in.model_dump()
     _ensure_site_exists(db, data["site_id"])
     _ensure_user_exists(db, data.get("approved_by_user_id"))
@@ -170,7 +171,7 @@ def update_jsa(
     jsa: JobSafetyAnalysis,
     jsa_in: JSAUpdate,
     *,
-    actor_id: int | None,
+    actor_id: Optional[int],
 ) -> JobSafetyAnalysis:
     update_data = jsa_in.model_dump(exclude_unset=True)
     if "site_id" in update_data and update_data["site_id"] is not None:

@@ -1,3 +1,4 @@
+from typing import Optional
 import enum
 from datetime import datetime
 
@@ -26,7 +27,7 @@ class JobRun(TimestampMixin, Base):
         nullable=False,
     )
     started_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow, nullable=False)
-    completed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    completed_at: Mapped[Optional[datetime]] = mapped_column(DateTime(timezone=True), nullable=True)
     records_processed: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
-    details: Mapped[dict | None] = mapped_column(JSON, nullable=True)
-    error_message: Mapped[str | None] = mapped_column(Text, nullable=True)
+    details: Mapped[Optional[dict]] = mapped_column(JSON, nullable=True)
+    error_message: Mapped[Optional[str]] = mapped_column(Text, nullable=True)

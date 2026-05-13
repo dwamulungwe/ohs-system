@@ -1,3 +1,4 @@
+from typing import Optional
 import enum
 from datetime import date, datetime
 
@@ -25,7 +26,7 @@ class LegalComplianceItem(TimestampMixin, Base):
     regulatory_body: Mapped[str] = mapped_column(String(200), nullable=False)
     legal_reference: Mapped[str] = mapped_column(String(200), nullable=False)
     requirement_summary: Mapped[str] = mapped_column(Text, nullable=False)
-    site_id: Mapped[int | None] = mapped_column(
+    site_id: Mapped[Optional[int]] = mapped_column(
         ForeignKey("sites.id", ondelete="RESTRICT"),
         index=True,
         nullable=True,
@@ -38,15 +39,15 @@ class LegalComplianceItem(TimestampMixin, Base):
         nullable=False,
     )
     review_frequency: Mapped[str] = mapped_column(String(120), nullable=False)
-    next_review_date: Mapped[date | None] = mapped_column(Date, nullable=True)
-    last_reviewed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    next_review_date: Mapped[Optional[date]] = mapped_column(Date, nullable=True)
+    last_reviewed_at: Mapped[Optional[datetime]] = mapped_column(DateTime(timezone=True), nullable=True)
     evidence_required: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
-    notes: Mapped[str | None] = mapped_column(Text, nullable=True)
+    notes: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
     attachments_metadata: Mapped[list[dict]] = mapped_column(
         MutableList.as_mutable(JSON),
         default=list,
         nullable=False,
     )
 
-    site: Mapped["Site | None"] = relationship(lazy="selectin")
+    site: Mapped[Optional["Site"]] = relationship(lazy="selectin")
     owner: Mapped["User"] = relationship(lazy="selectin")

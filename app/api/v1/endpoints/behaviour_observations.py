@@ -1,3 +1,4 @@
+from typing import Optional
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.orm import Session
 
@@ -33,9 +34,9 @@ router = APIRouter()
 def read_behaviour_observations(
     skip: int = Query(default=0, ge=0),
     limit: int = Query(default=100, ge=1, le=500),
-    observation_type: BehaviourObservationType | None = None,
-    observation_status: BehaviourObservationStatus | None = Query(default=None, alias="status"),
-    site_id: int | None = None,
+    observation_type: Optional[BehaviourObservationType] = None,
+    observation_status: Optional[BehaviourObservationStatus] = Query(default=None, alias="status"),
+    site_id: Optional[int] = None,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ) -> dict:

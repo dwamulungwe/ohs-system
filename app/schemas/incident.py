@@ -1,3 +1,4 @@
+from typing import Optional
 from datetime import datetime
 
 from pydantic import BaseModel, ConfigDict, Field
@@ -23,26 +24,26 @@ class IncidentCreate(IncidentBase):
 
 
 class IncidentUpdate(BaseModel):
-    site_id: int | None = None
-    title: str | None = Field(default=None, min_length=2, max_length=200)
-    description: str | None = Field(default=None, min_length=2)
-    severity: IncidentSeverity | None = None
-    status: IncidentStatus | None = None
-    occurred_at: datetime | None = None
-    is_recordable: bool | None = None
-    is_lost_time: bool | None = None
-    attachments_metadata: list[AttachmentMetadata] | None = None
+    site_id: Optional[int] = None
+    title: Optional[str] = Field(default=None, min_length=2, max_length=200)
+    description: Optional[str] = Field(default=None, min_length=2)
+    severity: Optional[IncidentSeverity] = None
+    status: Optional[IncidentStatus] = None
+    occurred_at: Optional[datetime] = None
+    is_recordable: Optional[bool] = None
+    is_lost_time: Optional[bool] = None
+    attachments_metadata: Optional[list[AttachmentMetadata]] = None
 
 
 class IncidentRead(IncidentBase):
     id: int
     status: IncidentStatus
-    reported_by_id: int | None = None
+    reported_by_id: Optional[int] = None
     is_recordable: bool = False
     is_lost_time: bool = False
     closure_requested: bool = False
-    closed_at: datetime | None = None
-    closed_by_user_id: int | None = None
+    closed_at: Optional[datetime] = None
+    closed_by_user_id: Optional[int] = None
     attachments: list[AttachmentRead] = Field(default_factory=list)
     created_at: datetime
     updated_at: datetime

@@ -1,3 +1,4 @@
+from typing import Optional
 import enum
 from datetime import date
 
@@ -61,7 +62,7 @@ class AuditManagementRecord(TimestampMixin, Base):
         index=True,
         nullable=False,
     )
-    audit_score: Mapped[float | None] = mapped_column(Float, nullable=True)
+    audit_score: Mapped[Optional[float]] = mapped_column(Float, nullable=True)
     corrective_action_ids: Mapped[list[int]] = mapped_column(
         MutableList.as_mutable(JSON),
         default=list,

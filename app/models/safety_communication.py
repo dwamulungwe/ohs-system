@@ -1,3 +1,4 @@
+from typing import Optional
 import enum
 from datetime import datetime
 
@@ -41,12 +42,12 @@ class SafetyCommunication(TimestampMixin, Base):
         nullable=False,
     )
     summary: Mapped[str] = mapped_column(Text, nullable=False)
-    details: Mapped[str | None] = mapped_column(Text, nullable=True)
-    audience: Mapped[str | None] = mapped_column(String(200), nullable=True)
+    details: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
+    audience: Mapped[Optional[str]] = mapped_column(String(200), nullable=True)
     requires_acknowledgement: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
     issued_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
-    expires_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
-    owner_user_id: Mapped[int | None] = mapped_column(ForeignKey("users.id", ondelete="SET NULL"), nullable=True)
+    expires_at: Mapped[Optional[datetime]] = mapped_column(DateTime(timezone=True), nullable=True)
+    owner_user_id: Mapped[Optional[int]] = mapped_column(ForeignKey("users.id", ondelete="SET NULL"), nullable=True)
     attachments_metadata: Mapped[list[dict]] = mapped_column(
         MutableList.as_mutable(JSON),
         default=list,
@@ -54,4 +55,4 @@ class SafetyCommunication(TimestampMixin, Base):
     )
 
     site: Mapped["Site"] = relationship(lazy="selectin")
-    owner: Mapped["User | None"] = relationship(lazy="selectin")
+    owner: Mapped[Optional["User"]] = relationship(lazy="selectin")

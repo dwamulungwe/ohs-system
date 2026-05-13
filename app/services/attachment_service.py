@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from typing import Optional
 from dataclasses import dataclass
 from pathlib import Path
 from uuid import uuid4
@@ -94,7 +95,7 @@ def _entity_not_found(entity_type: AttachmentEntityType) -> HTTPException:
     return HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"{label.title()} not found")
 
 
-def _normalize_filename(filename: str | None) -> str:
+def _normalize_filename(filename: Optional[str]) -> str:
     candidate = Path(filename or "upload").name.strip().replace("\x00", "")
     return candidate[:255] or "upload"
 
@@ -439,7 +440,7 @@ async def create_attachment(
     entity_type: AttachmentEntityType,
     entity_id: int,
     upload_file: UploadFile,
-    description: str | None,
+    description: Optional[str],
     current_user: User,
 ) -> AttachmentRead:
     entity = _get_entity(db, entity_type, entity_id)

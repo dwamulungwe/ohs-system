@@ -1,3 +1,4 @@
+from typing import Optional
 from datetime import datetime
 
 from pydantic import BaseModel, ConfigDict, Field
@@ -5,7 +6,7 @@ from pydantic import BaseModel, ConfigDict, Field
 
 class RoleBase(BaseModel):
     name: str = Field(min_length=2, max_length=80)
-    description: str | None = Field(default=None, max_length=255)
+    description: Optional[str] = Field(default=None, max_length=255)
 
 
 class RoleCreate(RoleBase):
@@ -13,8 +14,8 @@ class RoleCreate(RoleBase):
 
 
 class RoleUpdate(BaseModel):
-    name: str | None = Field(default=None, min_length=2, max_length=80)
-    description: str | None = Field(default=None, max_length=255)
+    name: Optional[str] = Field(default=None, min_length=2, max_length=80)
+    description: Optional[str] = Field(default=None, max_length=255)
 
 
 class RoleRead(RoleBase):

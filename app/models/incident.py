@@ -1,3 +1,4 @@
+from typing import Optional
 import enum
 from datetime import datetime
 
@@ -44,14 +45,14 @@ class Incident(TimestampMixin, Base):
         default=list,
         nullable=False,
     )
-    reported_by_id: Mapped[int | None] = mapped_column(ForeignKey("users.id", ondelete="SET NULL"), nullable=True)
+    reported_by_id: Mapped[Optional[int]] = mapped_column(ForeignKey("users.id", ondelete="SET NULL"), nullable=True)
     closure_requested: Mapped[bool] = mapped_column(default=False, nullable=False)
-    closed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
-    closed_by_user_id: Mapped[int | None] = mapped_column(
+    closed_at: Mapped[Optional[datetime]] = mapped_column(DateTime(timezone=True), nullable=True)
+    closed_by_user_id: Mapped[Optional[int]] = mapped_column(
         ForeignKey("users.id", ondelete="SET NULL"),
         nullable=True,
     )
 
     site: Mapped["Site"] = relationship(lazy="selectin")
-    reported_by: Mapped["User | None"] = relationship(foreign_keys=[reported_by_id], lazy="selectin")
-    closed_by: Mapped["User | None"] = relationship(foreign_keys=[closed_by_user_id], lazy="selectin")
+    reported_by: Mapped[Optional["User"]] = relationship(foreign_keys=[reported_by_id], lazy="selectin")
+    closed_by: Mapped[Optional["User"]] = relationship(foreign_keys=[closed_by_user_id], lazy="selectin")

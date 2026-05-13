@@ -1,4 +1,4 @@
-from typing import Any, TypeVar
+from typing import Any, Optional, TypeVar
 
 from sqlalchemy import Select, select
 from sqlalchemy.orm import Session
@@ -11,7 +11,7 @@ def list_records(db: Session, model: type[ModelT], *, skip: int = 0, limit: int 
     return list(db.scalars(statement).all())
 
 
-def get_record_or_none(db: Session, model: type[ModelT], record_id: int) -> ModelT | None:
+def get_record_or_none(db: Session, model: type[ModelT], record_id: int) -> Optional[ModelT]:
     return db.get(model, record_id)
 
 

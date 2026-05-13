@@ -1,3 +1,4 @@
+from typing import Optional
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.orm import Session
 
@@ -24,10 +25,10 @@ router = APIRouter()
 def read_contractors(
     skip: int = Query(default=0, ge=0),
     limit: int = Query(default=100, ge=1, le=500),
-    site_id: int | None = None,
-    approved_for_work: bool | None = None,
-    onboarding_status: ContractorOnboardingStatus | None = None,
-    induction_status: ContractorInductionStatus | None = None,
+    site_id: Optional[int] = None,
+    approved_for_work: Optional[bool] = None,
+    onboarding_status: Optional[ContractorOnboardingStatus] = None,
+    induction_status: Optional[ContractorInductionStatus] = None,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ) -> dict:

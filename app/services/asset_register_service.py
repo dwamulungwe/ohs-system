@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from typing import Optional
 from datetime import date, datetime, timedelta, timezone
 
 from sqlalchemy import Select, select
@@ -38,7 +39,7 @@ def _ensure_site_exists(db: Session, site_id: int) -> None:
         raise AssetRegisterValidationError("Site not found")
 
 
-def _ensure_user_exists(db: Session, user_id: int | None) -> None:
+def _ensure_user_exists(db: Session, user_id: Optional[int]) -> None:
     if user_id is not None and db.get(User, user_id) is None:
         raise AssetRegisterValidationError("Referenced user not found")
 
@@ -47,7 +48,7 @@ def _ensure_unique_asset_tag(
     db: Session,
     *,
     asset_tag: str,
-    exclude_id: int | None = None,
+    exclude_id: Optional[int] = None,
 ) -> None:
     statement = select(AssetRegisterItem).where(AssetRegisterItem.asset_tag == asset_tag)
     if exclude_id is not None:
@@ -56,7 +57,7 @@ def _ensure_unique_asset_tag(
         raise AssetRegisterValidationError("Asset tag already exists")
 
 
-def _reminder_recipients(db: Session, *, site_id: int, assigned_to_user_id: int | None) -> list[int]:
+def _reminder_recipients(db: Session, *, site_id: int, assigned_to_user_id: Optional[int]) -> list[int]:
     recipient_ids = []
     if assigned_to_user_id is not None:
         recipient_ids.append(assigned_to_user_id)
@@ -134,10 +135,10 @@ def list_assets(
     *,
     skip: int = 0,
     limit: int = 100,
-    site_id: int | None = None,
-    asset_type: AssetType | None = None,
-    condition_status: AssetConditionStatus | None = None,
-    assigned_to_user_id: int | None = None,
+    site_id: Optional[int] = None,
+    asset_type: Optional[AssetType] = None,
+    condition_status: Optional[AssetConditionStatus] = None,
+    assigned_to_user_id: Optional[int] = None,
 ) -> dict:
     statement: Select[tuple[AssetRegisterItem]] = select(AssetRegisterItem)
     if site_id is not None:
@@ -160,7 +161,7 @@ def get_asset(db: Session, asset_id: int) -> AssetRegisterItem:
     return asset
 
 
-def create_asset(db: Session, asset_in: AssetRegisterCreate, *, actor_id: int | None) -> AssetRegisterItem:
+def create_asset(db: Session, asset_in: AssetRegisterCreate, *, actor_id: Optional[int]) -> AssetRegisterItem:
     data = asset_in.model_dump()
     _ensure_site_exists(db, data["site_id"])
     _ensure_user_exists(db, data.get("assigned_to_user_id"))
@@ -186,7 +187,7 @@ def update_asset(
     asset: AssetRegisterItem,
     asset_in: AssetRegisterUpdate,
     *,
-    actor_id: int | None,
+    actor_id: Optional[int],
 ) -> AssetRegisterItem:
     update_data = asset_in.model_dump(exclude_unset=True)
     if "site_id" in update_data and update_data["site_id"] is not None:

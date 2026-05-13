@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from typing import Optional
 from datetime import date, datetime, time, timezone
 
 from sqlalchemy import Select, select
@@ -50,7 +51,7 @@ def _ensure_unique_period(
     site_id: int,
     period_start: date,
     period_end: date,
-    exclude_id: int | None = None,
+    exclude_id: Optional[int] = None,
 ) -> None:
     statement = select(SafetyKPIRecord).where(
         SafetyKPIRecord.site_id == site_id,
@@ -123,7 +124,7 @@ def list_safety_kpis(
     *,
     skip: int = 0,
     limit: int = 100,
-    site_id: int | None = None,
+    site_id: Optional[int] = None,
 ) -> dict:
     statement: Select[tuple[SafetyKPIRecord]] = select(SafetyKPIRecord)
     if site_id is not None:
@@ -153,7 +154,7 @@ def create_safety_kpi(
     db: Session,
     record_in: SafetyKPICreate,
     *,
-    actor_id: int | None,
+    actor_id: Optional[int],
 ) -> dict:
     _ensure_site_exists(db, record_in.site_id)
     _ensure_unique_period(
@@ -182,7 +183,7 @@ def update_safety_kpi(
     record: SafetyKPIRecord,
     record_in: SafetyKPIUpdate,
     *,
-    actor_id: int | None,
+    actor_id: Optional[int],
 ) -> dict:
     update_data = record_in.model_dump(exclude_unset=True)
     next_site_id = update_data.get("site_id", record.site_id)

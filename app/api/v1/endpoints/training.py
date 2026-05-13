@@ -1,3 +1,4 @@
+from typing import Optional
 from datetime import date
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
@@ -49,12 +50,12 @@ COMPLIANCE_SELF_UPDATE_FIELDS = {"acknowledged_at", "status", "notes"}
 def list_training(
     skip: int = Query(default=0, ge=0),
     limit: int = Query(default=100, ge=1, le=500),
-    status: TrainingStatus | None = None,
-    training_type: TrainingType | None = None,
-    site_id: int | None = None,
-    assigned_to_user_id: int | None = None,
-    date_from: date | None = None,
-    date_to: date | None = None,
+    status: Optional[TrainingStatus] = None,
+    training_type: Optional[TrainingType] = None,
+    site_id: Optional[int] = None,
+    assigned_to_user_id: Optional[int] = None,
+    date_from: Optional[date] = None,
+    date_to: Optional[date] = None,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ) -> dict:
@@ -152,10 +153,10 @@ def patch_training(
 def list_acknowledgements(
     skip: int = Query(default=0, ge=0),
     limit: int = Query(default=100, ge=1, le=500),
-    status: ComplianceAcknowledgementStatus | None = None,
-    document_type: str | None = None,
-    site_id: int | None = None,
-    assigned_to_user_id: int | None = None,
+    status: Optional[ComplianceAcknowledgementStatus] = None,
+    document_type: Optional[str] = None,
+    site_id: Optional[int] = None,
+    assigned_to_user_id: Optional[int] = None,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ) -> dict:

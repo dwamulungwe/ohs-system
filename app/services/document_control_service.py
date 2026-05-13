@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from typing import Optional
 from datetime import date, datetime, timedelta, timezone
 
 from sqlalchemy import Select, select
@@ -37,17 +38,17 @@ def _today() -> date:
     return datetime.now(timezone.utc).date()
 
 
-def _ensure_site_exists(db: Session, site_id: int | None) -> None:
+def _ensure_site_exists(db: Session, site_id: Optional[int]) -> None:
     if site_id is not None and db.get(Site, site_id) is None:
         raise DocumentControlValidationError("Site not found")
 
 
-def _ensure_user_exists(db: Session, user_id: int | None) -> None:
+def _ensure_user_exists(db: Session, user_id: Optional[int]) -> None:
     if user_id is not None and db.get(User, user_id) is None:
         raise DocumentControlValidationError("Referenced user not found")
 
 
-def _ensure_superseded_document_exists(db: Session, document_id: int | None) -> None:
+def _ensure_superseded_document_exists(db: Session, document_id: Optional[int]) -> None:
     if document_id is not None and db.get(DocumentControlRecord, document_id) is None:
         raise DocumentControlValidationError("Superseded document not found")
 
@@ -63,7 +64,7 @@ def derive_status(data: dict) -> None:
         data["approved_at"] = datetime.now(timezone.utc)
 
 
-def _approval_recipients(db: Session, *, site_id: int | None) -> list[int]:
+def _approval_recipients(db: Session, *, site_id: Optional[int]) -> list[int]:
     return get_active_user_ids_for_roles(
         db,
         role_names=[ROLE_ADMIN, ROLE_OHS_MANAGER],
@@ -120,7 +121,7 @@ def _sync_acknowledgements(
     db: Session,
     document: DocumentControlRecord,
     *,
-    actor_id: int | None,
+    actor_id: Optional[int],
 ) -> None:
     if not document.acknowledgement_required or not document.acknowledgement_user_ids:
         return
@@ -155,7 +156,7 @@ def sync_document_acknowledgements(
     db: Session,
     document: DocumentControlRecord,
     *,
-    actor_id: int | None,
+    actor_id: Optional[int],
 ) -> None:
     _sync_acknowledgements(db, document, actor_id=actor_id)
 
@@ -165,9 +166,9 @@ def list_documents(
     *,
     skip: int = 0,
     limit: int = 100,
-    status: DocumentStatus | None = None,
+    status: Optional[DocumentStatus] = None,
     document_type=None,
-    site_id: int | None = None,
+    site_id: Optional[int] = None,
 ) -> dict:
     statement: Select[tuple[DocumentControlRecord]] = select(DocumentControlRecord)
     if status is not None:
@@ -194,7 +195,7 @@ def create_document(
     db: Session,
     document_in: DocumentControlCreate,
     *,
-    actor_id: int | None,
+    actor_id: Optional[int],
 ) -> DocumentControlRecord:
     data = document_in.model_dump()
     data["created_by_user_id"] = actor_id
@@ -225,7 +226,7 @@ def update_document(
     document: DocumentControlRecord,
     document_in: DocumentControlUpdate,
     *,
-    actor_id: int | None,
+    actor_id: Optional[int],
 ) -> DocumentControlRecord:
     update_data = document_in.model_dump(exclude_unset=True)
     if "site_id" in update_data:

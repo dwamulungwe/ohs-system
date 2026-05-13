@@ -1,3 +1,4 @@
+from typing import Optional
 import enum
 from datetime import date, datetime
 
@@ -36,28 +37,28 @@ class Hazard(TimestampMixin, Base):
     status: Mapped[HazardStatus] = mapped_column(Enum(HazardStatus), default=HazardStatus.open, nullable=False)
     existing_controls: Mapped[list[str]] = mapped_column(MutableList.as_mutable(JSON), default=list, nullable=False)
     additional_controls: Mapped[list[str]] = mapped_column(MutableList.as_mutable(JSON), default=list, nullable=False)
-    owner_user_id: Mapped[int | None] = mapped_column(ForeignKey("users.id", ondelete="SET NULL"), index=True, nullable=True)
-    due_date: Mapped[date | None] = mapped_column(Date, nullable=True)
-    review_date: Mapped[date | None] = mapped_column(Date, nullable=True)
+    owner_user_id: Mapped[Optional[int]] = mapped_column(ForeignKey("users.id", ondelete="SET NULL"), index=True, nullable=True)
+    due_date: Mapped[Optional[date]] = mapped_column(Date, nullable=True)
+    review_date: Mapped[Optional[date]] = mapped_column(Date, nullable=True)
     attachments_metadata: Mapped[list[dict]] = mapped_column(
         MutableList.as_mutable(JSON),
         default=list,
         nullable=False,
     )
-    incident_id: Mapped[int | None] = mapped_column(
+    incident_id: Mapped[Optional[int]] = mapped_column(
         ForeignKey("incidents.id", ondelete="SET NULL"),
         index=True,
         nullable=True,
     )
-    reported_by_id: Mapped[int | None] = mapped_column(ForeignKey("users.id", ondelete="SET NULL"), nullable=True)
-    reviewed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
-    reviewed_by_user_id: Mapped[int | None] = mapped_column(
+    reported_by_id: Mapped[Optional[int]] = mapped_column(ForeignKey("users.id", ondelete="SET NULL"), nullable=True)
+    reviewed_at: Mapped[Optional[datetime]] = mapped_column(DateTime(timezone=True), nullable=True)
+    reviewed_by_user_id: Mapped[Optional[int]] = mapped_column(
         ForeignKey("users.id", ondelete="SET NULL"),
         nullable=True,
     )
 
     site: Mapped["Site"] = relationship(lazy="selectin")
-    owner: Mapped["User | None"] = relationship(foreign_keys=[owner_user_id], lazy="selectin")
-    linked_incident: Mapped["Incident | None"] = relationship(lazy="selectin")
-    reported_by: Mapped["User | None"] = relationship(foreign_keys=[reported_by_id], lazy="selectin")
-    reviewed_by: Mapped["User | None"] = relationship(foreign_keys=[reviewed_by_user_id], lazy="selectin")
+    owner: Mapped[Optional["User"]] = relationship(foreign_keys=[owner_user_id], lazy="selectin")
+    linked_incident: Mapped[Optional["Incident"]] = relationship(lazy="selectin")
+    reported_by: Mapped[Optional["User"]] = relationship(foreign_keys=[reported_by_id], lazy="selectin")
+    reviewed_by: Mapped[Optional["User"]] = relationship(foreign_keys=[reviewed_by_user_id], lazy="selectin")

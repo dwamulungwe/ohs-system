@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from typing import Optional
 from datetime import date
 
 from sqlalchemy import Select, select
@@ -73,9 +74,9 @@ def list_audits(
     *,
     skip: int = 0,
     limit: int = 100,
-    status: AuditStatus | None = None,
-    audit_type: AuditType | None = None,
-    site_id: int | None = None,
+    status: Optional[AuditStatus] = None,
+    audit_type: Optional[AuditType] = None,
+    site_id: Optional[int] = None,
 ) -> dict:
     statement: Select[tuple[AuditManagementRecord]] = select(AuditManagementRecord)
     if status is not None:
@@ -100,7 +101,7 @@ def create_audit(
     db: Session,
     audit_in: AuditManagementCreate,
     *,
-    actor_id: int | None,
+    actor_id: Optional[int],
 ) -> AuditManagementRecord:
     data = audit_in.model_dump()
     _ensure_site_exists(db, data["site_id"])
@@ -127,7 +128,7 @@ def update_audit(
     audit: AuditManagementRecord,
     audit_in: AuditManagementUpdate,
     *,
-    actor_id: int | None,
+    actor_id: Optional[int],
 ) -> AuditManagementRecord:
     update_data = audit_in.model_dump(exclude_unset=True)
     if "site_id" in update_data and update_data["site_id"] is not None:

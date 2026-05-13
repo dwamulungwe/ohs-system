@@ -1,3 +1,4 @@
+from typing import Optional
 from datetime import datetime
 
 from pydantic import BaseModel, ConfigDict
@@ -14,11 +15,11 @@ class NotificationDeliveryRead(BaseModel):
     notification_id: int
     recipient_user_id: int
     channel: NotificationDeliveryChannel
-    destination: str | None = None
-    provider: str | None = None
+    destination: Optional[str] = None
+    provider: Optional[str] = None
     status: NotificationDeliveryStatus
-    error_message: str | None = None
-    sent_at: datetime | None = None
+    error_message: Optional[str] = None
+    sent_at: Optional[datetime] = None
     created_at: datetime
     updated_at: datetime
 

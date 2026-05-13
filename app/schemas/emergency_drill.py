@@ -1,3 +1,4 @@
+from typing import Optional
 from datetime import date, datetime
 
 from pydantic import BaseModel, ConfigDict, Field
@@ -13,10 +14,10 @@ class EmergencyDrillBase(BaseModel):
     drill_date: date
     participants: list[str] = Field(default_factory=list)
     attendance_records: list[dict] = Field(default_factory=list)
-    outcome: str | None = None
+    outcome: Optional[str] = None
     issues_found: list[str] = Field(default_factory=list)
     corrective_actions: list[str] = Field(default_factory=list)
-    next_drill_date: date | None = None
+    next_drill_date: Optional[date] = None
     status: EmergencyDrillStatus = EmergencyDrillStatus.scheduled
     attachments_metadata: list[AttachmentMetadata] = Field(default_factory=list)
 
@@ -26,17 +27,17 @@ class EmergencyDrillCreate(EmergencyDrillBase):
 
 
 class EmergencyDrillUpdate(BaseModel):
-    emergency_type: str | None = Field(default=None, min_length=2, max_length=120)
-    site_id: int | None = None
-    drill_date: date | None = None
-    participants: list[str] | None = None
-    attendance_records: list[dict] | None = None
-    outcome: str | None = None
-    issues_found: list[str] | None = None
-    corrective_actions: list[str] | None = None
-    next_drill_date: date | None = None
-    status: EmergencyDrillStatus | None = None
-    attachments_metadata: list[AttachmentMetadata] | None = None
+    emergency_type: Optional[str] = Field(default=None, min_length=2, max_length=120)
+    site_id: Optional[int] = None
+    drill_date: Optional[date] = None
+    participants: Optional[list[str]] = None
+    attendance_records: Optional[list[dict]] = None
+    outcome: Optional[str] = None
+    issues_found: Optional[list[str]] = None
+    corrective_actions: Optional[list[str]] = None
+    next_drill_date: Optional[date] = None
+    status: Optional[EmergencyDrillStatus] = None
+    attachments_metadata: Optional[list[AttachmentMetadata]] = None
 
 
 class EmergencyDrillRead(EmergencyDrillBase):

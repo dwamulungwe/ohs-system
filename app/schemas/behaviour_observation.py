@@ -1,3 +1,4 @@
+from typing import Optional
 from datetime import datetime
 
 from pydantic import BaseModel, ConfigDict, Field
@@ -18,9 +19,9 @@ class BehaviourObservationBase(BaseModel):
     status: BehaviourObservationStatus = BehaviourObservationStatus.open
     severity: BehaviourObservationSeverity = BehaviourObservationSeverity.medium
     description: str = Field(min_length=2)
-    immediate_action_taken: str | None = None
-    follow_up_notes: str | None = None
-    person_involved_name: str | None = Field(default=None, max_length=160)
+    immediate_action_taken: Optional[str] = None
+    follow_up_notes: Optional[str] = None
+    person_involved_name: Optional[str] = Field(default=None, max_length=160)
     action_required: bool = False
     observed_at: datetime
     attachments_metadata: list[AttachmentMetadata] = Field(default_factory=list)
@@ -31,25 +32,25 @@ class BehaviourObservationCreate(BehaviourObservationBase):
 
 
 class BehaviourObservationUpdate(BaseModel):
-    site_id: int | None = None
-    title: str | None = Field(default=None, min_length=2, max_length=200)
-    observation_type: BehaviourObservationType | None = None
-    status: BehaviourObservationStatus | None = None
-    severity: BehaviourObservationSeverity | None = None
-    description: str | None = Field(default=None, min_length=2)
-    immediate_action_taken: str | None = None
-    follow_up_notes: str | None = None
-    person_involved_name: str | None = Field(default=None, max_length=160)
-    action_required: bool | None = None
-    observed_at: datetime | None = None
-    attachments_metadata: list[AttachmentMetadata] | None = None
+    site_id: Optional[int] = None
+    title: Optional[str] = Field(default=None, min_length=2, max_length=200)
+    observation_type: Optional[BehaviourObservationType] = None
+    status: Optional[BehaviourObservationStatus] = None
+    severity: Optional[BehaviourObservationSeverity] = None
+    description: Optional[str] = Field(default=None, min_length=2)
+    immediate_action_taken: Optional[str] = None
+    follow_up_notes: Optional[str] = None
+    person_involved_name: Optional[str] = Field(default=None, max_length=160)
+    action_required: Optional[bool] = None
+    observed_at: Optional[datetime] = None
+    attachments_metadata: Optional[list[AttachmentMetadata]] = None
 
 
 class BehaviourObservationRead(BehaviourObservationBase):
     id: int
-    observed_by_user_id: int | None = None
-    closed_at: datetime | None = None
-    closed_by_user_id: int | None = None
+    observed_by_user_id: Optional[int] = None
+    closed_at: Optional[datetime] = None
+    closed_by_user_id: Optional[int] = None
     attachments: list[AttachmentRead] = Field(default_factory=list)
     created_at: datetime
     updated_at: datetime

@@ -1,3 +1,4 @@
+from typing import Optional
 from datetime import date, datetime, timedelta, timezone
 
 from sqlalchemy import Select, select
@@ -51,12 +52,12 @@ def _now() -> datetime:
     return datetime.now(timezone.utc)
 
 
-def _ensure_site_exists(db: Session, site_id: int | None) -> None:
+def _ensure_site_exists(db: Session, site_id: Optional[int]) -> None:
     if site_id is not None and db.get(Site, site_id) is None:
         raise TrainingSiteNotFoundError(f"Site {site_id} was not found")
 
 
-def _ensure_user_exists(db: Session, user_id: int | None) -> None:
+def _ensure_user_exists(db: Session, user_id: Optional[int]) -> None:
     if user_id is not None and db.get(User, user_id) is None:
         raise TrainingUserNotFoundError(f"User {user_id} was not found")
 
@@ -106,12 +107,12 @@ def list_training_records(
     *,
     skip: int = 0,
     limit: int = 100,
-    status: TrainingStatus | None = None,
-    training_type: TrainingType | None = None,
-    site_id: int | None = None,
-    assigned_to_user_id: int | None = None,
-    date_from: date | None = None,
-    date_to: date | None = None,
+    status: Optional[TrainingStatus] = None,
+    training_type: Optional[TrainingType] = None,
+    site_id: Optional[int] = None,
+    assigned_to_user_id: Optional[int] = None,
+    date_from: Optional[date] = None,
+    date_to: Optional[date] = None,
 ) -> dict:
     statement: Select[tuple[TrainingRecord]] = select(TrainingRecord)
     if status is not None:
@@ -138,7 +139,7 @@ def get_training_record(db: Session, training_id: int) -> TrainingRecord:
     return record
 
 
-def create_training_record(db: Session, training_in: TrainingRecordCreate, *, current_user_id: int | None) -> TrainingRecord:
+def create_training_record(db: Session, training_in: TrainingRecordCreate, *, current_user_id: Optional[int]) -> TrainingRecord:
     data = training_in.model_dump()
     _dump_certificate_metadata(data)
     if data.get("assigned_by_user_id") is None:
@@ -186,10 +187,10 @@ def list_compliance_acknowledgements(
     *,
     skip: int = 0,
     limit: int = 100,
-    status: ComplianceAcknowledgementStatus | None = None,
-    document_type: str | None = None,
-    site_id: int | None = None,
-    assigned_to_user_id: int | None = None,
+    status: Optional[ComplianceAcknowledgementStatus] = None,
+    document_type: Optional[str] = None,
+    site_id: Optional[int] = None,
+    assigned_to_user_id: Optional[int] = None,
 ) -> dict:
     statement: Select[tuple[ComplianceAcknowledgement]] = select(ComplianceAcknowledgement)
     if status is not None:
@@ -216,7 +217,7 @@ def create_compliance_acknowledgement(
     db: Session,
     acknowledgement_in: ComplianceAcknowledgementCreate,
     *,
-    current_user_id: int | None,
+    current_user_id: Optional[int],
 ) -> ComplianceAcknowledgement:
     data = acknowledgement_in.model_dump()
     if data.get("assigned_by_user_id") is None:

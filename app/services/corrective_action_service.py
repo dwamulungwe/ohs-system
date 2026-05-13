@@ -1,3 +1,4 @@
+from typing import Optional
 from datetime import datetime, timezone
 
 from sqlalchemy import Select, select
@@ -56,7 +57,7 @@ def _ensure_site_exists(db: Session, site_id: int) -> None:
         raise CorrectiveActionSiteNotFoundError(f"Site {site_id} was not found")
 
 
-def _ensure_user_exists(db: Session, user_id: int | None) -> None:
+def _ensure_user_exists(db: Session, user_id: Optional[int]) -> None:
     if user_id is not None and db.get(User, user_id) is None:
         raise CorrectiveActionUserNotFoundError(f"User {user_id} was not found")
 
@@ -65,7 +66,7 @@ def _validate_source(
     db: Session,
     *,
     source_type: CorrectiveActionSourceType,
-    source_id: int | None,
+    source_id: Optional[int],
 ) -> None:
     if source_type == CorrectiveActionSourceType.manual:
         return
@@ -85,10 +86,10 @@ def _validate_source(
 def _apply_status_timestamps(
     data: dict,
     *,
-    previous_status: CorrectiveActionStatus | None = None,
-    existing_completed_at: datetime | None = None,
-    existing_verified_at: datetime | None = None,
-    effective_verified_by_user_id: int | None = None,
+    previous_status: Optional[CorrectiveActionStatus] = None,
+    existing_completed_at: Optional[datetime] = None,
+    existing_verified_at: Optional[datetime] = None,
+    effective_verified_by_user_id: Optional[int] = None,
 ) -> None:
     status = data.get("status", previous_status or CorrectiveActionStatus.open)
     status_changed = previous_status is None or status != previous_status
@@ -119,11 +120,11 @@ def list_corrective_actions(
     *,
     skip: int = 0,
     limit: int = 100,
-    status: CorrectiveActionStatus | None = None,
-    priority: CorrectiveActionPriority | None = None,
-    site_id: int | None = None,
-    assigned_to_user_id: int | None = None,
-    source_type: CorrectiveActionSourceType | None = None,
+    status: Optional[CorrectiveActionStatus] = None,
+    priority: Optional[CorrectiveActionPriority] = None,
+    site_id: Optional[int] = None,
+    assigned_to_user_id: Optional[int] = None,
+    source_type: Optional[CorrectiveActionSourceType] = None,
 ) -> dict:
     statement: Select[tuple[CorrectiveAction]] = select(CorrectiveAction)
     if status is not None:
@@ -153,7 +154,7 @@ def create_corrective_action(
     db: Session,
     action_in: CorrectiveActionCreate,
     *,
-    current_user_id: int | None,
+    current_user_id: Optional[int],
 ) -> CorrectiveAction:
     data = action_in.model_dump()
     _dump_json_items(data)
@@ -188,7 +189,7 @@ def update_corrective_action(
     action: CorrectiveAction,
     action_in: CorrectiveActionUpdate,
     *,
-    actor_id: int | None = None,
+    actor_id: Optional[int] = None,
 ) -> CorrectiveAction:
     update_data = action_in.model_dump(exclude_unset=True)
     _dump_json_items(update_data)

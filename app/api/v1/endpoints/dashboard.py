@@ -1,3 +1,4 @@
+from typing import Optional
 from datetime import date
 
 from fastapi import APIRouter, Depends
@@ -34,9 +35,9 @@ router = APIRouter()
 
 @router.get("/overview", response_model=DashboardOverviewRead)
 def read_dashboard_overview(
-    site_id: int | None = None,
-    date_from: date | None = None,
-    date_to: date | None = None,
+    site_id: Optional[int] = None,
+    date_from: Optional[date] = None,
+    date_to: Optional[date] = None,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ) -> dict:
@@ -47,9 +48,9 @@ def read_dashboard_overview(
 
 @router.get("/sites", response_model=list[DashboardSiteSummaryRead])
 def read_dashboard_sites(
-    site_id: int | None = None,
-    date_from: date | None = None,
-    date_to: date | None = None,
+    site_id: Optional[int] = None,
+    date_from: Optional[date] = None,
+    date_to: Optional[date] = None,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ) -> list[dict]:
@@ -60,9 +61,9 @@ def read_dashboard_sites(
 
 @router.get("/trends", response_model=DashboardTrendsRead)
 def read_dashboard_trends(
-    site_id: int | None = None,
-    date_from: date | None = None,
-    date_to: date | None = None,
+    site_id: Optional[int] = None,
+    date_from: Optional[date] = None,
+    date_to: Optional[date] = None,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ) -> dict:
@@ -73,9 +74,9 @@ def read_dashboard_trends(
 
 @router.get("/risk", response_model=DashboardRiskRead)
 def read_dashboard_risk(
-    site_id: int | None = None,
-    date_from: date | None = None,
-    date_to: date | None = None,
+    site_id: Optional[int] = None,
+    date_from: Optional[date] = None,
+    date_to: Optional[date] = None,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ) -> dict:
@@ -86,9 +87,9 @@ def read_dashboard_risk(
 
 @router.get("/actions", response_model=DashboardActionsRead)
 def read_dashboard_actions(
-    site_id: int | None = None,
-    date_from: date | None = None,
-    date_to: date | None = None,
+    site_id: Optional[int] = None,
+    date_from: Optional[date] = None,
+    date_to: Optional[date] = None,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ) -> dict:
@@ -99,9 +100,9 @@ def read_dashboard_actions(
 
 @router.get("/compliance", response_model=DashboardComplianceRead)
 def read_dashboard_compliance(
-    site_id: int | None = None,
-    date_from: date | None = None,
-    date_to: date | None = None,
+    site_id: Optional[int] = None,
+    date_from: Optional[date] = None,
+    date_to: Optional[date] = None,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ) -> dict:
@@ -112,9 +113,9 @@ def read_dashboard_compliance(
 
 @router.get("/permits", response_model=DashboardPermitsRead)
 def read_dashboard_permits(
-    site_id: int | None = None,
-    date_from: date | None = None,
-    date_to: date | None = None,
+    site_id: Optional[int] = None,
+    date_from: Optional[date] = None,
+    date_to: Optional[date] = None,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ) -> dict:
@@ -125,9 +126,9 @@ def read_dashboard_permits(
 
 @router.get("/approvals", response_model=DashboardApprovalsRead)
 def read_dashboard_approvals(
-    site_id: int | None = None,
-    date_from: date | None = None,
-    date_to: date | None = None,
+    site_id: Optional[int] = None,
+    date_from: Optional[date] = None,
+    date_to: Optional[date] = None,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ) -> dict:
@@ -138,9 +139,9 @@ def read_dashboard_approvals(
 
 @router.get("/management-summary", response_model=DashboardManagementSummaryRead)
 def read_dashboard_management_summary(
-    site_id: int | None = None,
-    date_from: date | None = None,
-    date_to: date | None = None,
+    site_id: Optional[int] = None,
+    date_from: Optional[date] = None,
+    date_to: Optional[date] = None,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ) -> dict:

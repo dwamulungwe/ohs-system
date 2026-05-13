@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from typing import Optional
 from datetime import date, datetime, timedelta, timezone
 
 from sqlalchemy import Select, select
@@ -42,7 +43,7 @@ def _ensure_site_exists(db: Session, site_id: int) -> None:
         raise ContractorValidationError("Site not found")
 
 
-def _validate_approval(data: dict, *, existing: ContractorRecord | None = None) -> None:
+def _validate_approval(data: dict, *, existing: Optional[ContractorRecord] = None) -> None:
     approved_for_work = data.get(
         "approved_for_work",
         existing.approved_for_work if existing is not None else False,
@@ -151,10 +152,10 @@ def list_contractors(
     *,
     skip: int = 0,
     limit: int = 100,
-    site_id: int | None = None,
-    approved_for_work: bool | None = None,
-    onboarding_status: ContractorOnboardingStatus | None = None,
-    induction_status: ContractorInductionStatus | None = None,
+    site_id: Optional[int] = None,
+    approved_for_work: Optional[bool] = None,
+    onboarding_status: Optional[ContractorOnboardingStatus] = None,
+    induction_status: Optional[ContractorInductionStatus] = None,
 ) -> dict:
     statement: Select[tuple[ContractorRecord]] = select(ContractorRecord)
     if site_id is not None:
@@ -177,7 +178,7 @@ def get_contractor(db: Session, contractor_id: int) -> ContractorRecord:
     return contractor
 
 
-def create_contractor(db: Session, contractor_in: ContractorCreate, *, actor_id: int | None) -> ContractorRecord:
+def create_contractor(db: Session, contractor_in: ContractorCreate, *, actor_id: Optional[int]) -> ContractorRecord:
     data = contractor_in.model_dump()
     _ensure_site_exists(db, data["site_id"])
     _validate_approval(data)
@@ -202,7 +203,7 @@ def update_contractor(
     contractor: ContractorRecord,
     contractor_in: ContractorUpdate,
     *,
-    actor_id: int | None,
+    actor_id: Optional[int],
 ) -> ContractorRecord:
     update_data = contractor_in.model_dump(exclude_unset=True)
     if "site_id" in update_data and update_data["site_id"] is not None:

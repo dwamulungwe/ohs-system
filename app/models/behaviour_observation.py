@@ -1,3 +1,4 @@
+from typing import Optional
 import enum
 from datetime import datetime
 
@@ -52,17 +53,17 @@ class BehaviourObservation(TimestampMixin, Base):
         nullable=False,
     )
     description: Mapped[str] = mapped_column(Text, nullable=False)
-    immediate_action_taken: Mapped[str | None] = mapped_column(Text, nullable=True)
-    follow_up_notes: Mapped[str | None] = mapped_column(Text, nullable=True)
-    person_involved_name: Mapped[str | None] = mapped_column(String(160), nullable=True)
+    immediate_action_taken: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
+    follow_up_notes: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
+    person_involved_name: Mapped[Optional[str]] = mapped_column(String(160), nullable=True)
     action_required: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
     observed_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
-    observed_by_user_id: Mapped[int | None] = mapped_column(
+    observed_by_user_id: Mapped[Optional[int]] = mapped_column(
         ForeignKey("users.id", ondelete="SET NULL"),
         nullable=True,
     )
-    closed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
-    closed_by_user_id: Mapped[int | None] = mapped_column(
+    closed_at: Mapped[Optional[datetime]] = mapped_column(DateTime(timezone=True), nullable=True)
+    closed_by_user_id: Mapped[Optional[int]] = mapped_column(
         ForeignKey("users.id", ondelete="SET NULL"),
         nullable=True,
     )
@@ -73,5 +74,5 @@ class BehaviourObservation(TimestampMixin, Base):
     )
 
     site: Mapped["Site"] = relationship(lazy="selectin")
-    observed_by: Mapped["User | None"] = relationship(foreign_keys=[observed_by_user_id], lazy="selectin")
-    closed_by: Mapped["User | None"] = relationship(foreign_keys=[closed_by_user_id], lazy="selectin")
+    observed_by: Mapped[Optional["User"]] = relationship(foreign_keys=[observed_by_user_id], lazy="selectin")
+    closed_by: Mapped[Optional["User"]] = relationship(foreign_keys=[closed_by_user_id], lazy="selectin")

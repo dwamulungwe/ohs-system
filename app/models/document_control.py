@@ -1,3 +1,4 @@
+from typing import Optional
 import enum
 from datetime import date, datetime
 
@@ -35,21 +36,21 @@ class DocumentControlRecord(TimestampMixin, Base):
         nullable=False,
     )
     version: Mapped[str] = mapped_column(String(80), nullable=False)
-    site_id: Mapped[int | None] = mapped_column(
+    site_id: Mapped[Optional[int]] = mapped_column(
         ForeignKey("sites.id", ondelete="SET NULL"),
         index=True,
         nullable=True,
     )
-    created_by_user_id: Mapped[int | None] = mapped_column(
+    created_by_user_id: Mapped[Optional[int]] = mapped_column(
         ForeignKey("users.id", ondelete="SET NULL"),
         nullable=True,
     )
-    approved_by_user_id: Mapped[int | None] = mapped_column(
+    approved_by_user_id: Mapped[Optional[int]] = mapped_column(
         ForeignKey("users.id", ondelete="SET NULL"),
         nullable=True,
     )
-    approved_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
-    expiry_date: Mapped[date | None] = mapped_column(Date, nullable=True)
+    approved_at: Mapped[Optional[datetime]] = mapped_column(DateTime(timezone=True), nullable=True)
+    expiry_date: Mapped[Optional[date]] = mapped_column(Date, nullable=True)
     status: Mapped[DocumentStatus] = mapped_column(
         Enum(DocumentStatus),
         default=DocumentStatus.draft,
@@ -62,7 +63,7 @@ class DocumentControlRecord(TimestampMixin, Base):
         default=list,
         nullable=False,
     )
-    supersedes_document_id: Mapped[int | None] = mapped_column(
+    supersedes_document_id: Mapped[Optional[int]] = mapped_column(
         ForeignKey("document_control_records.id", ondelete="SET NULL"),
         nullable=True,
     )
@@ -72,16 +73,16 @@ class DocumentControlRecord(TimestampMixin, Base):
         nullable=False,
     )
 
-    site: Mapped["Site | None"] = relationship(lazy="selectin")
-    created_by: Mapped["User | None"] = relationship(
+    site: Mapped[Optional["Site"]] = relationship(lazy="selectin")
+    created_by: Mapped[Optional["User"]] = relationship(
         foreign_keys=[created_by_user_id],
         lazy="selectin",
     )
-    approved_by: Mapped["User | None"] = relationship(
+    approved_by: Mapped[Optional["User"]] = relationship(
         foreign_keys=[approved_by_user_id],
         lazy="selectin",
     )
-    supersedes_document: Mapped["DocumentControlRecord | None"] = relationship(
+    supersedes_document: Mapped[Optional["DocumentControlRecord"]] = relationship(
         remote_side="DocumentControlRecord.id",
         lazy="selectin",
     )

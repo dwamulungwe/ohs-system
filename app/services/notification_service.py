@@ -1,3 +1,4 @@
+from typing import Optional
 from datetime import date, datetime, timedelta, timezone
 
 from sqlalchemy import Select, func, select
@@ -40,7 +41,7 @@ def _ensure_recipient_exists(db: Session, recipient_user_id: int) -> None:
         raise NotificationRecipientNotFoundError(f"User {recipient_user_id} was not found")
 
 
-def _recipient_ids(*values: int | None) -> list[int]:
+def _recipient_ids(*values: Optional[int]) -> list[int]:
     seen = set()
     recipients = []
     for value in values:
@@ -54,7 +55,7 @@ def get_active_user_ids_for_roles(
     db: Session,
     *,
     role_names: list[str],
-    site_id: int | None = None,
+    site_id: Optional[int] = None,
 ) -> list[int]:
     statement = (
         select(User.id)
@@ -100,7 +101,7 @@ def create_notification(db: Session, notification_in: NotificationCreate) -> Not
     return notification
 
 
-def create_notification_once(db: Session, notification_in: NotificationCreate) -> Notification | None:
+def create_notification_once(db: Session, notification_in: NotificationCreate) -> Optional[Notification]:
     if _notification_exists(
         db,
         recipient_user_id=notification_in.recipient_user_id,
@@ -118,10 +119,10 @@ def list_notifications(
     current_user: User,
     skip: int = 0,
     limit: int = 100,
-    is_read: bool | None = None,
-    severity: NotificationSeverity | None = None,
-    notification_type: NotificationType | None = None,
-    recipient_user_id: int | None = None,
+    is_read: Optional[bool] = None,
+    severity: Optional[NotificationSeverity] = None,
+    notification_type: Optional[NotificationType] = None,
+    recipient_user_id: Optional[int] = None,
 ) -> dict:
     statement: Select[tuple[Notification]] = select(Notification)
     if _can_manage_notifications(current_user) and recipient_user_id is not None:

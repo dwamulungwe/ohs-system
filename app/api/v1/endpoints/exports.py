@@ -1,3 +1,4 @@
+from typing import Optional
 from datetime import date
 
 from fastapi import APIRouter, Depends, HTTPException, Response, status
@@ -301,11 +302,11 @@ def audit_management_report(
 
 @router.get("/incidents.csv")
 def incidents_csv(
-    site_id: int | None = None,
-    status: IncidentStatus | None = None,
-    severity: IncidentSeverity | None = None,
-    date_from: date | None = None,
-    date_to: date | None = None,
+    site_id: Optional[int] = None,
+    status: Optional[IncidentStatus] = None,
+    severity: Optional[IncidentSeverity] = None,
+    date_from: Optional[date] = None,
+    date_to: Optional[date] = None,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ) -> Response:
@@ -319,11 +320,11 @@ def incidents_csv(
 
 @router.get("/hazards.csv")
 def hazards_csv(
-    site_id: int | None = None,
-    status: HazardStatus | None = None,
-    risk_level: HazardRiskLevel | None = None,
-    date_from: date | None = None,
-    date_to: date | None = None,
+    site_id: Optional[int] = None,
+    status: Optional[HazardStatus] = None,
+    risk_level: Optional[HazardRiskLevel] = None,
+    date_from: Optional[date] = None,
+    date_to: Optional[date] = None,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ) -> Response:
@@ -337,11 +338,11 @@ def hazards_csv(
 
 @router.get("/inspections.csv")
 def inspections_csv(
-    site_id: int | None = None,
-    status: InspectionStatus | None = None,
-    overall_result: InspectionOverallResult | None = None,
-    date_from: date | None = None,
-    date_to: date | None = None,
+    site_id: Optional[int] = None,
+    status: Optional[InspectionStatus] = None,
+    overall_result: Optional[InspectionOverallResult] = None,
+    date_from: Optional[date] = None,
+    date_to: Optional[date] = None,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ) -> Response:
@@ -355,13 +356,13 @@ def inspections_csv(
 
 @router.get("/corrective-actions.csv")
 def corrective_actions_csv(
-    site_id: int | None = None,
-    status: CorrectiveActionStatus | None = None,
-    priority: CorrectiveActionPriority | None = None,
-    assigned_to_user_id: int | None = None,
-    source_type: CorrectiveActionSourceType | None = None,
-    date_from: date | None = None,
-    date_to: date | None = None,
+    site_id: Optional[int] = None,
+    status: Optional[CorrectiveActionStatus] = None,
+    priority: Optional[CorrectiveActionPriority] = None,
+    assigned_to_user_id: Optional[int] = None,
+    source_type: Optional[CorrectiveActionSourceType] = None,
+    date_from: Optional[date] = None,
+    date_to: Optional[date] = None,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ) -> Response:
@@ -384,11 +385,11 @@ def corrective_actions_csv(
 
 @router.get("/incident-investigations.csv")
 def incident_investigations_csv(
-    site_id: int | None = None,
-    status: IncidentInvestigationStatus | None = None,
-    incident_id: int | None = None,
-    date_from: date | None = None,
-    date_to: date | None = None,
+    site_id: Optional[int] = None,
+    status: Optional[IncidentInvestigationStatus] = None,
+    incident_id: Optional[int] = None,
+    date_from: Optional[date] = None,
+    date_to: Optional[date] = None,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ) -> Response:
@@ -409,11 +410,11 @@ def incident_investigations_csv(
 
 @router.get("/legal-compliance.csv")
 def legal_compliance_csv(
-    site_id: int | None = None,
-    status: LegalComplianceStatus | None = None,
-    owner_user_id: int | None = None,
-    date_from: date | None = None,
-    date_to: date | None = None,
+    site_id: Optional[int] = None,
+    status: Optional[LegalComplianceStatus] = None,
+    owner_user_id: Optional[int] = None,
+    date_from: Optional[date] = None,
+    date_to: Optional[date] = None,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ) -> Response:
@@ -434,11 +435,11 @@ def legal_compliance_csv(
 
 @router.get("/jsas.csv")
 def jsas_csv(
-    site_id: int | None = None,
-    status: JSAStatus | None = None,
-    residual_risk_level: ResidualRiskLevel | None = None,
-    date_from: date | None = None,
-    date_to: date | None = None,
+    site_id: Optional[int] = None,
+    status: Optional[JSAStatus] = None,
+    residual_risk_level: Optional[ResidualRiskLevel] = None,
+    date_from: Optional[date] = None,
+    date_to: Optional[date] = None,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ) -> Response:
@@ -459,11 +460,11 @@ def jsas_csv(
 
 @router.get("/contractors.csv")
 def contractors_csv(
-    site_id: int | None = None,
-    approved_for_work: bool | None = None,
-    onboarding_status: ContractorOnboardingStatus | None = None,
-    induction_status: ContractorInductionStatus | None = None,
-    compliance_documents_status: ContractorComplianceDocumentsStatus | None = None,
+    site_id: Optional[int] = None,
+    approved_for_work: Optional[bool] = None,
+    onboarding_status: Optional[ContractorOnboardingStatus] = None,
+    induction_status: Optional[ContractorInductionStatus] = None,
+    compliance_documents_status: Optional[ContractorComplianceDocumentsStatus] = None,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ) -> Response:
@@ -484,12 +485,12 @@ def contractors_csv(
 
 @router.get("/asset-register.csv")
 def asset_register_csv(
-    site_id: int | None = None,
-    asset_type: AssetType | None = None,
-    condition_status: AssetConditionStatus | None = None,
-    assigned_to_user_id: int | None = None,
-    date_from: date | None = None,
-    date_to: date | None = None,
+    site_id: Optional[int] = None,
+    asset_type: Optional[AssetType] = None,
+    condition_status: Optional[AssetConditionStatus] = None,
+    assigned_to_user_id: Optional[int] = None,
+    date_from: Optional[date] = None,
+    date_to: Optional[date] = None,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ) -> Response:
@@ -511,12 +512,12 @@ def asset_register_csv(
 
 @router.get("/medical-surveillance.csv")
 def medical_surveillance_csv(
-    site_id: int | None = None,
-    status: MedicalSurveillanceStatus | None = None,
-    employee_user_id: int | None = None,
-    medical_clearance_status: MedicalClearanceStatus | None = None,
-    date_from: date | None = None,
-    date_to: date | None = None,
+    site_id: Optional[int] = None,
+    status: Optional[MedicalSurveillanceStatus] = None,
+    employee_user_id: Optional[int] = None,
+    medical_clearance_status: Optional[MedicalClearanceStatus] = None,
+    date_from: Optional[date] = None,
+    date_to: Optional[date] = None,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ) -> Response:
@@ -538,10 +539,10 @@ def medical_surveillance_csv(
 
 @router.get("/emergency-drills.csv")
 def emergency_drills_csv(
-    site_id: int | None = None,
-    status: EmergencyDrillStatus | None = None,
-    date_from: date | None = None,
-    date_to: date | None = None,
+    site_id: Optional[int] = None,
+    status: Optional[EmergencyDrillStatus] = None,
+    date_from: Optional[date] = None,
+    date_to: Optional[date] = None,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ) -> Response:
@@ -561,11 +562,11 @@ def emergency_drills_csv(
 
 @router.get("/documents.csv")
 def documents_csv(
-    site_id: int | None = None,
-    status: DocumentStatus | None = None,
-    document_type: DocumentType | None = None,
-    date_from: date | None = None,
-    date_to: date | None = None,
+    site_id: Optional[int] = None,
+    status: Optional[DocumentStatus] = None,
+    document_type: Optional[DocumentType] = None,
+    date_from: Optional[date] = None,
+    date_to: Optional[date] = None,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ) -> Response:
@@ -586,11 +587,11 @@ def documents_csv(
 
 @router.get("/audits.csv")
 def audits_csv(
-    site_id: int | None = None,
-    status: AuditStatus | None = None,
-    audit_type: AuditType | None = None,
-    date_from: date | None = None,
-    date_to: date | None = None,
+    site_id: Optional[int] = None,
+    status: Optional[AuditStatus] = None,
+    audit_type: Optional[AuditType] = None,
+    date_from: Optional[date] = None,
+    date_to: Optional[date] = None,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ) -> Response:
@@ -611,9 +612,9 @@ def audits_csv(
 
 @router.get("/reports/executive-summary", response_class=HTMLResponse)
 def executive_summary_report(
-    site_id: int | None = None,
-    date_from: date | None = None,
-    date_to: date | None = None,
+    site_id: Optional[int] = None,
+    date_from: Optional[date] = None,
+    date_to: Optional[date] = None,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ) -> str:
@@ -624,7 +625,7 @@ def executive_summary_report(
 
 @router.get("/reports/overdue-corrective-actions", response_class=HTMLResponse)
 def overdue_corrective_actions_report(
-    site_id: int | None = None,
+    site_id: Optional[int] = None,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ) -> str:
@@ -635,7 +636,7 @@ def overdue_corrective_actions_report(
 
 @router.get("/reports/critical-hazards", response_class=HTMLResponse)
 def critical_hazards_report(
-    site_id: int | None = None,
+    site_id: Optional[int] = None,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ) -> str:
@@ -646,9 +647,9 @@ def critical_hazards_report(
 
 @router.get("/reports/incidents-summary", response_class=HTMLResponse)
 def incidents_summary_report(
-    site_id: int | None = None,
-    date_from: date | None = None,
-    date_to: date | None = None,
+    site_id: Optional[int] = None,
+    date_from: Optional[date] = None,
+    date_to: Optional[date] = None,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ) -> str:

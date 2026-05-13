@@ -1,3 +1,4 @@
+from typing import Optional
 from sqlalchemy import ForeignKey, String, Text
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -11,10 +12,10 @@ class Site(TimestampMixin, Base):
     id: Mapped[int] = mapped_column(primary_key=True, index=True)
     name: Mapped[str] = mapped_column(String(180), nullable=False)
     code: Mapped[str] = mapped_column(String(50), unique=True, index=True, nullable=False)
-    address: Mapped[str | None] = mapped_column(Text, nullable=True)
-    created_by_id: Mapped[int | None] = mapped_column(ForeignKey("users.id", ondelete="SET NULL"), nullable=True)
+    address: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
+    created_by_id: Mapped[Optional[int]] = mapped_column(ForeignKey("users.id", ondelete="SET NULL"), nullable=True)
 
-    created_by: Mapped["User | None"] = relationship(
+    created_by: Mapped[Optional["User"]] = relationship(
         foreign_keys=[created_by_id],
         lazy="selectin",
     )

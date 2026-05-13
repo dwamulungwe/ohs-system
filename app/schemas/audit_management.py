@@ -1,3 +1,4 @@
+from typing import Optional
 from datetime import date, datetime
 
 from pydantic import BaseModel, ConfigDict, Field
@@ -16,7 +17,7 @@ class AuditManagementBase(BaseModel):
     non_conformances: list[str] = Field(default_factory=list)
     recommendations: list[str] = Field(default_factory=list)
     status: AuditStatus = AuditStatus.open
-    audit_score: float | None = None
+    audit_score: Optional[float] = None
     corrective_action_ids: list[int] = Field(default_factory=list)
     attachments_metadata: list[AttachmentMetadata] = Field(default_factory=list)
 
@@ -26,17 +27,17 @@ class AuditManagementCreate(AuditManagementBase):
 
 
 class AuditManagementUpdate(BaseModel):
-    audit_type: AuditType | None = None
-    site_id: int | None = None
-    auditor_user_id: int | None = None
-    audit_date: date | None = None
-    findings: list[str] | None = None
-    non_conformances: list[str] | None = None
-    recommendations: list[str] | None = None
-    status: AuditStatus | None = None
-    audit_score: float | None = None
-    corrective_action_ids: list[int] | None = None
-    attachments_metadata: list[AttachmentMetadata] | None = None
+    audit_type: Optional[AuditType] = None
+    site_id: Optional[int] = None
+    auditor_user_id: Optional[int] = None
+    audit_date: Optional[date] = None
+    findings: Optional[list[str]] = None
+    non_conformances: Optional[list[str]] = None
+    recommendations: Optional[list[str]] = None
+    status: Optional[AuditStatus] = None
+    audit_score: Optional[float] = None
+    corrective_action_ids: Optional[list[int]] = None
+    attachments_metadata: Optional[list[AttachmentMetadata]] = None
 
 
 class AuditManagementRead(AuditManagementBase):

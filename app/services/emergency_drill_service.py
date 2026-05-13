@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from typing import Optional
 from datetime import date, datetime, timedelta, timezone
 
 from sqlalchemy import Select, select
@@ -93,8 +94,8 @@ def list_emergency_drills(
     *,
     skip: int = 0,
     limit: int = 100,
-    status: EmergencyDrillStatus | None = None,
-    site_id: int | None = None,
+    status: Optional[EmergencyDrillStatus] = None,
+    site_id: Optional[int] = None,
 ) -> dict:
     statement: Select[tuple[EmergencyDrillRecord]] = select(EmergencyDrillRecord)
     if status is not None:
@@ -117,7 +118,7 @@ def create_emergency_drill(
     db: Session,
     drill_in: EmergencyDrillCreate,
     *,
-    actor_id: int | None,
+    actor_id: Optional[int],
 ) -> EmergencyDrillRecord:
     data = drill_in.model_dump()
     _ensure_site_exists(db, data["site_id"])
@@ -143,7 +144,7 @@ def update_emergency_drill(
     drill: EmergencyDrillRecord,
     drill_in: EmergencyDrillUpdate,
     *,
-    actor_id: int | None,
+    actor_id: Optional[int],
 ) -> EmergencyDrillRecord:
     update_data = drill_in.model_dump(exclude_unset=True)
     if "site_id" in update_data and update_data["site_id"] is not None:

@@ -1,3 +1,4 @@
+from typing import Optional
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.orm import Session
 
@@ -26,11 +27,11 @@ router = APIRouter()
 def list_inspections(
     skip: int = Query(default=0, ge=0),
     limit: int = Query(default=100, ge=1, le=500),
-    inspection_status: InspectionStatus | None = Query(default=None, alias="status"),
-    overall_result: InspectionOverallResult | None = None,
-    site_id: int | None = None,
-    inspector_user_id: int | None = None,
-    inspection_type: str | None = None,
+    inspection_status: Optional[InspectionStatus] = Query(default=None, alias="status"),
+    overall_result: Optional[InspectionOverallResult] = None,
+    site_id: Optional[int] = None,
+    inspector_user_id: Optional[int] = None,
+    inspection_type: Optional[str] = None,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ) -> dict:

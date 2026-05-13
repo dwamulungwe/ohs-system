@@ -1,3 +1,4 @@
+from typing import Optional
 import enum
 from datetime import datetime
 
@@ -39,16 +40,16 @@ class NotificationDeliveryLog(TimestampMixin, Base):
         index=True,
         nullable=False,
     )
-    destination: Mapped[str | None] = mapped_column(String(255), nullable=True)
-    provider: Mapped[str | None] = mapped_column(String(120), nullable=True)
+    destination: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)
+    provider: Mapped[Optional[str]] = mapped_column(String(120), nullable=True)
     status: Mapped[NotificationDeliveryStatus] = mapped_column(
         Enum(NotificationDeliveryStatus),
         default=NotificationDeliveryStatus.pending,
         index=True,
         nullable=False,
     )
-    error_message: Mapped[str | None] = mapped_column(Text, nullable=True)
-    sent_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    error_message: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
+    sent_at: Mapped[Optional[datetime]] = mapped_column(DateTime(timezone=True), nullable=True)
 
     notification: Mapped["Notification"] = relationship(lazy="selectin")
     recipient: Mapped["User"] = relationship(lazy="selectin")

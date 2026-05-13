@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from typing import Optional
 import smtplib
 from datetime import datetime, timezone
 from email.message import EmailMessage
@@ -32,10 +33,10 @@ def _create_delivery_log(
     notification: Notification,
     recipient: User,
     channel: NotificationDeliveryChannel,
-    destination: str | None,
-    provider: str | None,
+    destination: Optional[str],
+    provider: Optional[str],
     status: NotificationDeliveryStatus,
-    error_message: str | None = None,
+    error_message: Optional[str] = None,
 ) -> NotificationDeliveryLog:
     log = NotificationDeliveryLog(
         notification_id=notification.id,
@@ -202,10 +203,10 @@ def list_notification_delivery_logs(
     *,
     skip: int = 0,
     limit: int = 100,
-    notification_id: int | None = None,
-    recipient_user_id: int | None = None,
-    channel: NotificationDeliveryChannel | None = None,
-    delivery_status: NotificationDeliveryStatus | None = None,
+    notification_id: Optional[int] = None,
+    recipient_user_id: Optional[int] = None,
+    channel: Optional[NotificationDeliveryChannel] = None,
+    delivery_status: Optional[NotificationDeliveryStatus] = None,
 ) -> dict:
     statement: Select[tuple[NotificationDeliveryLog]] = select(NotificationDeliveryLog)
     if notification_id is not None:
@@ -221,5 +222,5 @@ def list_notification_delivery_logs(
     return {"items": items, "total": total, "skip": skip, "limit": limit}
 
 
-def get_notification_delivery_log(db: Session, log_id: int) -> NotificationDeliveryLog | None:
+def get_notification_delivery_log(db: Session, log_id: int) -> Optional[NotificationDeliveryLog]:
     return db.get(NotificationDeliveryLog, log_id)

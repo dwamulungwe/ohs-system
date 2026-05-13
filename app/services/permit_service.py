@@ -1,3 +1,4 @@
+from typing import Optional
 from datetime import datetime, timedelta, timezone
 
 from sqlalchemy import Select, select
@@ -47,12 +48,12 @@ def _aware(value: datetime) -> datetime:
     return value
 
 
-def _ensure_site_exists(db: Session, site_id: int | None) -> None:
+def _ensure_site_exists(db: Session, site_id: Optional[int]) -> None:
     if site_id is not None and db.get(Site, site_id) is None:
         raise PermitSiteNotFoundError(f"Site {site_id} was not found")
 
 
-def _ensure_user_exists(db: Session, user_id: int | None) -> None:
+def _ensure_user_exists(db: Session, user_id: Optional[int]) -> None:
     if user_id is not None and db.get(User, user_id) is None:
         raise PermitUserNotFoundError(f"User {user_id} was not found")
 
@@ -89,15 +90,15 @@ def _derive_expired_status(data: dict) -> None:
 def _apply_approval_timestamp(
     data: dict,
     *,
-    previous_status: PermitStatus | None = None,
-    existing_approved_at: datetime | None = None,
+    previous_status: Optional[PermitStatus] = None,
+    existing_approved_at: Optional[datetime] = None,
 ) -> None:
     status = data.get("status", previous_status or PermitStatus.draft)
     if status == PermitStatus.approved and data.get("approved_at") is None:
         data["approved_at"] = existing_approved_at or _now()
 
 
-def _validate_status_transition(previous_status: PermitStatus | None, next_status: PermitStatus) -> None:
+def _validate_status_transition(previous_status: Optional[PermitStatus], next_status: PermitStatus) -> None:
     if previous_status is None:
         return
     if next_status == PermitStatus.active and previous_status != PermitStatus.approved:
@@ -111,12 +112,12 @@ def list_permits(
     *,
     skip: int = 0,
     limit: int = 100,
-    status: PermitStatus | None = None,
-    permit_type: PermitType | None = None,
-    site_id: int | None = None,
-    requested_by_user_id: int | None = None,
-    issued_by_user_id: int | None = None,
-    approved_by_user_id: int | None = None,
+    status: Optional[PermitStatus] = None,
+    permit_type: Optional[PermitType] = None,
+    site_id: Optional[int] = None,
+    requested_by_user_id: Optional[int] = None,
+    issued_by_user_id: Optional[int] = None,
+    approved_by_user_id: Optional[int] = None,
     date_from=None,
     date_to=None,
 ) -> dict:

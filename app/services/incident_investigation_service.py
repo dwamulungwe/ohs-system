@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from typing import Optional
 from datetime import datetime, timezone
 
 from sqlalchemy import Select, select
@@ -41,7 +42,7 @@ def _dump_json_lists(data: dict) -> None:
             ]
 
 
-def _ensure_user_exists(db: Session, user_id: int | None) -> None:
+def _ensure_user_exists(db: Session, user_id: Optional[int]) -> None:
     if user_id is not None and db.get(User, user_id) is None:
         raise IncidentInvestigationValidationError("Referenced user not found")
 
@@ -56,10 +57,10 @@ def _get_incident_or_error(db: Session, incident_id: int) -> Incident:
 def _apply_status_side_effects(
     data: dict,
     *,
-    previous_status: IncidentInvestigationStatus | None = None,
-    actor_id: int | None = None,
-    existing_approved_at: datetime | None = None,
-    existing_completed_at: datetime | None = None,
+    previous_status: Optional[IncidentInvestigationStatus] = None,
+    actor_id: Optional[int] = None,
+    existing_approved_at: Optional[datetime] = None,
+    existing_completed_at: Optional[datetime] = None,
 ) -> None:
     status = data.get("status", previous_status or IncidentInvestigationStatus.draft)
     if status == IncidentInvestigationStatus.approved:
@@ -116,9 +117,9 @@ def list_incident_investigations(
     *,
     skip: int = 0,
     limit: int = 100,
-    status: IncidentInvestigationStatus | None = None,
-    site_id: int | None = None,
-    incident_id: int | None = None,
+    status: Optional[IncidentInvestigationStatus] = None,
+    site_id: Optional[int] = None,
+    incident_id: Optional[int] = None,
 ) -> dict:
     statement: Select[tuple[IncidentInvestigation]] = select(IncidentInvestigation)
     if status is not None:
@@ -146,7 +147,7 @@ def create_incident_investigation(
     db: Session,
     investigation_in: IncidentInvestigationCreate,
     *,
-    actor_id: int | None,
+    actor_id: Optional[int],
 ) -> IncidentInvestigation:
     data = investigation_in.model_dump()
     _dump_json_lists(data)
@@ -182,7 +183,7 @@ def update_incident_investigation(
     investigation: IncidentInvestigation,
     investigation_in: IncidentInvestigationUpdate,
     *,
-    actor_id: int | None,
+    actor_id: Optional[int],
 ) -> IncidentInvestigation:
     update_data = investigation_in.model_dump(exclude_unset=True)
     _dump_json_lists(update_data)

@@ -1,3 +1,4 @@
+from typing import Optional
 from datetime import datetime
 
 from pydantic import BaseModel, ConfigDict, Field
@@ -23,7 +24,7 @@ class NotificationCreate(NotificationBase):
 class NotificationRead(NotificationBase):
     id: int
     is_read: bool
-    read_at: datetime | None = None
+    read_at: Optional[datetime] = None
     created_at: datetime
 
     model_config = ConfigDict(from_attributes=True)

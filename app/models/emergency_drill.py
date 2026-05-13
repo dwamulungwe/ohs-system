@@ -1,3 +1,4 @@
+from typing import Optional
 import enum
 from datetime import date
 
@@ -37,7 +38,7 @@ class EmergencyDrillRecord(TimestampMixin, Base):
         default=list,
         nullable=False,
     )
-    outcome: Mapped[str | None] = mapped_column(Text, nullable=True)
+    outcome: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
     issues_found: Mapped[list[str]] = mapped_column(
         MutableList.as_mutable(JSON),
         default=list,
@@ -48,7 +49,7 @@ class EmergencyDrillRecord(TimestampMixin, Base):
         default=list,
         nullable=False,
     )
-    next_drill_date: Mapped[date | None] = mapped_column(Date, nullable=True)
+    next_drill_date: Mapped[Optional[date]] = mapped_column(Date, nullable=True)
     status: Mapped[EmergencyDrillStatus] = mapped_column(
         Enum(EmergencyDrillStatus),
         default=EmergencyDrillStatus.scheduled,

@@ -1,3 +1,4 @@
+from typing import Optional
 import enum
 from datetime import date, datetime
 
@@ -47,15 +48,15 @@ class ContractorRecord(TimestampMixin, Base):
         default=ContractorInductionStatus.pending,
         nullable=False,
     )
-    insurance_expiry_date: Mapped[date | None] = mapped_column(Date, nullable=True)
+    insurance_expiry_date: Mapped[Optional[date]] = mapped_column(Date, nullable=True)
     compliance_documents_status: Mapped[ContractorComplianceDocumentsStatus] = mapped_column(
         Enum(ContractorComplianceDocumentsStatus),
         default=ContractorComplianceDocumentsStatus.incomplete,
         nullable=False,
     )
     approved_for_work: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
-    notes: Mapped[str | None] = mapped_column(Text, nullable=True)
-    documents_expiry_date: Mapped[date | None] = mapped_column(Date, nullable=True)
+    notes: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
+    documents_expiry_date: Mapped[Optional[date]] = mapped_column(Date, nullable=True)
     attachments_metadata: Mapped[list[dict]] = mapped_column(
         MutableList.as_mutable(JSON),
         default=list,

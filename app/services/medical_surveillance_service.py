@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from typing import Optional
 from datetime import date, datetime, timedelta, timezone
 
 from sqlalchemy import Select, select
@@ -38,7 +39,7 @@ def _today() -> date:
     return datetime.now(timezone.utc).date()
 
 
-def _ensure_site_exists(db: Session, site_id: int | None) -> None:
+def _ensure_site_exists(db: Session, site_id: Optional[int]) -> None:
     if site_id is not None and db.get(Site, site_id) is None:
         raise MedicalSurveillanceValidationError("Site not found")
 
@@ -97,9 +98,9 @@ def list_medical_surveillance_records(
     *,
     skip: int = 0,
     limit: int = 100,
-    status: MedicalSurveillanceStatus | None = None,
-    site_id: int | None = None,
-    employee_user_id: int | None = None,
+    status: Optional[MedicalSurveillanceStatus] = None,
+    site_id: Optional[int] = None,
+    employee_user_id: Optional[int] = None,
 ) -> dict:
     statement: Select[tuple[MedicalSurveillanceRecord]] = select(MedicalSurveillanceRecord)
     if status is not None:
@@ -124,7 +125,7 @@ def create_medical_surveillance_record(
     db: Session,
     record_in: MedicalSurveillanceCreate,
     *,
-    actor_id: int | None,
+    actor_id: Optional[int],
 ) -> MedicalSurveillanceRecord:
     data = record_in.model_dump()
     employee = _ensure_user_exists(db, data["employee_user_id"])
@@ -153,7 +154,7 @@ def update_medical_surveillance_record(
     record: MedicalSurveillanceRecord,
     record_in: MedicalSurveillanceUpdate,
     *,
-    actor_id: int | None,
+    actor_id: Optional[int],
 ) -> MedicalSurveillanceRecord:
     update_data = record_in.model_dump(exclude_unset=True)
     if "employee_user_id" in update_data and update_data["employee_user_id"] is not None:

@@ -1,3 +1,4 @@
+from typing import Optional
 from datetime import datetime
 
 from pydantic import BaseModel, ConfigDict
@@ -11,10 +12,10 @@ class JobRunRead(BaseModel):
     job_name: str
     status: JobRunStatus
     started_at: datetime
-    completed_at: datetime | None = None
+    completed_at: Optional[datetime] = None
     records_processed: int
-    details: dict | None = None
-    error_message: str | None = None
+    details: Optional[dict] = None
+    error_message: Optional[str] = None
     created_at: datetime
     updated_at: datetime
 

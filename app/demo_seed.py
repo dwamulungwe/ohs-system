@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from typing import Optional
 from dataclasses import dataclass
 from datetime import datetime, time, timedelta, timezone
 
@@ -529,7 +530,7 @@ def _create_hazards(db: Session, sites: dict[str, Site], users: dict[str, User],
     return {hazard.title: hazard for hazard in hazards}
 
 
-def _inspection_checklist(*items: tuple[str, str, int | None]) -> list[dict]:
+def _inspection_checklist(*items: tuple[str, str, Optional[int]]) -> list[dict]:
     checklist = []
     for prompt, result, linked_hazard_id in items:
         item = {"prompt": prompt, "result": result}

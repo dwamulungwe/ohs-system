@@ -1,3 +1,4 @@
+from typing import Optional
 from datetime import date, datetime
 
 from pydantic import BaseModel, ConfigDict, Field
@@ -15,11 +16,11 @@ class HazardBase(BaseModel):
     impact: int = Field(ge=1, le=5)
     existing_controls: list[str] = Field(default_factory=list)
     additional_controls: list[str] = Field(default_factory=list)
-    owner_user_id: int | None = None
-    due_date: date | None = None
-    review_date: date | None = None
+    owner_user_id: Optional[int] = None
+    due_date: Optional[date] = None
+    review_date: Optional[date] = None
     attachments_metadata: list[AttachmentMetadata] = Field(default_factory=list)
-    incident_id: int | None = None
+    incident_id: Optional[int] = None
 
 
 class HazardCreate(HazardBase):
@@ -27,19 +28,19 @@ class HazardCreate(HazardBase):
 
 
 class HazardUpdate(BaseModel):
-    site_id: int | None = None
-    title: str | None = Field(default=None, min_length=2, max_length=200)
-    description: str | None = Field(default=None, min_length=2)
-    likelihood: int | None = Field(default=None, ge=1, le=5)
-    impact: int | None = Field(default=None, ge=1, le=5)
-    status: HazardStatus | None = None
-    existing_controls: list[str] | None = None
-    additional_controls: list[str] | None = None
-    owner_user_id: int | None = None
-    due_date: date | None = None
-    review_date: date | None = None
-    attachments_metadata: list[AttachmentMetadata] | None = None
-    incident_id: int | None = None
+    site_id: Optional[int] = None
+    title: Optional[str] = Field(default=None, min_length=2, max_length=200)
+    description: Optional[str] = Field(default=None, min_length=2)
+    likelihood: Optional[int] = Field(default=None, ge=1, le=5)
+    impact: Optional[int] = Field(default=None, ge=1, le=5)
+    status: Optional[HazardStatus] = None
+    existing_controls: Optional[list[str]] = None
+    additional_controls: Optional[list[str]] = None
+    owner_user_id: Optional[int] = None
+    due_date: Optional[date] = None
+    review_date: Optional[date] = None
+    attachments_metadata: Optional[list[AttachmentMetadata]] = None
+    incident_id: Optional[int] = None
 
 
 class HazardRead(HazardBase):
@@ -47,9 +48,9 @@ class HazardRead(HazardBase):
     risk_score: int
     risk_level: HazardRiskLevel
     status: HazardStatus
-    reported_by_id: int | None = None
-    reviewed_at: datetime | None = None
-    reviewed_by_user_id: int | None = None
+    reported_by_id: Optional[int] = None
+    reviewed_at: Optional[datetime] = None
+    reviewed_by_user_id: Optional[int] = None
     attachments: list[AttachmentRead] = Field(default_factory=list)
     created_at: datetime
     updated_at: datetime

@@ -1,3 +1,4 @@
+from typing import Optional
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.orm import Session
 
@@ -24,10 +25,10 @@ router = APIRouter()
 def read_notification_delivery_logs(
     skip: int = Query(default=0, ge=0),
     limit: int = Query(default=100, ge=1, le=500),
-    notification_id: int | None = None,
-    recipient_user_id: int | None = None,
-    channel: NotificationDeliveryChannel | None = None,
-    delivery_status: NotificationDeliveryStatus | None = None,
+    notification_id: Optional[int] = None,
+    recipient_user_id: Optional[int] = None,
+    channel: Optional[NotificationDeliveryChannel] = None,
+    delivery_status: Optional[NotificationDeliveryStatus] = None,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ) -> dict:

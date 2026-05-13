@@ -1,3 +1,4 @@
+from typing import Optional
 from sqlalchemy.orm import Session
 
 from app.models.audit_log import AuditLog
@@ -6,12 +7,12 @@ from app.models.audit_log import AuditLog
 def write_audit_log(
     db: Session,
     *,
-    actor_id: int | None,
+    actor_id: Optional[int],
     action: str,
     resource_type: str,
-    resource_id: int | None = None,
-    details: dict | None = None,
-    ip_address: str | None = None,
+    resource_id: Optional[int] = None,
+    details: Optional[dict] = None,
+    ip_address: Optional[str] = None,
 ) -> AuditLog:
     audit_log = AuditLog(
         actor_id=actor_id,

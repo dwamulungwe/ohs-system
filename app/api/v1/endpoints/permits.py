@@ -1,3 +1,4 @@
+from typing import Optional
 from datetime import date
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
@@ -35,14 +36,14 @@ REQUESTER_PERMIT_STATUSES = {PermitStatus.draft, PermitStatus.pending_approval, 
 def list_permit_records(
     skip: int = Query(default=0, ge=0),
     limit: int = Query(default=100, ge=1, le=500),
-    status: PermitStatus | None = None,
-    permit_type: PermitType | None = None,
-    site_id: int | None = None,
-    requested_by_user_id: int | None = None,
-    issued_by_user_id: int | None = None,
-    approved_by_user_id: int | None = None,
-    date_from: date | None = None,
-    date_to: date | None = None,
+    status: Optional[PermitStatus] = None,
+    permit_type: Optional[PermitType] = None,
+    site_id: Optional[int] = None,
+    requested_by_user_id: Optional[int] = None,
+    issued_by_user_id: Optional[int] = None,
+    approved_by_user_id: Optional[int] = None,
+    date_from: Optional[date] = None,
+    date_to: Optional[date] = None,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ) -> dict:

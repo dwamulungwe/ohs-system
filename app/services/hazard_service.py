@@ -1,3 +1,4 @@
+from typing import Optional
 from sqlalchemy import Select, select
 from sqlalchemy.orm import Session
 
@@ -50,12 +51,12 @@ def _ensure_site_exists(db: Session, site_id: int) -> None:
         raise HazardSiteNotFoundError(f"Site {site_id} was not found")
 
 
-def _ensure_owner_exists(db: Session, owner_user_id: int | None) -> None:
+def _ensure_owner_exists(db: Session, owner_user_id: Optional[int]) -> None:
     if owner_user_id is not None and db.get(User, owner_user_id) is None:
         raise HazardOwnerNotFoundError(f"User {owner_user_id} was not found")
 
 
-def _ensure_incident_exists(db: Session, incident_id: int | None) -> None:
+def _ensure_incident_exists(db: Session, incident_id: Optional[int]) -> None:
     if incident_id is not None and db.get(Incident, incident_id) is None:
         raise HazardIncidentNotFoundError(f"Incident {incident_id} was not found")
 
@@ -63,9 +64,9 @@ def _ensure_incident_exists(db: Session, incident_id: int | None) -> None:
 def _validate_references(
     db: Session,
     *,
-    site_id: int | None = None,
-    owner_user_id: int | None = None,
-    incident_id: int | None = None,
+    site_id: Optional[int] = None,
+    owner_user_id: Optional[int] = None,
+    incident_id: Optional[int] = None,
 ) -> None:
     if site_id is not None:
         _ensure_site_exists(db, site_id)
@@ -78,10 +79,10 @@ def list_hazards(
     *,
     skip: int = 0,
     limit: int = 100,
-    status: HazardStatus | None = None,
-    risk_level: HazardRiskLevel | None = None,
-    site_id: int | None = None,
-    owner_user_id: int | None = None,
+    status: Optional[HazardStatus] = None,
+    risk_level: Optional[HazardRiskLevel] = None,
+    site_id: Optional[int] = None,
+    owner_user_id: Optional[int] = None,
 ) -> dict:
     statement: Select[tuple[Hazard]] = select(Hazard)
     if status is not None:
@@ -105,7 +106,7 @@ def get_hazard(db: Session, hazard_id: int) -> Hazard:
     return hazard
 
 
-def create_hazard(db: Session, hazard_in: HazardCreate, *, reported_by_id: int | None) -> Hazard:
+def create_hazard(db: Session, hazard_in: HazardCreate, *, reported_by_id: Optional[int]) -> Hazard:
     _validate_references(
         db,
         site_id=hazard_in.site_id,
@@ -134,7 +135,7 @@ def create_hazard(db: Session, hazard_in: HazardCreate, *, reported_by_id: int |
     return hazard
 
 
-def update_hazard(db: Session, hazard: Hazard, hazard_in: HazardUpdate, *, actor_id: int | None = None) -> Hazard:
+def update_hazard(db: Session, hazard: Hazard, hazard_in: HazardUpdate, *, actor_id: Optional[int] = None) -> Hazard:
     update_data = hazard_in.model_dump(exclude_unset=True)
     _validate_references(
         db,

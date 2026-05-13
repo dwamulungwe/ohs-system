@@ -1,3 +1,4 @@
+from typing import Optional
 from fastapi import APIRouter, Depends, File, Form, Response, UploadFile, status
 from fastapi.responses import FileResponse
 from sqlalchemy.orm import Session
@@ -49,7 +50,7 @@ async def upload_attachment(
     entity_type: AttachmentEntityType,
     entity_id: int,
     file: UploadFile = File(...),
-    description: str | None = Form(default=None),
+    description: Optional[str] = Form(default=None),
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ) -> AttachmentRead:

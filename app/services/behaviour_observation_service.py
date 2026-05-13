@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from typing import Optional
 from datetime import datetime, timezone
 
 from sqlalchemy import Select, select
@@ -44,9 +45,9 @@ def list_behaviour_observations(
     *,
     skip: int = 0,
     limit: int = 100,
-    observation_type: BehaviourObservationType | None = None,
-    observation_status: BehaviourObservationStatus | None = None,
-    site_id: int | None = None,
+    observation_type: Optional[BehaviourObservationType] = None,
+    observation_status: Optional[BehaviourObservationStatus] = None,
+    site_id: Optional[int] = None,
 ) -> dict:
     statement: Select[tuple[BehaviourObservation]] = select(BehaviourObservation)
     if observation_type is not None:
@@ -71,7 +72,7 @@ def create_behaviour_observation(
     db: Session,
     observation_in: BehaviourObservationCreate,
     *,
-    actor_id: int | None,
+    actor_id: Optional[int],
 ) -> BehaviourObservation:
     _ensure_site_exists(db, observation_in.site_id)
     data = observation_in.model_dump()
@@ -98,7 +99,7 @@ def update_behaviour_observation(
     observation: BehaviourObservation,
     observation_in: BehaviourObservationUpdate,
     *,
-    actor_id: int | None,
+    actor_id: Optional[int],
 ) -> BehaviourObservation:
     update_data = observation_in.model_dump(exclude_unset=True)
     if "site_id" in update_data:

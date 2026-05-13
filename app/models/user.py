@@ -1,3 +1,4 @@
+from typing import Optional
 from sqlalchemy import Boolean, ForeignKey, String
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -13,9 +14,9 @@ class User(TimestampMixin, Base):
     email: Mapped[str] = mapped_column(String(255), unique=True, index=True, nullable=False)
     full_name: Mapped[str] = mapped_column(String(255), nullable=False)
     hashed_password: Mapped[str] = mapped_column(String(255), nullable=False)
-    phone_number: Mapped[str | None] = mapped_column(String(40), nullable=True)
+    phone_number: Mapped[Optional[str]] = mapped_column(String(40), nullable=True)
     is_active: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
-    assigned_site_id: Mapped[int | None] = mapped_column(
+    assigned_site_id: Mapped[Optional[int]] = mapped_column(
         ForeignKey("sites.id", ondelete="SET NULL"),
         index=True,
         nullable=True,
@@ -26,7 +27,7 @@ class User(TimestampMixin, Base):
         back_populates="users",
         lazy="selectin",
     )
-    assigned_site: Mapped["Site | None"] = relationship(
+    assigned_site: Mapped[Optional["Site"]] = relationship(
         foreign_keys=[assigned_site_id],
         lazy="selectin",
     )
@@ -38,7 +39,7 @@ class User(TimestampMixin, Base):
         return sorted(get_normalized_role_names(self))
 
     @property
-    def primary_role(self) -> str | None:
+    def primary_role(self) -> Optional[str]:
         from app.services.rbac import get_primary_role_name
 
         return get_primary_role_name(self)

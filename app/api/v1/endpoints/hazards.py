@@ -1,3 +1,4 @@
+from typing import Optional
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.orm import Session
 
@@ -33,10 +34,10 @@ MANAGER_HAZARD_STATUSES = {HazardStatus.closed}
 def list_hazards(
     skip: int = Query(default=0, ge=0),
     limit: int = Query(default=100, ge=1, le=500),
-    hazard_status: HazardStatus | None = Query(default=None, alias="status"),
-    risk_level: HazardRiskLevel | None = None,
-    site_id: int | None = None,
-    owner_user_id: int | None = None,
+    hazard_status: Optional[HazardStatus] = Query(default=None, alias="status"),
+    risk_level: Optional[HazardRiskLevel] = None,
+    site_id: Optional[int] = None,
+    owner_user_id: Optional[int] = None,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ) -> dict:

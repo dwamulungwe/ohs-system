@@ -3,7 +3,7 @@ from __future__ import annotations
 from collections import Counter
 from datetime import date, datetime, time, timedelta, timezone
 import re
-from typing import Iterable
+from typing import Iterable, Optional
 
 from sqlalchemy import select
 from sqlalchemy.orm import Session
@@ -83,7 +83,7 @@ def _today() -> date:
     return _now().date()
 
 
-def _normalize_datetime(value: datetime | None) -> datetime | None:
+def _normalize_datetime(value: Optional[datetime]) -> Optional[datetime]:
     if value is None:
         return None
     if value.tzinfo is None:
@@ -95,13 +95,13 @@ def _site_lookup(db: Session) -> dict[int, str]:
     return {site.id: site.name for site in db.scalars(select(Site)).all()}
 
 
-def _site_name(site_lookup: dict[int, str], site_id: int | None) -> str | None:
+def _site_name(site_lookup: dict[int, str], site_id: Optional[int]) -> Optional[str]:
     if site_id is None:
         return None
     return site_lookup.get(site_id)
 
 
-def _record_date(value) -> date | None:
+def _record_date(value) -> Optional[date]:
     if value is None:
         return None
     if isinstance(value, datetime):
@@ -109,7 +109,7 @@ def _record_date(value) -> date | None:
     return value
 
 
-def _within_date_range(value, date_from: date | None, date_to: date | None) -> bool:
+def _within_date_range(value, date_from: Optional[date], date_to: Optional[date]) -> bool:
     record_date = _record_date(value)
     if record_date is None:
         return False
@@ -124,10 +124,10 @@ def _records(
     db: Session,
     model,
     *,
-    site_id: int | None = None,
-    date_attr: str | None = None,
-    date_from: date | None = None,
-    date_to: date | None = None,
+    site_id: Optional[int] = None,
+    date_attr: Optional[str] = None,
+    date_from: Optional[date] = None,
+    date_to: Optional[date] = None,
 ) -> list:
     statement = select(model)
     if site_id is not None and hasattr(model, "site_id"):
@@ -155,7 +155,7 @@ def _count_by(records: Iterable, attr: str, enum_cls) -> dict[str, int]:
     return counts
 
 
-def _month_key(value: datetime | None) -> str | None:
+def _month_key(value: Optional[datetime]) -> Optional[str]:
     if value is None:
         return None
     return value.strftime("%Y-%m")
@@ -185,9 +185,9 @@ def _incident_frequency_counts(incidents: list[Incident]) -> tuple[int, int]:
 def _kpi_snapshot(
     db: Session,
     *,
-    site_id: int | None = None,
-    date_from: date | None = None,
-    date_to: date | None = None,
+    site_id: Optional[int] = None,
+    date_from: Optional[date] = None,
+    date_to: Optional[date] = None,
 ) -> dict:
     kpi_records = _records(
         db,
@@ -231,9 +231,9 @@ def _communication_item(communication: SafetyCommunication, site_lookup: dict[in
 def _communication_analytics(
     db: Session,
     *,
-    site_id: int | None = None,
-    date_from: date | None = None,
-    date_to: date | None = None,
+    site_id: Optional[int] = None,
+    date_from: Optional[date] = None,
+    date_to: Optional[date] = None,
 ) -> dict:
     site_lookup = _site_lookup(db)
     communications = _records(
@@ -280,9 +280,9 @@ def _communication_analytics(
 def _behaviour_analytics(
     db: Session,
     *,
-    site_id: int | None = None,
-    date_from: date | None = None,
-    date_to: date | None = None,
+    site_id: Optional[int] = None,
+    date_from: Optional[date] = None,
+    date_to: Optional[date] = None,
 ) -> dict:
     observations = _records(
         db,
@@ -324,9 +324,9 @@ def _behaviour_analytics(
 def _investigation_analytics(
     db: Session,
     *,
-    site_id: int | None = None,
-    date_from: date | None = None,
-    date_to: date | None = None,
+    site_id: Optional[int] = None,
+    date_from: Optional[date] = None,
+    date_to: Optional[date] = None,
 ) -> dict:
     investigations = _records(
         db,
@@ -354,9 +354,9 @@ def _investigation_analytics(
 def _legal_compliance_analytics(
     db: Session,
     *,
-    site_id: int | None = None,
-    date_from: date | None = None,
-    date_to: date | None = None,
+    site_id: Optional[int] = None,
+    date_from: Optional[date] = None,
+    date_to: Optional[date] = None,
 ) -> dict:
     items = _records(
         db,
@@ -391,9 +391,9 @@ def _legal_compliance_analytics(
 def _jsa_analytics(
     db: Session,
     *,
-    site_id: int | None = None,
-    date_from: date | None = None,
-    date_to: date | None = None,
+    site_id: Optional[int] = None,
+    date_from: Optional[date] = None,
+    date_to: Optional[date] = None,
 ) -> dict:
     jsas = _records(
         db,
@@ -423,9 +423,9 @@ def _jsa_analytics(
 def _contractor_analytics(
     db: Session,
     *,
-    site_id: int | None = None,
-    date_from: date | None = None,
-    date_to: date | None = None,
+    site_id: Optional[int] = None,
+    date_from: Optional[date] = None,
+    date_to: Optional[date] = None,
 ) -> dict:
     contractors = _records(
         db,
@@ -463,9 +463,9 @@ def _contractor_analytics(
 def _asset_analytics(
     db: Session,
     *,
-    site_id: int | None = None,
-    date_from: date | None = None,
-    date_to: date | None = None,
+    site_id: Optional[int] = None,
+    date_from: Optional[date] = None,
+    date_to: Optional[date] = None,
 ) -> dict:
     assets = _records(
         db,
@@ -500,9 +500,9 @@ def _asset_analytics(
 def _medical_surveillance_analytics(
     db: Session,
     *,
-    site_id: int | None = None,
-    date_from: date | None = None,
-    date_to: date | None = None,
+    site_id: Optional[int] = None,
+    date_from: Optional[date] = None,
+    date_to: Optional[date] = None,
 ) -> dict:
     records = _records(
         db,
@@ -527,9 +527,9 @@ def _medical_surveillance_analytics(
 def _emergency_drill_analytics(
     db: Session,
     *,
-    site_id: int | None = None,
-    date_from: date | None = None,
-    date_to: date | None = None,
+    site_id: Optional[int] = None,
+    date_from: Optional[date] = None,
+    date_to: Optional[date] = None,
 ) -> dict:
     drills = _records(
         db,
@@ -556,9 +556,9 @@ def _emergency_drill_analytics(
 def _document_analytics(
     db: Session,
     *,
-    site_id: int | None = None,
-    date_from: date | None = None,
-    date_to: date | None = None,
+    site_id: Optional[int] = None,
+    date_from: Optional[date] = None,
+    date_to: Optional[date] = None,
 ) -> dict:
     documents = _records(
         db,
@@ -592,9 +592,9 @@ def _document_analytics(
 def _audit_management_analytics(
     db: Session,
     *,
-    site_id: int | None = None,
-    date_from: date | None = None,
-    date_to: date | None = None,
+    site_id: Optional[int] = None,
+    date_from: Optional[date] = None,
+    date_to: Optional[date] = None,
 ) -> dict:
     audits = _records(
         db,
@@ -708,9 +708,9 @@ def _risk_site_rankings(hazards: list[Hazard], site_lookup: dict[int, str]) -> l
 def _risk_analytics(
     db: Session,
     *,
-    site_id: int | None = None,
-    date_from: date | None = None,
-    date_to: date | None = None,
+    site_id: Optional[int] = None,
+    date_from: Optional[date] = None,
+    date_to: Optional[date] = None,
 ) -> dict:
     site_lookup = _site_lookup(db)
     hazards = _records(
@@ -787,9 +787,9 @@ def _action_item(action: CorrectiveAction, site_lookup: dict[int, str]) -> dict:
 def _action_analytics(
     db: Session,
     *,
-    site_id: int | None = None,
-    date_from: date | None = None,
-    date_to: date | None = None,
+    site_id: Optional[int] = None,
+    date_from: Optional[date] = None,
+    date_to: Optional[date] = None,
 ) -> dict:
     site_lookup = _site_lookup(db)
     actions = _records(
@@ -850,9 +850,9 @@ def _training_compliance_rate(training_records: list[TrainingRecord]) -> float:
 def _compliance_analytics(
     db: Session,
     *,
-    site_id: int | None = None,
-    date_from: date | None = None,
-    date_to: date | None = None,
+    site_id: Optional[int] = None,
+    date_from: Optional[date] = None,
+    date_to: Optional[date] = None,
 ) -> dict:
     training_records = _records(
         db,
@@ -914,9 +914,9 @@ def _permit_is_expired(permit: PermitToWork) -> bool:
 def _permit_analytics(
     db: Session,
     *,
-    site_id: int | None = None,
-    date_from: date | None = None,
-    date_to: date | None = None,
+    site_id: Optional[int] = None,
+    date_from: Optional[date] = None,
+    date_to: Optional[date] = None,
 ) -> dict:
     permits = _records(
         db,
@@ -942,7 +942,7 @@ def _approval_item(
     approval: ApprovalWorkflow,
     *,
     site_lookup: dict[int, str],
-    approval_site_ids: dict[int, int | None],
+    approval_site_ids: dict[int, Optional[int]],
 ) -> dict:
     site_id = approval_site_ids.get(approval.id)
     return {
@@ -959,7 +959,7 @@ def _approval_item(
     }
 
 
-def _approval_site_ids(db: Session, approvals: list[ApprovalWorkflow]) -> dict[int, int | None]:
+def _approval_site_ids(db: Session, approvals: list[ApprovalWorkflow]) -> dict[int, Optional[int]]:
     incident_ids = {approval.entity_id for approval in approvals if approval.entity_type.value == "incident"}
     hazard_ids = {approval.entity_id for approval in approvals if approval.entity_type.value == "hazard"}
     action_ids = {
@@ -984,7 +984,7 @@ def _approval_site_ids(db: Session, approvals: list[ApprovalWorkflow]) -> dict[i
         for permit in db.scalars(select(PermitToWork).where(PermitToWork.id.in_(permit_ids))).all()
     } if permit_ids else {}
 
-    site_ids: dict[int, int | None] = {}
+    site_ids: dict[int, Optional[int]] = {}
     for approval in approvals:
         if approval.entity_type.value == "incident":
             site_ids[approval.id] = incident_sites.get(approval.entity_id)
@@ -1000,9 +1000,9 @@ def _approval_site_ids(db: Session, approvals: list[ApprovalWorkflow]) -> dict[i
 def _approval_analytics(
     db: Session,
     *,
-    site_id: int | None = None,
-    date_from: date | None = None,
-    date_to: date | None = None,
+    site_id: Optional[int] = None,
+    date_from: Optional[date] = None,
+    date_to: Optional[date] = None,
 ) -> dict:
     site_lookup = _site_lookup(db)
     approvals = _records(
@@ -1032,9 +1032,9 @@ def _approval_analytics(
 def _incident_snapshot(
     db: Session,
     *,
-    site_id: int | None = None,
-    date_from: date | None = None,
-    date_to: date | None = None,
+    site_id: Optional[int] = None,
+    date_from: Optional[date] = None,
+    date_to: Optional[date] = None,
 ) -> dict:
     incidents = _records(
         db,
@@ -1060,9 +1060,9 @@ def _incident_snapshot(
 def _urgent_items(
     db: Session,
     *,
-    site_id: int | None = None,
-    date_from: date | None = None,
-    date_to: date | None = None,
+    site_id: Optional[int] = None,
+    date_from: Optional[date] = None,
+    date_to: Optional[date] = None,
 ) -> list[dict]:
     site_lookup = _site_lookup(db)
     items: list[tuple[int, dict]] = []
@@ -1650,12 +1650,12 @@ def _urgent_items(
 def get_dashboard_overview(
     db: Session,
     *,
-    site_id: int | None = None,
-    date_from: date | None = None,
-    date_to: date | None = None,
+    site_id: Optional[int] = None,
+    date_from: Optional[date] = None,
+    date_to: Optional[date] = None,
 ) -> dict:
     incidents = _records(db, Incident, site_id=site_id, date_attr="occurred_at", date_from=date_from, date_to=date_to)
-    hazards = _records(db, Hazard, site_id=site_id, date_attr="created_at", date_from=date_from, date_to=date_to)
+    hazards = _records(db, Hazard, site_id=site_id)
     inspections = _records(db, Inspection, site_id=site_id, date_attr="inspection_date", date_from=date_from, date_to=date_to)
     corrective_actions = _records(
         db,
@@ -1794,9 +1794,9 @@ def get_dashboard_overview(
 def get_site_summaries(
     db: Session,
     *,
-    site_id: int | None = None,
-    date_from: date | None = None,
-    date_to: date | None = None,
+    site_id: Optional[int] = None,
+    date_from: Optional[date] = None,
+    date_to: Optional[date] = None,
 ) -> list[dict]:
     site_statement = select(Site)
     if site_id is not None:
@@ -1957,9 +1957,9 @@ def get_site_summaries(
 def get_dashboard_trends(
     db: Session,
     *,
-    site_id: int | None = None,
-    date_from: date | None = None,
-    date_to: date | None = None,
+    site_id: Optional[int] = None,
+    date_from: Optional[date] = None,
+    date_to: Optional[date] = None,
 ) -> dict:
     incidents = _records(db, Incident, site_id=site_id, date_attr="occurred_at", date_from=date_from, date_to=date_to)
     hazards = _records(db, Hazard, site_id=site_id, date_attr="created_at", date_from=date_from, date_to=date_to)
@@ -2035,9 +2035,9 @@ def get_dashboard_trends(
 def get_dashboard_risk(
     db: Session,
     *,
-    site_id: int | None = None,
-    date_from: date | None = None,
-    date_to: date | None = None,
+    site_id: Optional[int] = None,
+    date_from: Optional[date] = None,
+    date_to: Optional[date] = None,
 ) -> dict:
     return _risk_analytics(db, site_id=site_id, date_from=date_from, date_to=date_to)
 
@@ -2045,9 +2045,9 @@ def get_dashboard_risk(
 def get_dashboard_actions(
     db: Session,
     *,
-    site_id: int | None = None,
-    date_from: date | None = None,
-    date_to: date | None = None,
+    site_id: Optional[int] = None,
+    date_from: Optional[date] = None,
+    date_to: Optional[date] = None,
 ) -> dict:
     return _action_analytics(db, site_id=site_id, date_from=date_from, date_to=date_to)
 
@@ -2055,9 +2055,9 @@ def get_dashboard_actions(
 def get_dashboard_compliance(
     db: Session,
     *,
-    site_id: int | None = None,
-    date_from: date | None = None,
-    date_to: date | None = None,
+    site_id: Optional[int] = None,
+    date_from: Optional[date] = None,
+    date_to: Optional[date] = None,
 ) -> dict:
     return _compliance_analytics(db, site_id=site_id, date_from=date_from, date_to=date_to)
 
@@ -2065,9 +2065,9 @@ def get_dashboard_compliance(
 def get_dashboard_permits(
     db: Session,
     *,
-    site_id: int | None = None,
-    date_from: date | None = None,
-    date_to: date | None = None,
+    site_id: Optional[int] = None,
+    date_from: Optional[date] = None,
+    date_to: Optional[date] = None,
 ) -> dict:
     return _permit_analytics(db, site_id=site_id, date_from=date_from, date_to=date_to)
 
@@ -2075,9 +2075,9 @@ def get_dashboard_permits(
 def get_dashboard_approvals(
     db: Session,
     *,
-    site_id: int | None = None,
-    date_from: date | None = None,
-    date_to: date | None = None,
+    site_id: Optional[int] = None,
+    date_from: Optional[date] = None,
+    date_to: Optional[date] = None,
 ) -> dict:
     return _approval_analytics(db, site_id=site_id, date_from=date_from, date_to=date_to)
 
@@ -2085,9 +2085,9 @@ def get_dashboard_approvals(
 def get_dashboard_management_summary(
     db: Session,
     *,
-    site_id: int | None = None,
-    date_from: date | None = None,
-    date_to: date | None = None,
+    site_id: Optional[int] = None,
+    date_from: Optional[date] = None,
+    date_to: Optional[date] = None,
 ) -> dict:
     risk_snapshot = _risk_analytics(db, site_id=site_id, date_from=date_from, date_to=date_to)
     action_details = _action_analytics(db, site_id=site_id, date_from=date_from, date_to=date_to)

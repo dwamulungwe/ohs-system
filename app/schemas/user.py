@@ -1,3 +1,4 @@
+from typing import Optional
 from datetime import datetime
 
 from pydantic import BaseModel, ConfigDict, EmailStr, Field
@@ -8,9 +9,9 @@ from app.schemas.role import RoleRead
 class UserBase(BaseModel):
     email: EmailStr
     full_name: str = Field(min_length=2, max_length=255)
-    phone_number: str | None = Field(default=None, min_length=7, max_length=40)
+    phone_number: Optional[str] = Field(default=None, min_length=7, max_length=40)
     is_active: bool = True
-    assigned_site_id: int | None = None
+    assigned_site_id: Optional[int] = None
 
 
 class UserCreate(UserBase):
@@ -23,12 +24,12 @@ class UserBootstrap(UserBase):
 
 
 class UserUpdate(BaseModel):
-    email: EmailStr | None = None
-    full_name: str | None = Field(default=None, min_length=2, max_length=255)
-    password: str | None = Field(default=None, min_length=8, max_length=128)
-    is_active: bool | None = None
-    assigned_site_id: int | None = None
-    role_ids: list[int] | None = None
+    email: Optional[EmailStr] = None
+    full_name: Optional[str] = Field(default=None, min_length=2, max_length=255)
+    password: Optional[str] = Field(default=None, min_length=8, max_length=128)
+    is_active: Optional[bool] = None
+    assigned_site_id: Optional[int] = None
+    role_ids: Optional[list[int]] = None
 
 
 class UserRead(UserBase):
@@ -36,7 +37,7 @@ class UserRead(UserBase):
     email: str
     roles: list[RoleRead] = []
     role_names: list[str] = []
-    primary_role: str | None = None
+    primary_role: Optional[str] = None
     created_at: datetime
     updated_at: datetime
 

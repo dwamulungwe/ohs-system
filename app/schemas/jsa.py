@@ -1,3 +1,4 @@
+from typing import Optional
 from datetime import date, datetime
 
 from pydantic import BaseModel, ConfigDict, Field
@@ -16,10 +17,10 @@ class JSABase(BaseModel):
     controls: list[str] = Field(default_factory=list)
     ppe_required: list[str] = Field(default_factory=list)
     residual_risk_level: ResidualRiskLevel = ResidualRiskLevel.medium
-    approved_by_user_id: int | None = None
-    approved_at: datetime | None = None
+    approved_by_user_id: Optional[int] = None
+    approved_at: Optional[datetime] = None
     status: JSAStatus = JSAStatus.draft
-    review_date: date | None = None
+    review_date: Optional[date] = None
     attachments_metadata: list[AttachmentMetadata] = Field(default_factory=list)
 
 
@@ -28,19 +29,19 @@ class JSACreate(JSABase):
 
 
 class JSAUpdate(BaseModel):
-    title: str | None = Field(default=None, min_length=2, max_length=200)
-    site_id: int | None = None
-    department_or_area: str | None = Field(default=None, min_length=2, max_length=200)
-    job_steps: list[str] | None = None
-    hazards: list[str] | None = None
-    controls: list[str] | None = None
-    ppe_required: list[str] | None = None
-    residual_risk_level: ResidualRiskLevel | None = None
-    approved_by_user_id: int | None = None
-    approved_at: datetime | None = None
-    status: JSAStatus | None = None
-    review_date: date | None = None
-    attachments_metadata: list[AttachmentMetadata] | None = None
+    title: Optional[str] = Field(default=None, min_length=2, max_length=200)
+    site_id: Optional[int] = None
+    department_or_area: Optional[str] = Field(default=None, min_length=2, max_length=200)
+    job_steps: Optional[list[str]] = None
+    hazards: Optional[list[str]] = None
+    controls: Optional[list[str]] = None
+    ppe_required: Optional[list[str]] = None
+    residual_risk_level: Optional[ResidualRiskLevel] = None
+    approved_by_user_id: Optional[int] = None
+    approved_at: Optional[datetime] = None
+    status: Optional[JSAStatus] = None
+    review_date: Optional[date] = None
+    attachments_metadata: Optional[list[AttachmentMetadata]] = None
 
 
 class JSARead(JSABase):

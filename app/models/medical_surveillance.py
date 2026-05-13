@@ -1,3 +1,4 @@
+from typing import Optional
 import enum
 from datetime import date, datetime
 
@@ -31,28 +32,28 @@ class MedicalSurveillanceRecord(TimestampMixin, Base):
         index=True,
         nullable=False,
     )
-    site_id: Mapped[int | None] = mapped_column(
+    site_id: Mapped[Optional[int]] = mapped_column(
         ForeignKey("sites.id", ondelete="SET NULL"),
         index=True,
         nullable=True,
     )
     surveillance_type: Mapped[str] = mapped_column(String(120), nullable=False)
     due_date: Mapped[date] = mapped_column(Date, nullable=False)
-    completed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    completed_at: Mapped[Optional[datetime]] = mapped_column(DateTime(timezone=True), nullable=True)
     status: Mapped[MedicalSurveillanceStatus] = mapped_column(
         Enum(MedicalSurveillanceStatus),
         default=MedicalSurveillanceStatus.due,
         index=True,
         nullable=False,
     )
-    results_summary: Mapped[str | None] = mapped_column(Text, nullable=True)
+    results_summary: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
     medical_clearance_status: Mapped[MedicalClearanceStatus] = mapped_column(
         Enum(MedicalClearanceStatus),
         default=MedicalClearanceStatus.pending,
         nullable=False,
     )
-    next_due_date: Mapped[date | None] = mapped_column(Date, nullable=True)
-    notes: Mapped[str | None] = mapped_column(Text, nullable=True)
+    next_due_date: Mapped[Optional[date]] = mapped_column(Date, nullable=True)
+    notes: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
     attachments_metadata: Mapped[list[dict]] = mapped_column(
         MutableList.as_mutable(JSON),
         default=list,
@@ -60,4 +61,4 @@ class MedicalSurveillanceRecord(TimestampMixin, Base):
     )
 
     employee: Mapped["User"] = relationship(lazy="selectin")
-    site: Mapped["Site | None"] = relationship(lazy="selectin")
+    site: Mapped[Optional["Site"]] = relationship(lazy="selectin")

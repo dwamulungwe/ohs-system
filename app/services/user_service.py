@@ -1,3 +1,4 @@
+from typing import Optional
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
@@ -16,16 +17,16 @@ class UserSiteNotFoundError(UserServiceError):
     pass
 
 
-def _ensure_site_exists(db: Session, site_id: int | None) -> None:
+def _ensure_site_exists(db: Session, site_id: Optional[int]) -> None:
     if site_id is not None and db.get(Site, site_id) is None:
         raise UserSiteNotFoundError(f"Site {site_id} was not found")
 
 
-def get_user_by_id(db: Session, user_id: int) -> User | None:
+def get_user_by_id(db: Session, user_id: int) -> Optional[User]:
     return db.get(User, user_id)
 
 
-def get_user_by_email(db: Session, email: str) -> User | None:
+def get_user_by_email(db: Session, email: str) -> Optional[User]:
     return db.scalar(select(User).where(User.email == email))
 
 
@@ -33,14 +34,14 @@ def count_users(db: Session) -> int:
     return len(db.scalars(select(User.id)).all())
 
 
-def authenticate_user(db: Session, email: str, password: str) -> User | None:
+def authenticate_user(db: Session, email: str, password: str) -> Optional[User]:
     user = get_user_by_email(db, email=email)
     if not user or not verify_password(password, user.hashed_password):
         return None
     return user
 
 
-def create_user(db: Session, user_in: UserCreate, *, default_role_name: str | None = None) -> User:
+def create_user(db: Session, user_in: UserCreate, *, default_role_name: Optional[str] = None) -> User:
     roles = []
     if user_in.role_ids:
         roles = list(db.scalars(select(Role).where(Role.id.in_(user_in.role_ids))).all())

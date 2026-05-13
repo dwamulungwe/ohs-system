@@ -1,3 +1,4 @@
+from typing import Optional
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.orm import Session
 
@@ -32,9 +33,9 @@ MANAGER_INCIDENT_STATUSES = {IncidentStatus.resolved, IncidentStatus.closed}
 def list_incidents(
     skip: int = Query(default=0, ge=0),
     limit: int = Query(default=100, ge=1, le=500),
-    incident_status: IncidentStatus | None = Query(default=None, alias="status"),
-    severity: IncidentSeverity | None = None,
-    site_id: int | None = None,
+    incident_status: Optional[IncidentStatus] = Query(default=None, alias="status"),
+    severity: Optional[IncidentSeverity] = None,
+    site_id: Optional[int] = None,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ) -> dict:

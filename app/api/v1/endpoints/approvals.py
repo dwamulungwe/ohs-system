@@ -1,3 +1,4 @@
+from typing import Optional
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.orm import Session
 
@@ -51,10 +52,10 @@ def create_approval_request(
 def list_approval_records(
     skip: int = Query(default=0, ge=0),
     limit: int = Query(default=100, ge=1, le=500),
-    entity_type: ApprovalEntityType | None = None,
-    entity_id: int | None = None,
-    action_type: ApprovalActionType | None = None,
-    approval_status: ApprovalStatus | None = Query(default=None, alias="status"),
+    entity_type: Optional[ApprovalEntityType] = None,
+    entity_id: Optional[int] = None,
+    action_type: Optional[ApprovalActionType] = None,
+    approval_status: Optional[ApprovalStatus] = Query(default=None, alias="status"),
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ) -> dict:

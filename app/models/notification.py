@@ -1,3 +1,4 @@
+from typing import Optional
 import enum
 from datetime import datetime
 
@@ -86,7 +87,7 @@ class Notification(Base):
     related_entity_type: Mapped[RelatedEntityType] = mapped_column(Enum(RelatedEntityType), index=True, nullable=False)
     related_entity_id: Mapped[int] = mapped_column(Integer, index=True, nullable=False)
     is_read: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
-    read_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    read_at: Mapped[Optional[datetime]] = mapped_column(DateTime(timezone=True), nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow, nullable=False)
 
     recipient: Mapped["User"] = relationship(lazy="selectin")
