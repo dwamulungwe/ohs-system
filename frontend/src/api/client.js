@@ -1,5 +1,12 @@
-const API_BASE_URL =
-  import.meta.env.VITE_API_BASE_URL ?? 'http://127.0.0.1:8000/api/v1'
+const API_PREFIX = '/api/v1'
+const DEFAULT_API_URL = 'https://ohs-system.onrender.com'
+
+function normalizeApiBaseUrl(value) {
+  const apiUrl = (value || DEFAULT_API_URL).replace(/\/+$/, '')
+  return apiUrl.endsWith(API_PREFIX) ? apiUrl : `${apiUrl}${API_PREFIX}`
+}
+
+const API_BASE_URL = normalizeApiBaseUrl(import.meta.env.VITE_API_URL)
 
 export class ApiError extends Error {
   constructor(message, status, payload) {
@@ -69,7 +76,8 @@ function buildHeaders({ token, isForm, headers = {} }) {
 
 async function request(path, options = {}) {
   const { token, body, isForm = false, headers } = options
-  const response = await fetch(`${API_BASE_URL}${path}`, {
+  const normalizedPath = path.startsWith('/') ? path : `/${path}`
+  const response = await fetch(`${API_BASE_URL}${normalizedPath}`, {
     method: options.method ?? 'GET',
     headers: buildHeaders({ token, isForm, headers }),
     body: body
@@ -91,7 +99,8 @@ async function request(path, options = {}) {
 
 async function requestResponse(path, options = {}) {
   const { token, body, isForm = false, headers } = options
-  const response = await fetch(`${API_BASE_URL}${path}`, {
+  const normalizedPath = path.startsWith('/') ? path : `/${path}`
+  const response = await fetch(`${API_BASE_URL}${normalizedPath}`, {
     method: options.method ?? 'GET',
     headers: buildHeaders({ token, isForm, headers }),
     body: body
