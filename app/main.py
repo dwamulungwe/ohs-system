@@ -1,3 +1,5 @@
+import logging
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy import select
@@ -10,6 +12,8 @@ from app.models.role import Role
 from app.models.user import User
 from app.services.scheduler_service import start_scheduler, stop_scheduler
 
+
+logger = logging.getLogger(__name__)
 
 SUPERADMIN_EMAIL = "admin@ohs.local"
 SUPERADMIN_PASSWORD = "Admin123!"
@@ -49,6 +53,7 @@ def ensure_superadmin_user() -> None:
         db.commit()
     except Exception:
         db.rollback()
+        logger.exception("Failed to ensure startup superadmin user exists")
         raise
     finally:
         db.close()
