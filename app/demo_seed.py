@@ -1220,7 +1220,7 @@ def seed_demo_data(db: Session) -> SeedSummary:
     generate_overdue_training_notifications(db)
     generate_expired_training_notifications(db)
     generate_overdue_compliance_acknowledgement_notifications(db)
-    generate_permit_nearing_expiry_notifications(db, hours_ahead=24)
+    generate_permit_nearing_expiry_notifications(db)
     generate_permit_expired_notifications(db)
 
     return _count_demo_records(db)

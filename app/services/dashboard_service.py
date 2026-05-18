@@ -8,6 +8,7 @@ from typing import Iterable, Optional
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
+from app.core.config import settings
 from app.models.approval import ApprovalActionType, ApprovalStatus, ApprovalWorkflow
 from app.models.asset_register import AssetConditionStatus, AssetRegisterItem
 from app.models.audit_management import AuditManagementRecord, AuditStatus
@@ -53,7 +54,6 @@ from app.services.query_utils import is_corrective_action_overdue
 
 
 DUE_SOON_DAYS = 7
-PERMIT_EXPIRING_SOON_HOURS = 48
 TRIFR_LTIFR_MULTIPLIER = 1_000_000
 ACTIVE_PERMIT_EXPIRY_STATUSES = {PermitStatus.approved, PermitStatus.active, PermitStatus.suspended}
 OPEN_INCIDENT_STATUSES = {IncidentStatus.open, IncidentStatus.investigating}
@@ -898,7 +898,7 @@ def _permit_is_expiring_soon(permit: PermitToWork) -> bool:
     return (
         permit.status in ACTIVE_PERMIT_EXPIRY_STATUSES
         and end_datetime is not None
-        and now <= end_datetime <= now + timedelta(hours=PERMIT_EXPIRING_SOON_HOURS)
+        and now <= end_datetime <= now + timedelta(days=settings.PERMIT_EXPIRY_WARNING_DAYS)
     )
 
 

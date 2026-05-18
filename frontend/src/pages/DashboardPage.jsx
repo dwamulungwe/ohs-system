@@ -300,7 +300,7 @@ export function DashboardPage() {
       value: permits?.expiring_soon_permits_count ?? 0,
       accent: 'text-amber-700',
       accentBg: 'bg-amber-200',
-      description: 'Permits ending in the next 48 hours.',
+      description: 'Permits ending within the configured renewal threshold.',
     },
     {
       key: 'pending_approvals_count',
@@ -653,7 +653,7 @@ export function DashboardPage() {
               badge: 'pending_approval',
             },
             {
-              label: 'Permits expiring within 48 hours',
+              label: 'Permits expiring soon',
               value: permits?.expiring_soon_permits_count ?? 0,
               badge: 'warning',
             },

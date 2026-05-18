@@ -35,6 +35,7 @@ class Settings(BaseSettings):
     SMS_PROVIDER_NAME: str = "noop"
     SCHEDULER_ENABLED: bool = False
     SCHEDULER_POLL_SECONDS: int = 3600
+    PERMIT_EXPIRY_WARNING_DAYS: int = 90
 
     BACKEND_CORS_ORIGINS: list[str] = []
 

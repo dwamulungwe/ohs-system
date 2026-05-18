@@ -429,7 +429,7 @@ def _seed_dashboard_data(client: TestClient, db_session: Session) -> None:
         json=_permit_payload(
             permit_number="PTW-ACTIVE",
             status="active",
-            end_datetime=(datetime.now(timezone.utc) + timedelta(hours=24)).isoformat(),
+            end_datetime=(datetime.now(timezone.utc) + timedelta(days=60)).isoformat(),
         ),
     )
     client.post(

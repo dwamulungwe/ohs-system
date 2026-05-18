@@ -4,6 +4,7 @@ from datetime import datetime, timedelta, timezone
 from sqlalchemy import Select, select
 from sqlalchemy.orm import Session
 
+from app.core.config import settings
 from app.models.notification import Notification, NotificationSeverity, NotificationType, RelatedEntityType
 from app.models.permit import PermitStatus, PermitToWork, PermitType
 from app.models.site import Site
@@ -228,9 +229,14 @@ def notify_permit_pending_approval(db: Session, permit: PermitToWork) -> list[No
     return [notification] if notification is not None else []
 
 
-def generate_permit_nearing_expiry_notifications(db: Session, *, hours_ahead: int = 24) -> list[Notification]:
+def generate_permit_nearing_expiry_notifications(
+    db: Session, *, days_ahead: Optional[int] = None, hours_ahead: Optional[int] = None
+) -> list[Notification]:
     now = _now()
-    expires_by = now + timedelta(hours=hours_ahead)
+    warning_days = days_ahead if days_ahead is not None else settings.PERMIT_EXPIRY_WARNING_DAYS
+    warning_delta = timedelta(hours=hours_ahead) if hours_ahead is not None else timedelta(days=warning_days)
+    threshold_label = f"{warning_days} days" if hours_ahead is None else "the configured renewal threshold"
+    expires_by = now + warning_delta
     permits = list(
         db.scalars(
             select(PermitToWork).where(
@@ -247,8 +253,11 @@ def generate_permit_nearing_expiry_notifications(db: Session, *, hours_ahead: in
             db,
             NotificationCreate(
                 recipient_user_id=permit.approved_by_user_id,
-                title="Permit nearing expiry",
-                message=f"Permit '{permit.permit_number}' is nearing expiry.",
+                title="Permit renewal due soon",
+                message=(
+                    f"Permit renewal process should begin soon. Permit '{permit.permit_number}' "
+                    f"expires within {threshold_label}."
+                ),
                 notification_type=NotificationType.permit_nearing_expiry,
                 severity=NotificationSeverity.warning,
                 related_entity_type=RelatedEntityType.permit,

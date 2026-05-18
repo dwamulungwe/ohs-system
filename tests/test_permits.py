@@ -13,6 +13,10 @@ def _future(hours: int) -> str:
     return (datetime.now(timezone.utc) + timedelta(hours=hours)).isoformat()
 
 
+def _future_days(days: int) -> str:
+    return (datetime.now(timezone.utc) + timedelta(days=days)).isoformat()
+
+
 def _past(hours: int) -> str:
     return (datetime.now(timezone.utc) - timedelta(hours=hours)).isoformat()
 
@@ -171,7 +175,16 @@ def test_permit_notification_helpers(client: TestClient, db_session: Session) ->
             permit_number="PTW-006",
             status="approved",
             start_datetime=_past(1),
-            end_datetime=_future(2),
+            end_datetime=_future_days(60),
+        ),
+    )
+    later = client.post(
+        "/api/v1/permits",
+        json=_permit_payload(
+            permit_number="PTW-008",
+            status="approved",
+            start_datetime=_past(1),
+            end_datetime=_future_days(120),
         ),
     )
     expired = client.post(
@@ -186,15 +199,17 @@ def test_permit_notification_helpers(client: TestClient, db_session: Session) ->
 
     assert pending.status_code == 201
     assert nearing.status_code == 201
+    assert later.status_code == 201
     assert expired.status_code == 201
 
     pending_notifications = client.get("/api/v1/notifications?notification_type=permit_pending_approval").json()["items"]
-    nearing_notifications = generate_permit_nearing_expiry_notifications(db_session, hours_ahead=24)
+    nearing_notifications = generate_permit_nearing_expiry_notifications(db_session)
     expired_notifications = generate_permit_expired_notifications(db_session)
 
     assert len(pending_notifications) == 1
     assert pending_notifications[0]["related_entity_id"] == pending.json()["id"]
     assert len(nearing_notifications) == 1
     assert nearing_notifications[0].notification_type.value == "permit_nearing_expiry"
+    assert "expires within 90 days" in nearing_notifications[0].message
     assert len(expired_notifications) == 1
     assert expired_notifications[0].notification_type.value == "permit_expired"
