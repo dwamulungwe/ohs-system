@@ -8,6 +8,7 @@ from app.api.v1.endpoints import (
     audits,
     behaviour_observations,
     contractors,
+    data_imports,
     auth,
     corrective_actions,
     dashboard,
@@ -29,6 +30,7 @@ from app.api.v1.endpoints import (
     roles,
     safety_communications,
     safety_kpis,
+    sios,
     sites,
     training,
     users,
@@ -44,6 +46,8 @@ api_router.include_router(roles.router, prefix="/roles", tags=["roles"])
 api_router.include_router(sites.router, prefix="/sites", tags=["sites"])
 api_router.include_router(incidents.router, prefix="/incidents", tags=["incidents"])
 api_router.include_router(hazards.router, prefix="/hazards", tags=["hazards"])
+api_router.include_router(sios.router, prefix="/sios", tags=["sios"])
+api_router.include_router(data_imports.router, prefix="/data-imports", tags=["data_imports"])
 api_router.include_router(inspections.router, prefix="/inspections", tags=["inspections"])
 api_router.include_router(
     corrective_actions.router,

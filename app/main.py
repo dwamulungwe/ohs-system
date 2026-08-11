@@ -79,6 +79,8 @@ def create_app() -> FastAPI:
 
     @app.on_event("startup")
     def startup_scheduler() -> None:
+        if settings.ENVIRONMENT.lower() == "test":
+            return
         ensure_superadmin_user()
         start_scheduler()
 

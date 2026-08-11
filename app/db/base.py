@@ -6,6 +6,7 @@ from app.models.audit_management import AuditManagementRecord
 from app.models.audit_log import AuditLog
 from app.models.contractor import ContractorRecord
 from app.models.corrective_action import CorrectiveAction
+from app.models.data_import import DataImportJob, DataImportRow
 from app.models.document_control import DocumentControlRecord
 from app.models.emergency_drill import EmergencyDrillRecord
 from app.models.hazard import Hazard
@@ -23,6 +24,7 @@ from app.models.role import Role
 from app.models.safety_communication import SafetyCommunication
 from app.models.safety_kpi import SafetyKPIRecord
 from app.models.site import Site
+from app.models.sio import SafetyImprovementObservation
 from app.models.training import ComplianceAcknowledgement, TrainingRecord
 from app.models.user import User
 
@@ -35,6 +37,8 @@ __all__ = [
     "Base",
     "ContractorRecord",
     "CorrectiveAction",
+    "DataImportJob",
+    "DataImportRow",
     "DocumentControlRecord",
     "EmergencyDrillRecord",
     "Hazard",
@@ -52,6 +56,7 @@ __all__ = [
     "SafetyCommunication",
     "SafetyKPIRecord",
     "Site",
+    "SafetyImprovementObservation",
     "ComplianceAcknowledgement",
     "TrainingRecord",
     "User",

@@ -2,6 +2,9 @@ import { humanize } from '../lib/formatters.js'
 
 const toneMap = {
   critical: 'bg-rose-100 text-rose-800 ring-rose-200',
+  urgent: 'bg-rose-100 text-rose-800 ring-rose-200',
+  negative: 'bg-rose-100 text-rose-800 ring-rose-200',
+  failed: 'bg-rose-100 text-rose-800 ring-rose-200',
   critical_non_conformance: 'bg-rose-100 text-rose-800 ring-rose-200',
   overdue: 'bg-rose-100 text-rose-800 ring-rose-200',
   expired: 'bg-rose-100 text-rose-800 ring-rose-200',
@@ -22,6 +25,9 @@ const toneMap = {
   cancelled: 'bg-stone-200 text-stone-700 ring-stone-300',
   closed: 'bg-emerald-100 text-emerald-800 ring-emerald-200',
   completed: 'bg-emerald-100 text-emerald-800 ring-emerald-200',
+  complete: 'bg-emerald-100 text-emerald-800 ring-emerald-200',
+  positive: 'bg-emerald-100 text-emerald-800 ring-emerald-200',
+  no_action_required: 'bg-emerald-100 text-emerald-800 ring-emerald-200',
   compliant: 'bg-emerald-100 text-emerald-800 ring-emerald-200',
   approved: 'bg-emerald-100 text-emerald-800 ring-emerald-200',
   active: 'bg-emerald-100 text-emerald-800 ring-emerald-200',
@@ -29,12 +35,16 @@ const toneMap = {
   resolved: 'bg-emerald-100 text-emerald-800 ring-emerald-200',
   acknowledged: 'bg-emerald-100 text-emerald-800 ring-emerald-200',
   assigned: 'bg-sky-100 text-sky-800 ring-sky-200',
+  assigned_to_responsible_person: 'bg-sky-100 text-sky-800 ring-sky-200',
+  assigned_to_action_tracker: 'bg-sky-100 text-sky-800 ring-sky-200',
+  previewed: 'bg-sky-100 text-sky-800 ring-sky-200',
   info: 'bg-sky-100 text-sky-800 ring-sky-200',
   unread: 'bg-sky-100 text-sky-800 ring-sky-200',
   draft: 'bg-stone-200 text-stone-700 ring-stone-300',
   archived: 'bg-stone-200 text-stone-700 ring-stone-300',
   read: 'bg-stone-200 text-stone-700 ring-stone-300',
   not_applicable: 'bg-stone-200 text-stone-700 ring-stone-300',
+  unassigned: 'bg-stone-200 text-stone-700 ring-stone-300',
   superseded: 'bg-stone-200 text-stone-700 ring-stone-300',
 }
 

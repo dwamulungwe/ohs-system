@@ -17,6 +17,7 @@ from app.schemas.dashboard import (
     DashboardSiteSummaryRead,
     DashboardTrendsRead,
 )
+from app.schemas.sio import SIOAnalyticsRead
 from app.services.rbac import Permission, ensure_permission, resolve_site_scope
 from app.services.dashboard_service import (
     get_dashboard_actions,
@@ -29,8 +30,22 @@ from app.services.dashboard_service import (
     get_dashboard_trends,
     get_site_summaries,
 )
+from app.services.sio_service import get_sio_analytics
 
 router = APIRouter()
+
+
+@router.get("/sios", response_model=SIOAnalyticsRead)
+def read_sio_analytics(
+    site_id: Optional[int] = None,
+    date_from: Optional[date] = None,
+    date_to: Optional[date] = None,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+) -> dict:
+    ensure_permission(current_user, Permission.DASHBOARD_VIEW)
+    site_id = resolve_site_scope(current_user, site_id)
+    return get_sio_analytics(db, site_id=site_id, date_from=date_from, date_to=date_to)
 
 
 @router.get("/overview", response_model=DashboardOverviewRead)

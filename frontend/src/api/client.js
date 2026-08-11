@@ -185,6 +185,27 @@ export const apiClient = {
   getDashboardManagementSummary(token, params = {}) {
     return request(withQuery('/dashboard/management-summary', params), { token })
   },
+  getDashboardSios(token, params = {}) {
+    return request(withQuery('/dashboard/sios', params), { token })
+  },
+  previewDataImport(token, file, importerType = 'yalelo_sio') {
+    const body = new FormData()
+    body.append('file', file)
+    body.append('importer_type', importerType)
+    return request('/data-imports/preview', {
+      method: 'POST',
+      token,
+      body,
+      isForm: true,
+    })
+  },
+  confirmDataImport(token, jobId, body) {
+    return request(`/data-imports/${jobId}/confirm`, {
+      method: 'POST',
+      token,
+      body,
+    })
+  },
   runScheduledJobs(token) {
     return request('/job-runs/run-scheduled', {
       method: 'POST',

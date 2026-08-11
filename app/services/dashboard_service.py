@@ -56,6 +56,7 @@ from app.services.query_utils import is_corrective_action_overdue
 DUE_SOON_DAYS = 7
 TRIFR_LTIFR_MULTIPLIER = 1_000_000
 ACTIVE_PERMIT_EXPIRY_STATUSES = {PermitStatus.approved, PermitStatus.active, PermitStatus.suspended}
+PERMIT_EXPIRY_WARNING_STATUSES = {PermitStatus.active, PermitStatus.suspended}
 OPEN_INCIDENT_STATUSES = {IncidentStatus.open, IncidentStatus.investigating}
 OPEN_ACTION_STATUSES = {
     CorrectiveActionStatus.open,
@@ -896,7 +897,7 @@ def _permit_is_expiring_soon(permit: PermitToWork) -> bool:
     now = _now()
     end_datetime = _normalize_datetime(permit.end_datetime)
     return (
-        permit.status in ACTIVE_PERMIT_EXPIRY_STATUSES
+        permit.status in PERMIT_EXPIRY_WARNING_STATUSES
         and end_datetime is not None
         and now <= end_datetime <= now + timedelta(days=settings.PERMIT_EXPIRY_WARNING_DAYS)
     )

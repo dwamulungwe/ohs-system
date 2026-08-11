@@ -30,6 +30,7 @@ class CorrectiveActionSourceType(str, enum.Enum):
     incident = "incident"
     hazard = "hazard"
     inspection = "inspection"
+    sio = "sio"
     manual = "manual"
 
 

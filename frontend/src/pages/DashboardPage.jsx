@@ -160,6 +160,7 @@ export function DashboardPage() {
   const [approvals, setApprovals] = useState(null)
   const [siteSummaries, setSiteSummaries] = useState([])
   const [trends, setTrends] = useState(null)
+  const [sioAnalytics, setSioAnalytics] = useState(null)
   const [error, setError] = useState(null)
   const [isLoading, setIsLoading] = useState(true)
   const [activeReport, setActiveReport] = useState('')
@@ -201,6 +202,7 @@ export function DashboardPage() {
           sitesResponse,
           trendsResponse,
           availableSites,
+          sioResponse,
         ] = await Promise.all([
           apiClient.getDashboardManagementSummary(token, dashboardFilters),
           apiClient.getDashboardRisk(token, dashboardFilters),
@@ -211,6 +213,7 @@ export function DashboardPage() {
           apiClient.getDashboardSites(token, dashboardFilters),
           apiClient.getDashboardTrends(token, dashboardFilters),
           apiClient.getCollection(token, '/sites'),
+          apiClient.getDashboardSios(token, dashboardFilters),
         ])
 
         if (!ignore) {
@@ -223,6 +226,7 @@ export function DashboardPage() {
           setSiteSummaries(sitesResponse)
           setTrends(trendsResponse)
           setSites(availableSites)
+          setSioAnalytics(sioResponse)
         }
       } catch (requestError) {
         if (!ignore) {
@@ -262,6 +266,46 @@ export function DashboardPage() {
   }
 
   const executiveCards = [
+    {
+      key: 'total_sios',
+      label: 'Safety Observations',
+      value: sioAnalytics?.total_observations ?? 0,
+      accent: 'text-emerald-700',
+      accentBg: 'bg-emerald-200',
+      description: 'Positive and negative improvement observations in scope.',
+    },
+    {
+      key: 'positive_sios',
+      label: 'Positive Observations',
+      value: sioAnalytics?.positive_observations ?? 0,
+      accent: 'text-emerald-700',
+      accentBg: 'bg-emerald-200',
+      description: 'Good practices and safe conditions recognized.',
+    },
+    {
+      key: 'negative_sios',
+      label: 'Negative Observations',
+      value: sioAnalytics?.negative_observations ?? 0,
+      accent: 'text-rose-700',
+      accentBg: 'bg-rose-200',
+      description: 'Unsafe conditions or improvement opportunities recorded.',
+    },
+    {
+      key: 'open_sios',
+      label: 'Open / Unassigned SIOs',
+      value: sioAnalytics?.open_unassigned_observations ?? 0,
+      accent: 'text-amber-700',
+      accentBg: 'bg-amber-200',
+      description: 'Observations still requiring triage or ownership.',
+    },
+    {
+      key: 'priority_sios',
+      label: 'Urgent / High SIOs',
+      value: sioAnalytics?.urgent_high_priority_observations ?? 0,
+      accent: 'text-rose-700',
+      accentBg: 'bg-rose-200',
+      description: 'High-priority observations requiring prompt attention.',
+    },
     {
       key: 'critical_open_incidents_count',
       label: 'Critical Open Incidents',
@@ -489,6 +533,34 @@ export function DashboardPage() {
             description={metric.description}
           />
         ))}
+      </section>
+
+      <section className="grid gap-4 xl:grid-cols-2">
+        <DistributionPanel
+          title="SIO Trend Over Time"
+          description="Observations grouped by their actual observation month; missing dates are not inferred."
+          values={sioAnalytics?.observation_trend_by_month}
+        />
+        <DistributionPanel
+          title="Observations by Site"
+          description="Observation volume across sites in the selected scope."
+          values={sioAnalytics?.observations_by_site}
+        />
+        <DistributionPanel
+          title="Observations by Category"
+          description="Most frequently recorded improvement themes."
+          values={sioAnalytics?.observations_by_category}
+        />
+        <DistributionPanel
+          title="Observations by Source"
+          description="Where safety observations originated."
+          values={sioAnalytics?.observations_by_source}
+        />
+        <DistributionPanel
+          title="Observations by Department"
+          description="Departments represented in the observation register."
+          values={sioAnalytics?.observations_by_department}
+        />
       </section>
 
       <section className="grid gap-4 xl:grid-cols-[1.2fr_0.8fr]">

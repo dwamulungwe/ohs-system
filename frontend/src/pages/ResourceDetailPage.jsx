@@ -12,6 +12,7 @@ import { LoadingState } from '../components/LoadingState.jsx'
 import { NotAuthorizedState } from '../components/NotAuthorizedState.jsx'
 import { PageHeader } from '../components/PageHeader.jsx'
 import { ResourceFormModal } from '../components/ResourceFormModal.jsx'
+import { SIOLinksPanel } from '../components/SIOLinksPanel.jsx'
 import { workflowFormConfigs } from '../config/workflowForms.js'
 import { useAuth } from '../context/AuthContext.jsx'
 import { mapResourceSubtitle } from '../config/resources.jsx'
@@ -198,6 +199,10 @@ export function ResourceDetailPage({ resource }) {
           <DetailSection key={section.title} title={section.title} fields={section.fields} item={item} />
         ))}
       </div>
+
+      {resource.key === 'sios' ? (
+        <SIOLinksPanel item={item} token={token} user={user} onUpdated={setItem} />
+      ) : null}
 
       {resource.approvalConfig ? (
         <ApprovalWorkflowPanel

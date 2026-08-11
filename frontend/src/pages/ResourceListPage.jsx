@@ -41,6 +41,11 @@ export function ResourceListPage({ resource }) {
   const [isCreateOpen, setIsCreateOpen] = useState(false)
   const [isMarkAllConfirmOpen, setIsMarkAllConfirmOpen] = useState(false)
   const [isExporting, setIsExporting] = useState(false)
+  const [sites, setSites] = useState([])
+  const [filterValues, setFilterValues] = useState(() =>
+    Object.fromEntries((resource.filters ?? []).map((filter) => [filter.name, ''])),
+  )
+  const [appliedFilters, setAppliedFilters] = useState({})
 
   const formConfig = workflowFormConfigs[resource.key]
   const supportsForm = Boolean(formConfig)
@@ -51,7 +56,8 @@ export function ResourceListPage({ resource }) {
       setError('')
 
       try {
-        const response = await apiClient.getList(token, resource.listEndpoint, {
+        const endpoint = apiClient.buildPath(resource.listEndpoint, appliedFilters)
+        const response = await apiClient.getList(token, endpoint, {
           skip,
           limit: DEFAULT_LIMIT,
         })
@@ -67,12 +73,29 @@ export function ResourceListPage({ resource }) {
         setIsLoading(false)
       }
     },
-    [resource, token],
+    [appliedFilters, resource, token],
   )
 
   useEffect(() => {
     loadItems(0)
   }, [loadItems])
+
+  useEffect(() => {
+    let ignore = false
+    if (!(resource.filters ?? []).some((filter) => filter.type === 'site')) {
+      return undefined
+    }
+    apiClient.getCollection(token, '/sites')
+      .then((response) => {
+        if (!ignore) setSites(response)
+      })
+      .catch(() => {
+        if (!ignore) setSites([])
+      })
+    return () => {
+      ignore = true
+    }
+  }, [resource.filters, token])
 
   async function handleMarkAllAsRead() {
     try {
@@ -188,6 +211,59 @@ export function ResourceListPage({ resource }) {
         <div className="rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-800">
           {successMessage}
         </div>
+      ) : null}
+      {resource.filters?.length ? (
+        <section className="rounded-xl border border-stone-200 bg-white p-4 shadow-sm shadow-stone-200/60">
+          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+            {resource.filters.map((filter) => (
+              <label key={filter.name} className="block text-sm">
+                <span className="text-xs font-semibold uppercase tracking-[0.08em] text-stone-500">
+                  {filter.label}
+                </span>
+                {filter.type === 'select' || filter.type === 'site' ? (
+                  <select
+                    value={filterValues[filter.name] ?? ''}
+                    onChange={(event) => setFilterValues((current) => ({ ...current, [filter.name]: event.target.value }))}
+                    className="mt-2 w-full rounded-md border border-stone-300 bg-white px-3 py-2 text-sm outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200"
+                  >
+                    <option value="">All</option>
+                    {(filter.type === 'site' ? sites.map((site) => ({ value: site.id, label: site.name })) : filter.options.map((value) => ({ value, label: value.replaceAll('_', ' ') }))).map((option) => (
+                      <option key={`${filter.name}-${option.value}`} value={option.value}>{option.label}</option>
+                    ))}
+                  </select>
+                ) : (
+                  <input
+                    type={filter.type === 'search' ? 'search' : filter.type}
+                    value={filterValues[filter.name] ?? ''}
+                    placeholder={filter.placeholder}
+                    onChange={(event) => setFilterValues((current) => ({ ...current, [filter.name]: event.target.value }))}
+                    className="mt-2 w-full rounded-md border border-stone-300 bg-white px-3 py-2 text-sm outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200"
+                  />
+                )}
+              </label>
+            ))}
+          </div>
+          <div className="mt-4 flex flex-wrap gap-2">
+            <button
+              type="button"
+              onClick={() => setAppliedFilters(Object.fromEntries(Object.entries(filterValues).filter(([, value]) => value !== '')))}
+              className="rounded-md bg-emerald-600 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-700"
+            >
+              Apply filters
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                const cleared = Object.fromEntries(resource.filters.map((filter) => [filter.name, '']))
+                setFilterValues(cleared)
+                setAppliedFilters({})
+              }}
+              className="rounded-md border border-stone-300 bg-white px-4 py-2 text-sm font-medium text-stone-700 hover:bg-stone-50"
+            >
+              Clear
+            </button>
+          </div>
+        </section>
       ) : null}
       {error ? (
         isForbiddenError(error) ? (

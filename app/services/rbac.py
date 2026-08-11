@@ -88,6 +88,10 @@ class Permission:
     BEHAVIOUR_OBSERVATIONS_VIEW = "behaviour_observations.view"
     BEHAVIOUR_OBSERVATIONS_CREATE = "behaviour_observations.create"
     BEHAVIOUR_OBSERVATIONS_EDIT = "behaviour_observations.edit"
+    SIOS_VIEW = "sios.view"
+    SIOS_CREATE = "sios.create"
+    SIOS_EDIT = "sios.edit"
+    DATA_IMPORTS_MANAGE = "data_imports.manage"
     INVESTIGATIONS_VIEW = "investigations.view"
     INVESTIGATIONS_CREATE = "investigations.create"
     INVESTIGATIONS_EDIT = "investigations.edit"
@@ -171,6 +175,10 @@ ROLE_PERMISSIONS = {
         Permission.BEHAVIOUR_OBSERVATIONS_VIEW,
         Permission.BEHAVIOUR_OBSERVATIONS_CREATE,
         Permission.BEHAVIOUR_OBSERVATIONS_EDIT,
+        Permission.SIOS_VIEW,
+        Permission.SIOS_CREATE,
+        Permission.SIOS_EDIT,
+        Permission.DATA_IMPORTS_MANAGE,
         Permission.INVESTIGATIONS_VIEW,
         Permission.INVESTIGATIONS_CREATE,
         Permission.INVESTIGATIONS_EDIT,
@@ -243,6 +251,9 @@ ROLE_PERMISSIONS = {
         Permission.BEHAVIOUR_OBSERVATIONS_VIEW,
         Permission.BEHAVIOUR_OBSERVATIONS_CREATE,
         Permission.BEHAVIOUR_OBSERVATIONS_EDIT,
+        Permission.SIOS_VIEW,
+        Permission.SIOS_CREATE,
+        Permission.SIOS_EDIT,
         Permission.INVESTIGATIONS_VIEW,
         Permission.INVESTIGATIONS_CREATE,
         Permission.INVESTIGATIONS_EDIT,
@@ -295,6 +306,9 @@ ROLE_PERMISSIONS = {
         Permission.BEHAVIOUR_OBSERVATIONS_VIEW,
         Permission.BEHAVIOUR_OBSERVATIONS_CREATE,
         Permission.BEHAVIOUR_OBSERVATIONS_EDIT,
+        Permission.SIOS_VIEW,
+        Permission.SIOS_CREATE,
+        Permission.SIOS_EDIT,
         Permission.INVESTIGATIONS_VIEW,
         Permission.LEGAL_COMPLIANCE_VIEW,
         Permission.JSA_VIEW,
@@ -328,6 +342,8 @@ ROLE_PERMISSIONS = {
         Permission.SAFETY_COMMUNICATIONS_VIEW,
         Permission.BEHAVIOUR_OBSERVATIONS_VIEW,
         Permission.BEHAVIOUR_OBSERVATIONS_CREATE,
+        Permission.SIOS_VIEW,
+        Permission.SIOS_CREATE,
         Permission.JSA_VIEW,
         Permission.ASSETS_VIEW,
         Permission.DOCUMENTS_VIEW,

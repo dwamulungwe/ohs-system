@@ -286,3 +286,34 @@ Enterprise permission groups:
 - `job_runs.view`, `job_runs.manage`
 
 The first user can be created only through `/api/v1/auth/bootstrap-admin` while the users table is empty. After that, user creation is restricted to `admin`, while role viewing and operational user lookup follow the RBAC rules above.
+
+## Safety Improvement Observations and Historical Imports
+
+SIOs are stored in their own `safety_improvement_observations` table and are never coerced into hazards. Admins, OHS managers, safety officers, supervisors, and employees can create and view SIOs subject to site scope. Editing is available to admins, OHS managers, safety officers, and supervisors. Creating a linked hazard, incident, or corrective action is always an explicit action from the SIO detail page.
+
+The Yalelo importer is a two-step workflow. Preview persists validation results and parsed rows but writes no SIO records. Confirmation is a separate admin/OHS-manager request and can be performed only after unresolved sites have been mapped or approved for creation.
+
+Safe PowerShell workflow for a later `SIOs.xlsx` import:
+
+```powershell
+$env:OHS_API = "https://your-ohs-host"
+$env:OHS_TOKEN = "<admin-or-ohs-manager-access-token>"
+
+# Read site IDs before choosing mappings.
+curl.exe -sS "$env:OHS_API/api/v1/sites" `
+  -H "Authorization: Bearer $env:OHS_TOKEN"
+
+# Dry run only. Save the returned job id and review report/unresolved_sites.
+curl.exe -sS -X POST "$env:OHS_API/api/v1/data-imports/preview" `
+  -H "Authorization: Bearer $env:OHS_TOKEN" `
+  -F "importer_type=yalelo_sio" `
+  -F "file=@SIOs.xlsx;type=application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+
+# Confirm only after reviewing the preview. Replace JOB_ID and site IDs deliberately.
+curl.exe -sS -X POST "$env:OHS_API/api/v1/data-imports/JOB_ID/confirm" `
+  -H "Authorization: Bearer $env:OHS_TOKEN" `
+  -H "Content-Type: application/json" `
+  --data-raw '{"site_mappings":{"Siavonga":1,"Lusaka":2,"Yalelo Stores":3,"Kitwe":4,"Third Party Premises":5},"create_sites":[]}'
+```
+
+The same workflow is available in the frontend under **Data Imports**. Re-uploading the workbook is safe: rows are deduplicated by `(source_system, external_reference_id)` with `source_system = yalelo_sharepoint`.

@@ -14,6 +14,7 @@ from app.models.hazard import Hazard
 from app.models.incident import Incident
 from app.models.inspection import Inspection
 from app.models.site import Site
+from app.models.sio import SafetyImprovementObservation
 from app.models.user import User
 from app.schemas.corrective_action import CorrectiveActionCreate, CorrectiveActionUpdate
 from app.services.audit_service import write_audit_log
@@ -77,6 +78,7 @@ def _validate_source(
         CorrectiveActionSourceType.incident: Incident,
         CorrectiveActionSourceType.hazard: Hazard,
         CorrectiveActionSourceType.inspection: Inspection,
+        CorrectiveActionSourceType.sio: SafetyImprovementObservation,
     }
     model = model_by_source[source_type]
     if db.get(model, source_id) is None:

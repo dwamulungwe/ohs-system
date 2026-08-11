@@ -6,6 +6,7 @@ import { ProtectedRoute } from './components/ProtectedRoute.jsx'
 import { ResourceListPage } from './pages/ResourceListPage.jsx'
 import { ResourceDetailPage } from './pages/ResourceDetailPage.jsx'
 import { QuickReportPage } from './pages/QuickReportPage.jsx'
+import { DataImportsPage } from './pages/DataImportsPage.jsx'
 import { resources } from './config/resources.jsx'
 import { useAuth } from './context/AuthContext.jsx'
 import { getDefaultRoute } from './lib/rbac.js'
@@ -24,7 +25,8 @@ function App() {
           <Route index element={<HomeRedirect />} />
           <Route path="/dashboard" element={<DashboardPage />} />
           <Route path="/quick-report" element={<QuickReportPage />} />
-          {resources.map((resource) => (
+          <Route path="/data-imports" element={<DataImportsPage />} />
+          {resources.filter((resource) => !resource.customPage).map((resource) => (
             <Route key={resource.key}>
               <Route
                 path={resource.route}

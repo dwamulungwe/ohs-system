@@ -1,6 +1,8 @@
 from typing import Optional
 import os
+import sys
 from collections.abc import Generator
+from datetime import date as RealDate, datetime as RealDateTime
 
 import pytest
 from fastapi.testclient import TestClient
@@ -10,6 +12,7 @@ from sqlalchemy.pool import StaticPool
 
 os.environ.setdefault("SECRET_KEY", "test-secret-key")
 os.environ.setdefault("DATABASE_URL", "sqlite+pysqlite://")
+os.environ.setdefault("ENVIRONMENT", "test")
 
 from app.api.deps import get_current_user, get_db
 from app.db.base import Base
@@ -25,6 +28,46 @@ engine = create_engine(
     poolclass=StaticPool,
 )
 TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+
+
+class FrozenDateMeta(type):
+    def __instancecheck__(cls, value):
+        return isinstance(value, RealDate)
+
+
+class FrozenDateTimeMeta(type):
+    def __instancecheck__(cls, value):
+        return isinstance(value, RealDateTime)
+
+
+class FrozenTestDate(RealDate, metaclass=FrozenDateMeta):
+    @classmethod
+    def today(cls):
+        return cls(2026, 4, 23)
+
+
+class FrozenTestDateTime(RealDateTime, metaclass=FrozenDateTimeMeta):
+    @classmethod
+    def now(cls, tz=None):
+        value = cls(2026, 4, 23, 12, 0, 0)
+        return value.replace(tzinfo=tz) if tz is not None else value
+
+    @classmethod
+    def utcnow(cls):
+        return cls(2026, 4, 23, 12, 0, 0)
+
+
+@pytest.fixture(autouse=True)
+def stable_test_clock(monkeypatch) -> None:
+    """Keep date-sensitive lifecycle tests deterministic as the real calendar advances."""
+    for module_name, module in list(sys.modules.items()):
+        if module is None or not (module_name.startswith("app.") or module_name.startswith("test_")):
+            continue
+        namespace = getattr(module, "__dict__", {})
+        if namespace.get("date") is RealDate:
+            monkeypatch.setattr(module, "date", FrozenTestDate)
+        if namespace.get("datetime") is RealDateTime:
+            monkeypatch.setattr(module, "datetime", FrozenTestDateTime)
 
 
 @pytest.fixture(autouse=True)
