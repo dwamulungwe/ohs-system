@@ -7,7 +7,7 @@ from sqlalchemy.ext.mutable import MutableList
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db.base_class import Base
-from app.models.common import TimestampMixin
+from app.models.common import OrganisationOwnedMixin, TimestampMixin
 
 
 class LegalComplianceStatus(str, enum.Enum):
@@ -18,7 +18,7 @@ class LegalComplianceStatus(str, enum.Enum):
     pending_review = "pending_review"
 
 
-class LegalComplianceItem(TimestampMixin, Base):
+class LegalComplianceItem(OrganisationOwnedMixin, TimestampMixin, Base):
     __tablename__ = "legal_compliance_items"
 
     id: Mapped[int] = mapped_column(primary_key=True, index=True)

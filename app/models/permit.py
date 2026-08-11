@@ -7,7 +7,7 @@ from sqlalchemy.ext.mutable import MutableList
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db.base_class import Base
-from app.models.common import TimestampMixin
+from app.models.common import OrganisationOwnedMixin, TimestampMixin
 
 
 class PermitType(str, enum.Enum):
@@ -33,7 +33,7 @@ class PermitStatus(str, enum.Enum):
     rejected = "rejected"
 
 
-class PermitToWork(TimestampMixin, Base):
+class PermitToWork(OrganisationOwnedMixin, TimestampMixin, Base):
     __tablename__ = "permits_to_work"
 
     id: Mapped[int] = mapped_column(primary_key=True, index=True)

@@ -16,6 +16,7 @@ from app.models.data_import import (
     ImportJobStatus,
     ImportRowStatus,
 )
+from app.models.department import Department
 from app.models.site import Site
 from app.models.sio import SIOObservationNature, SIOStatus, SIOUrgency, SafetyImprovementObservation
 from app.models.user import User
@@ -197,6 +198,21 @@ def _exact_user_id(db: Session, name: Optional[str]) -> Optional[int]:
     return matches[0].id if len(matches) == 1 else None
 
 
+def _exact_department_id(db: Session, name: Optional[str]) -> Optional[int]:
+    if not name:
+        return None
+    normalized = name.strip().lower()
+    matches = list(
+        db.scalars(
+            select(Department).where(
+                (func.lower(Department.name) == normalized)
+                | (func.lower(Department.code) == normalized)
+            )
+        ).all()
+    )
+    return matches[0].id if len(matches) == 1 else None
+
+
 def _site_lookup(db: Session) -> tuple[dict[str, int], set[str]]:
     by_name: dict[str, list[int]] = {}
     for site in db.scalars(select(Site)).all():
@@ -247,6 +263,8 @@ def _normalize_yalelo_row(db: Session, raw: dict[str, Any], *, epoch) -> tuple[d
 
     officer_name = _text(raw.get("Responsible H&S Officer"))
     responsible_name = _text(raw.get("Person Responsible for Corrective Action"))
+    department_name = _text(raw.get("Department"))
+    responsible_department_name = _text(raw.get("Department Responsible for Corrective Action"))
     legacy_metadata = {
         "MonthY": _json_value(raw.get("MonthY")),
         "Item Type": _json_value(raw.get("Item Type")),
@@ -258,18 +276,21 @@ def _normalize_yalelo_row(db: Session, raw: dict[str, Any], *, epoch) -> tuple[d
         "external_reference_id": _text(raw.get("ID")),
         "source_system": YALELO_SOURCE_SYSTEM,
         "observation_date": observation_date.isoformat() if observation_date else None,
-        "department": _text(raw.get("Department")),
+        "department": department_name,
+        "department_id": _exact_department_id(db, department_name),
         "source_type": _text(raw.get("Source of Observation")),
         "description": _text(raw.get("Description of SIO")),
         "incident_classification": _text(raw.get("Incident Classification")),
         "status": status.value if status else None,
         "observation_nature": nature.value if nature else None,
-        "responsible_department": _text(raw.get("Department Responsible for Corrective Action")),
+        "responsible_department": responsible_department_name,
+        "responsible_department_id": _exact_department_id(db, responsible_department_name),
         "responsible_hs_officer_user_id": _exact_user_id(db, officer_name),
         "responsible_hs_officer_name": officer_name,
         "urgency": urgency.value if urgency else None,
         "category": _text(raw.get("SIO Category")),
         "responsible_person_user_id": _exact_user_id(db, responsible_name),
+        "responsible_user_id": _exact_user_id(db, responsible_name),
         "responsible_person_name": responsible_name,
         "property_damage": _text(raw.get("Property Damage")),
         "source_created_at": source_created_at.isoformat() if source_created_at else None,
@@ -556,7 +577,12 @@ def confirm_yalelo_sio_import(
             continue
 
         try:
-            sio = create_sio(db, _sio_input_from_row(row, site_id), actor_id=actor_id)
+            sio = create_sio(
+                db,
+                _sio_input_from_row(row, site_id),
+                actor_id=actor_id,
+                is_import=True,
+            )
             row.resolved_site_id = site_id
             row.imported_sio_id = sio.id
             row.status = ImportRowStatus.imported

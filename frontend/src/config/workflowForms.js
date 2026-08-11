@@ -241,11 +241,48 @@ export const workflowFormConfigs = {
       address: values.address.trim() || null,
     }),
   },
+  departments: {
+    createTitle: 'Create Department',
+    editTitle: 'Edit Department',
+    description: 'Manage business units and their optional parent and manager assignments.',
+    refs: ['departments', 'users'],
+    fields: [
+      baseTextField('name', 'Department name', true),
+      baseTextField('code', 'Code'),
+      { name: 'description', label: 'Description', type: 'textarea' },
+      { name: 'parent_department_id', label: 'Parent department', type: 'select', optionsSource: 'departments' },
+      { name: 'manager_user_id', label: 'Department manager', type: 'select', optionsSource: 'users' },
+      { name: 'is_active', label: 'Active department', type: 'checkbox', checkboxLabel: 'Department is available for assignments.' },
+    ],
+    getInitialValues: (item) => ({
+      name: item?.name ?? '',
+      code: item?.code ?? '',
+      description: item?.description ?? '',
+      parent_department_id: item?.parent_department_id ? String(item.parent_department_id) : '',
+      manager_user_id: item?.manager_user_id ? String(item.manager_user_id) : '',
+      is_active: item?.is_active ?? true,
+    }),
+    validate(values) {
+      const errors = {}
+      if (!values.name || values.name.trim().length < 2) {
+        errors.name = 'Department name must be at least 2 characters.'
+      }
+      return errors
+    },
+    buildPayload: (values) => ({
+      name: values.name.trim(),
+      code: values.code.trim() || null,
+      description: values.description.trim() || null,
+      parent_department_id: values.parent_department_id ? Number(values.parent_department_id) : null,
+      manager_user_id: values.manager_user_id ? Number(values.manager_user_id) : null,
+      is_active: Boolean(values.is_active),
+    }),
+  },
   users: {
     createTitle: 'Create User',
     editTitle: 'Edit User',
     description: 'Manage admin-owned user accounts, their primary role assignment, and optional site scope.',
-    refs: ['sites', 'roles'],
+    refs: ['sites', 'roles', 'departments'],
     fields: [
       { name: 'email', label: 'Email', type: 'email', required: true },
       baseTextField('full_name', 'Full name', true),
@@ -272,6 +309,12 @@ export const workflowFormConfigs = {
         helperText: 'Leave blank for global-access roles.',
       },
       {
+        name: 'department_id',
+        label: 'Department',
+        type: 'select',
+        optionsSource: 'departments',
+      },
+      {
         name: 'is_active',
         label: 'Active account',
         type: 'checkbox',
@@ -285,6 +328,7 @@ export const workflowFormConfigs = {
       password: '',
       role_id: getPrimaryRoleId(item),
       assigned_site_id: item?.assigned_site_id ? String(item.assigned_site_id) : '',
+      department_id: item?.department_id ? String(item.department_id) : '',
       is_active: item?.is_active ?? true,
     }),
     validate(values, { mode }) {
@@ -310,6 +354,7 @@ export const workflowFormConfigs = {
         phone_number: values.phone_number.trim() || null,
         is_active: Boolean(values.is_active),
         assigned_site_id: values.assigned_site_id ? Number(values.assigned_site_id) : null,
+        department_id: values.department_id ? Number(values.department_id) : null,
         role_ids: values.role_id ? [Number(values.role_id)] : [],
       }
 
@@ -411,10 +456,11 @@ export const workflowFormConfigs = {
     createTitle: 'Create Safety Improvement Observation',
     editTitle: 'Edit Safety Improvement Observation',
     description: 'Capture the observation itself; operational records can be created explicitly from its detail page.',
-    refs: ['sites', 'users'],
+    refs: ['sites', 'users', 'departments'],
     fields: [
       { name: 'site_id', label: 'Site', type: 'select', required: true, optionsSource: 'sites' },
       { name: 'observation_date', label: 'Observation date', type: 'date', helperText: 'Optional when the actual observation date is not known.' },
+      { name: 'department_id', label: 'Originating department', type: 'select', optionsSource: 'departments' },
       baseTextField('department', 'Department', true),
       {
         name: 'source_type',
@@ -442,7 +488,7 @@ export const workflowFormConfigs = {
         label: 'Status',
         type: 'select',
         required: true,
-        options: buildSelectOptions(['unassigned', 'assigned_to_responsible_person', 'assigned_to_action_tracker', 'complete', 'no_action_required', 'open']),
+        options: buildSelectOptions(['unassigned', 'open', 'assigned', 'in_progress', 'pending_verification', 'complete', 'assigned_to_responsible_person', 'assigned_to_action_tracker']),
       },
       {
         name: 'observation_nature',
@@ -458,6 +504,7 @@ export const workflowFormConfigs = {
         options: buildSelectOptions(['low', 'medium', 'high', 'urgent', 'not_applicable']),
       },
       baseTextField('category', 'Category'),
+      { name: 'responsible_department_id', label: 'Responsible department', type: 'select', optionsSource: 'departments' },
       baseTextField('responsible_department', 'Responsible department'),
       {
         name: 'responsible_hs_officer_user_id',
@@ -468,18 +515,20 @@ export const workflowFormConfigs = {
       },
       baseTextField('responsible_hs_officer_name', 'Responsible H&S officer name'),
       {
-        name: 'responsible_person_user_id',
+        name: 'responsible_user_id',
         label: 'Responsible person user',
         type: 'select',
         optionsSource: 'users',
         visible: ({ user }) => canUseUserReferences(user),
       },
       baseTextField('responsible_person_name', 'Responsible person name'),
+      { name: 'due_date', label: 'Due date', type: 'date' },
       baseTextField('property_damage', 'Property damage'),
     ],
     getInitialValues: (item) => ({
       site_id: item?.site_id ? String(item.site_id) : '',
       observation_date: item?.observation_date ?? '',
+      department_id: item?.department_id ? String(item.department_id) : '',
       department: item?.department ?? '',
       source_type: item?.source_type ?? 'SIO',
       description: item?.description ?? '',
@@ -488,17 +537,19 @@ export const workflowFormConfigs = {
       observation_nature: item?.observation_nature ?? 'negative',
       urgency: item?.urgency ?? '',
       category: item?.category ?? '',
+      responsible_department_id: item?.responsible_department_id ? String(item.responsible_department_id) : '',
       responsible_department: item?.responsible_department ?? '',
       responsible_hs_officer_user_id: item?.responsible_hs_officer_user_id ? String(item.responsible_hs_officer_user_id) : '',
       responsible_hs_officer_name: item?.responsible_hs_officer_name ?? '',
-      responsible_person_user_id: item?.responsible_person_user_id ? String(item.responsible_person_user_id) : '',
+      responsible_user_id: item?.responsible_user_id ? String(item.responsible_user_id) : '',
       responsible_person_name: item?.responsible_person_name ?? '',
+      due_date: item?.due_date ?? '',
       property_damage: item?.property_damage ?? '',
     }),
     validate(values) {
       const errors = {}
       if (!values.site_id) errors.site_id = 'Select a site.'
-      if (!values.department || !values.department.trim()) errors.department = 'Department is required.'
+      if (!values.department_id && (!values.department || !values.department.trim())) errors.department = 'Select or enter a department.'
       if (!values.source_type) errors.source_type = 'Select an observation source.'
       if (!values.description || values.description.trim().length < 2) errors.description = 'Description is required.'
       if (!values.observation_nature) errors.observation_nature = 'Select positive or negative.'
@@ -507,7 +558,8 @@ export const workflowFormConfigs = {
     buildPayload: (values) => ({
       site_id: Number(values.site_id),
       observation_date: values.observation_date || null,
-      department: values.department.trim(),
+      department_id: values.department_id ? Number(values.department_id) : null,
+      department: values.department.trim() || 'Unspecified',
       source_type: values.source_type,
       description: values.description.trim(),
       incident_classification: values.incident_classification.trim() || null,
@@ -515,11 +567,13 @@ export const workflowFormConfigs = {
       observation_nature: values.observation_nature,
       urgency: values.urgency || null,
       category: values.category.trim() || null,
+      responsible_department_id: values.responsible_department_id ? Number(values.responsible_department_id) : null,
       responsible_department: values.responsible_department.trim() || null,
       responsible_hs_officer_user_id: values.responsible_hs_officer_user_id ? Number(values.responsible_hs_officer_user_id) : null,
       responsible_hs_officer_name: values.responsible_hs_officer_name.trim() || null,
-      responsible_person_user_id: values.responsible_person_user_id ? Number(values.responsible_person_user_id) : null,
+      responsible_user_id: values.responsible_user_id ? Number(values.responsible_user_id) : null,
       responsible_person_name: values.responsible_person_name.trim() || null,
+      due_date: values.due_date || null,
       property_damage: values.property_damage.trim() || null,
     }),
   },

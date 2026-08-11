@@ -7,6 +7,7 @@ import { ResourceListPage } from './pages/ResourceListPage.jsx'
 import { ResourceDetailPage } from './pages/ResourceDetailPage.jsx'
 import { QuickReportPage } from './pages/QuickReportPage.jsx'
 import { DataImportsPage } from './pages/DataImportsPage.jsx'
+import { OrganisationAdministrationPage } from './pages/OrganisationAdministrationPage.jsx'
 import { resources } from './config/resources.jsx'
 import { useAuth } from './context/AuthContext.jsx'
 import { getDefaultRoute } from './lib/rbac.js'
@@ -26,6 +27,8 @@ function App() {
           <Route path="/dashboard" element={<DashboardPage />} />
           <Route path="/quick-report" element={<QuickReportPage />} />
           <Route path="/data-imports" element={<DataImportsPage />} />
+          <Route path="/platform/organisations" element={<OrganisationAdministrationPage platform />} />
+          <Route path="/organisation-settings" element={<OrganisationAdministrationPage />} />
           {resources.filter((resource) => !resource.customPage).map((resource) => (
             <Route key={resource.key}>
               <Route

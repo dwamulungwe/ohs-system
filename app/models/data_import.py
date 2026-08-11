@@ -9,7 +9,7 @@ from sqlalchemy.ext.mutable import MutableDict, MutableList
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db.base_class import Base
-from app.models.common import TimestampMixin
+from app.models.common import OrganisationOwnedMixin, TimestampMixin
 
 
 class ImportJobStatus(str, enum.Enum):
@@ -29,7 +29,7 @@ class ImportRowStatus(str, enum.Enum):
     failed = "failed"
 
 
-class DataImportJob(TimestampMixin, Base):
+class DataImportJob(OrganisationOwnedMixin, TimestampMixin, Base):
     __tablename__ = "data_import_jobs"
 
     id: Mapped[int] = mapped_column(primary_key=True, index=True)
@@ -60,7 +60,7 @@ class DataImportJob(TimestampMixin, Base):
     )
 
 
-class DataImportRow(TimestampMixin, Base):
+class DataImportRow(OrganisationOwnedMixin, TimestampMixin, Base):
     __tablename__ = "data_import_rows"
 
     id: Mapped[int] = mapped_column(primary_key=True, index=True)

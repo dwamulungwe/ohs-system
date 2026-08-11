@@ -20,6 +20,7 @@ class RoleUpdate(BaseModel):
 
 class RoleRead(RoleBase):
     id: int
+    organisation_id: int
     created_at: datetime
     updated_at: datetime
 

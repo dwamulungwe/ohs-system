@@ -7,7 +7,7 @@ from sqlalchemy.ext.mutable import MutableList
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db.base_class import Base
-from app.models.common import TimestampMixin, utcnow
+from app.models.common import OrganisationOwnedMixin, TimestampMixin, utcnow
 
 
 class TrainingType(str, enum.Enum):
@@ -36,7 +36,7 @@ class ComplianceAcknowledgementStatus(str, enum.Enum):
     superseded = "superseded"
 
 
-class TrainingRecord(TimestampMixin, Base):
+class TrainingRecord(OrganisationOwnedMixin, TimestampMixin, Base):
     __tablename__ = "training_records"
 
     id: Mapped[int] = mapped_column(primary_key=True, index=True)
@@ -57,7 +57,7 @@ class TrainingRecord(TimestampMixin, Base):
     assigned_by: Mapped["User"] = relationship(foreign_keys=[assigned_by_user_id], lazy="selectin")
 
 
-class ComplianceAcknowledgement(Base):
+class ComplianceAcknowledgement(OrganisationOwnedMixin, Base):
     __tablename__ = "compliance_acknowledgements"
 
     id: Mapped[int] = mapped_column(primary_key=True, index=True)

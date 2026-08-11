@@ -7,7 +7,7 @@ from sqlalchemy.ext.mutable import MutableList
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db.base_class import Base
-from app.models.common import TimestampMixin
+from app.models.common import OrganisationOwnedMixin, TimestampMixin
 
 
 class AssetType(str, enum.Enum):
@@ -25,7 +25,7 @@ class AssetConditionStatus(str, enum.Enum):
     retired = "retired"
 
 
-class AssetRegisterItem(TimestampMixin, Base):
+class AssetRegisterItem(OrganisationOwnedMixin, TimestampMixin, Base):
     __tablename__ = "asset_register_items"
 
     id: Mapped[int] = mapped_column(primary_key=True, index=True)

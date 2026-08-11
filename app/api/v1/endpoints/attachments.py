@@ -5,6 +5,7 @@ from sqlalchemy.orm import Session
 
 from app.api.deps import get_current_user, get_db
 from app.models.attachment import AttachmentEntityType
+from app.models.attachment import Attachment
 from app.models.user import User
 from app.schemas.attachment import AttachmentRead
 from app.services.attachment_service import (
@@ -13,6 +14,7 @@ from app.services.attachment_service import (
     get_attachment_download,
     list_attachments,
 )
+from app.services.tenancy import ensure_entity_feature_enabled
 
 router = APIRouter()
 
@@ -28,6 +30,7 @@ def download_attachment(
         attachment_id=attachment_id,
         current_user=current_user,
     )
+    ensure_entity_feature_enabled(db, current_user, download.attachment.entity_type)
     return FileResponse(
         path=download.file_path,
         media_type=download.attachment.content_type,
@@ -41,6 +44,9 @@ def remove_attachment(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ) -> Response:
+    attachment = db.get(Attachment, attachment_id)
+    if attachment is not None:
+        ensure_entity_feature_enabled(db, current_user, attachment.entity_type)
     delete_attachment(db, attachment_id=attachment_id, current_user=current_user)
     return Response(status_code=status.HTTP_204_NO_CONTENT)
 
@@ -51,15 +57,18 @@ async def upload_attachment(
     entity_id: int,
     file: UploadFile = File(...),
     description: Optional[str] = Form(default=None),
+    evidence_type: Optional[str] = Form(default=None),
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ) -> AttachmentRead:
+    ensure_entity_feature_enabled(db, current_user, entity_type)
     return await create_attachment(
         db,
         entity_type=entity_type,
         entity_id=entity_id,
         upload_file=file,
         description=description,
+        evidence_type=evidence_type,
         current_user=current_user,
     )
 
@@ -71,6 +80,7 @@ def list_entity_attachments(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ) -> list[AttachmentRead]:
+    ensure_entity_feature_enabled(db, current_user, entity_type)
     return list_attachments(
         db,
         entity_type=entity_type,

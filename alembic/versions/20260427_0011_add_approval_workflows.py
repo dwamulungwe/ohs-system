@@ -98,35 +98,20 @@ def upgrade() -> None:
         unique=False,
     )
 
-    op.add_column(
-        "incidents",
-        sa.Column("closure_requested", sa.Boolean(), nullable=False, server_default=sa.false()),
-    )
-    op.add_column("incidents", sa.Column("closed_at", sa.DateTime(timezone=True), nullable=True))
-    op.add_column("incidents", sa.Column("closed_by_user_id", sa.Integer(), nullable=True))
-    op.create_foreign_key(
-        "fk_incidents_closed_by_user_id_users",
-        "incidents",
-        "users",
-        ["closed_by_user_id"],
-        ["id"],
-        ondelete="SET NULL",
-    )
+    with op.batch_alter_table("incidents") as batch_op:
+        batch_op.add_column(sa.Column("closure_requested", sa.Boolean(), nullable=False, server_default=sa.false()))
+        batch_op.add_column(sa.Column("closed_at", sa.DateTime(timezone=True), nullable=True))
+        batch_op.add_column(sa.Column("closed_by_user_id", sa.Integer(), nullable=True))
+        batch_op.create_foreign_key("fk_incidents_closed_by_user_id_users", "users", ["closed_by_user_id"], ["id"], ondelete="SET NULL")
+        batch_op.alter_column("closure_requested", server_default=None)
 
-    op.add_column("hazards", sa.Column("reviewed_at", sa.DateTime(timezone=True), nullable=True))
-    op.add_column("hazards", sa.Column("reviewed_by_user_id", sa.Integer(), nullable=True))
-    op.create_foreign_key(
-        "fk_hazards_reviewed_by_user_id_users",
-        "hazards",
-        "users",
-        ["reviewed_by_user_id"],
-        ["id"],
-        ondelete="SET NULL",
-    )
+    with op.batch_alter_table("hazards") as batch_op:
+        batch_op.add_column(sa.Column("reviewed_at", sa.DateTime(timezone=True), nullable=True))
+        batch_op.add_column(sa.Column("reviewed_by_user_id", sa.Integer(), nullable=True))
+        batch_op.create_foreign_key("fk_hazards_reviewed_by_user_id_users", "users", ["reviewed_by_user_id"], ["id"], ondelete="SET NULL")
 
     op.add_column("permits_to_work", sa.Column("approved_at", sa.DateTime(timezone=True), nullable=True))
 
-    op.alter_column("incidents", "closure_requested", server_default=None)
 
 
 def downgrade() -> None:

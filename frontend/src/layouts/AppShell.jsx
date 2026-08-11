@@ -1,4 +1,4 @@
-import { Bell, LayoutDashboard, LogOut, ShieldCheck, Smartphone } from 'lucide-react'
+import { Bell, Building2, LayoutDashboard, LogOut, Settings, ShieldCheck, Smartphone } from 'lucide-react'
 import { NavLink, Outlet, useLocation } from 'react-router-dom'
 import { useEffect, useState } from 'react'
 import { resources } from '../config/resources.jsx'
@@ -6,7 +6,7 @@ import { useAuth } from '../context/AuthContext.jsx'
 import { apiClient } from '../api/client.js'
 import { ConfirmDialog } from '../components/ConfirmDialog.jsx'
 import { formatValue } from '../lib/formatters.js'
-import { canAccessQuickReport, canShowResourceInNav, canViewDashboard, formatRoleLabel } from '../lib/rbac.js'
+import { canAccessQuickReport, canShowResourceInNav, canViewDashboard, formatRoleLabel, hasRole, ROLES } from '../lib/rbac.js'
 
 function getPageTitle(pathname) {
   if (pathname === '/dashboard') {
@@ -16,6 +16,8 @@ function getPageTitle(pathname) {
   if (pathname === '/quick-report') {
     return 'Quick Report'
   }
+  if (pathname === '/platform/organisations') return 'Platform Administration'
+  if (pathname === '/organisation-settings') return 'Organisation Settings'
 
   const exactMatch = resources.find(
     (resource) =>
@@ -35,6 +37,7 @@ export function AppShell() {
   )
   const showDashboard = canViewDashboard(user)
   const showQuickReport = canAccessQuickReport(user)
+  const showOrganisationSettings = Boolean(user?.is_platform_admin || hasRole(user, [ROLES.ADMIN]))
 
   useEffect(() => {
     let ignore = false
@@ -64,14 +67,16 @@ export function AppShell() {
       <div className="mx-auto flex min-h-screen max-w-[1600px]">
         <aside className="hidden w-72 shrink-0 border-r border-stone-200 bg-[#fbfcf8] px-5 py-6 lg:flex lg:flex-col">
           <div className="flex items-center gap-3">
-            <div className="flex size-11 items-center justify-center rounded-xl bg-emerald-600 text-white shadow-sm shadow-emerald-300/40">
-              <ShieldCheck className="size-5" />
-            </div>
+            {user?.organisation?.logo_url ? (
+              <img src={user.organisation.logo_url} alt="" className="size-11 rounded-xl object-contain" />
+            ) : (
+              <div className="flex size-11 items-center justify-center rounded-xl bg-emerald-600 text-white shadow-sm shadow-emerald-300/40"><ShieldCheck className="size-5" /></div>
+            )}
             <div>
               <p className="text-xs font-semibold uppercase tracking-[0.14em] text-emerald-700">
                 OHS Platform
               </p>
-              <p className="text-base font-semibold text-stone-950">Management Console</p>
+              <p className="text-base font-semibold text-stone-950">{user?.organisation?.name ?? 'Management Console'}</p>
             </div>
           </div>
 
@@ -106,6 +111,16 @@ export function AppShell() {
               >
                 <Smartphone className="size-4" />
                 <span>Quick Report</span>
+              </NavLink>
+            ) : null}
+            {user?.is_platform_admin ? (
+              <NavLink to="/platform/organisations" className={({ isActive }) => ['flex items-center gap-3 rounded-xl px-3 py-3 text-sm font-medium transition', isActive ? 'bg-emerald-100 text-emerald-900 shadow-sm' : 'text-stone-700 hover:bg-stone-100 hover:text-stone-950'].join(' ')}>
+                <Building2 className="size-4" /><span>Platform Administration</span>
+              </NavLink>
+            ) : null}
+            {showOrganisationSettings ? (
+              <NavLink to="/organisation-settings" className={({ isActive }) => ['flex items-center gap-3 rounded-xl px-3 py-3 text-sm font-medium transition', isActive ? 'bg-emerald-100 text-emerald-900 shadow-sm' : 'text-stone-700 hover:bg-stone-100 hover:text-stone-950'].join(' ')}>
+                <Settings className="size-4" /><span>Organisation Settings</span>
               </NavLink>
             ) : null}
             {visibleResources.map((resource) => {
@@ -209,6 +224,12 @@ export function AppShell() {
                   <Smartphone className="size-4" />
                   Quick Report
                 </NavLink>
+              ) : null}
+              {user?.is_platform_admin ? (
+                <NavLink to="/platform/organisations" className={({ isActive }) => ['inline-flex shrink-0 items-center gap-2 rounded-full px-3 py-2 text-sm font-medium transition', isActive ? 'bg-emerald-100 text-emerald-900 shadow-sm' : 'bg-stone-100 text-stone-700 hover:bg-stone-200'].join(' ')}><Building2 className="size-4" />Platform Admin</NavLink>
+              ) : null}
+              {showOrganisationSettings ? (
+                <NavLink to="/organisation-settings" className={({ isActive }) => ['inline-flex shrink-0 items-center gap-2 rounded-full px-3 py-2 text-sm font-medium transition', isActive ? 'bg-emerald-100 text-emerald-900 shadow-sm' : 'bg-stone-100 text-stone-700 hover:bg-stone-200'].join(' ')}><Settings className="size-4" />Organisation</NavLink>
               ) : null}
               {visibleResources.map((resource) => {
                 const Icon = resource.icon

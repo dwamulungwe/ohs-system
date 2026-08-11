@@ -4,6 +4,7 @@ from datetime import datetime
 from pydantic import BaseModel, ConfigDict, EmailStr, Field
 
 from app.schemas.role import RoleRead
+from app.schemas.organisation import OrganisationContext
 
 
 class UserBase(BaseModel):
@@ -12,6 +13,7 @@ class UserBase(BaseModel):
     phone_number: Optional[str] = Field(default=None, min_length=7, max_length=40)
     is_active: bool = True
     assigned_site_id: Optional[int] = None
+    department_id: Optional[int] = None
 
 
 class UserCreate(UserBase):
@@ -29,6 +31,7 @@ class UserUpdate(BaseModel):
     password: Optional[str] = Field(default=None, min_length=8, max_length=128)
     is_active: Optional[bool] = None
     assigned_site_id: Optional[int] = None
+    department_id: Optional[int] = None
     role_ids: Optional[list[int]] = None
 
 
@@ -38,6 +41,11 @@ class UserRead(UserBase):
     roles: list[RoleRead] = []
     role_names: list[str] = []
     primary_role: Optional[str] = None
+    is_platform_admin: bool = False
+    organisation_id: int
+    organisation: OrganisationContext
+    enabled_modules: list[str] = []
+    effective_permissions: list[str] = []
     created_at: datetime
     updated_at: datetime
 

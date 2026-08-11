@@ -183,6 +183,22 @@ Approval workflow RBAC summary:
 - `supervisor` can request and view approvals only for records in the assigned site.
 - Direct approval decisions update the related record state where applicable: incidents receive closure metadata, corrective actions are verified and closed, permits are marked approved, and reviewed hazards receive reviewer timestamps.
 
+## Multi-Tenancy
+
+Every operational record belongs to an organisation. The authenticated user's organisation is installed on the database session, which automatically scopes ORM reads, updates, and deletes and rejects cross-organisation writes. Explicit unscoped access is reserved for authentication, platform administration, startup compatibility, demo seeding, and per-organisation scheduler dispatch.
+
+Platform administrators manage organisations, feature entitlements, and tenant settings under `/api/v1/organisations`. Tenant administrators can update only their own organisation settings. Feature entitlements are enforced by the API as well as the frontend; a hidden or disabled module cannot be reached by calling its endpoint directly.
+
+Organisation settings cover branding, locale, reporting preferences, incident numbering, approval policy, retention policy, notification channels, SIO thresholds, and permit warning windows. Departments support parent/child hierarchy and user assignment. Existing installations are migrated into the `Default Organisation`; fresh demo data is created in a separate `Demo Organisation`.
+
+Run the tenancy migration with the normal Alembic command:
+
+```bash
+alembic upgrade head
+```
+
+The migration preserves existing records, backfills `organisation_id`, changes role and site uniqueness to organisation scope, and grants the legacy startup administrator platform access. Take and verify a database backup before applying it in production.
+
 ## Local Development
 
 Install dependencies:
@@ -290,6 +306,31 @@ The first user can be created only through `/api/v1/auth/bootstrap-admin` while 
 ## Safety Improvement Observations and Historical Imports
 
 SIOs are stored in their own `safety_improvement_observations` table and are never coerced into hazards. Admins, OHS managers, safety officers, supervisors, and employees can create and view SIOs subject to site scope. Editing is available to admins, OHS managers, safety officers, and supervisors. Creating a linked hazard, incident, or corrective action is always an explicit action from the SIO detail page.
+
+Phase 1B adds an organisation-scoped operational lifecycle around that register:
+
+- Human-readable references are allocated per organisation and calendar year, for example `SIO-2026-000001`. The prefix comes from `numbering_prefixes.sio` in organisation settings.
+- Responsibility can be assigned to a department, a user, or both. Assignment, acceptance, decline, reassignment, investigation, closure request, verification, no-action disposition, and reopening are explicit audited actions.
+- Comments and activities are immutable timeline records. SIO attachments can be categorised as observation, investigation, corrective-action, or closure evidence.
+- Due-soon and overdue reminders use the existing notification scheduler and are tenant-aware and deduplicated. Linked hazards, incidents, and corrective actions remain explicit user actions.
+- Personal queues, management filters, atomic bulk actions, CSV exports, and the SIO dashboard all preserve organisation and site scope.
+
+Optional organisation settings use JSON objects such as:
+
+```json
+{
+  "numbering_prefixes": {"sio": "SIO"},
+  "sio_workflow_configuration": {
+    "default_due_days_by_urgency": {"urgent": 1, "high": 3, "medium": 7, "low": 14},
+    "due_soon_days": 7,
+    "reminder_frequency_days": 1,
+    "overdue_escalation_days": 3
+  },
+  "notification_preferences": {"sio_notifications_enabled": true}
+}
+```
+
+Default due dates are applied only when `default_due_days_by_urgency` is configured. Existing organisations therefore keep opt-in behaviour. The main workflow endpoints are under `/api/v1/sios/{id}`; action suffixes include `assign`, `accept`, `decline`, `transition`, `investigation`, `request-closure`, `verify`, `no-action-required`, `reopen`, `comments`, and `activity`. Bulk update and selected export are exposed at `/api/v1/sios/bulk` and `/api/v1/sios/bulk/export`.
 
 The Yalelo importer is a two-step workflow. Preview persists validation results and parsed rows but writes no SIO records. Confirmation is a separate admin/OHS-manager request and can be performed only after unresolved sites have been mapped or approved for creation.
 

@@ -7,7 +7,7 @@ from sqlalchemy.ext.mutable import MutableList
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db.base_class import Base
-from app.models.common import TimestampMixin
+from app.models.common import OrganisationOwnedMixin, TimestampMixin
 
 
 class CorrectiveActionPriority(str, enum.Enum):
@@ -34,11 +34,17 @@ class CorrectiveActionSourceType(str, enum.Enum):
     manual = "manual"
 
 
-class CorrectiveAction(TimestampMixin, Base):
+class CorrectiveAction(OrganisationOwnedMixin, TimestampMixin, Base):
     __tablename__ = "corrective_actions"
 
     id: Mapped[int] = mapped_column(primary_key=True, index=True)
     site_id: Mapped[int] = mapped_column(ForeignKey("sites.id", ondelete="RESTRICT"), index=True, nullable=False)
+    department_id: Mapped[Optional[int]] = mapped_column(
+        ForeignKey("departments.id", ondelete="SET NULL"), index=True, nullable=True
+    )
+    responsible_department_id: Mapped[Optional[int]] = mapped_column(
+        ForeignKey("departments.id", ondelete="SET NULL"), index=True, nullable=True
+    )
     title: Mapped[str] = mapped_column(String(200), nullable=False)
     description: Mapped[str] = mapped_column(Text, nullable=False)
     source_type: Mapped[CorrectiveActionSourceType] = mapped_column(
@@ -84,6 +90,12 @@ class CorrectiveAction(TimestampMixin, Base):
     verified_at: Mapped[Optional[datetime]] = mapped_column(DateTime(timezone=True), nullable=True)
 
     site: Mapped["Site"] = relationship(lazy="selectin")
+    department: Mapped[Optional["Department"]] = relationship(
+        foreign_keys=[department_id], lazy="selectin"
+    )
+    responsible_department: Mapped[Optional["Department"]] = relationship(
+        foreign_keys=[responsible_department_id], lazy="selectin"
+    )
     assigned_to: Mapped[Optional["User"]] = relationship(foreign_keys=[assigned_to_user_id], lazy="selectin")
     created_by: Mapped[Optional["User"]] = relationship(foreign_keys=[created_by_user_id], lazy="selectin")
     verified_by: Mapped[Optional["User"]] = relationship(foreign_keys=[verified_by_user_id], lazy="selectin")

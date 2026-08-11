@@ -15,50 +15,26 @@ depends_on = None
 
 
 def upgrade() -> None:
-    op.execute("ALTER TYPE hazardrisklevel ADD VALUE IF NOT EXISTS 'critical'")
-    op.add_column("hazards", sa.Column("likelihood", sa.Integer(), server_default="1", nullable=False))
-    op.add_column("hazards", sa.Column("impact", sa.Integer(), server_default="1", nullable=False))
-    op.add_column("hazards", sa.Column("risk_score", sa.Integer(), server_default="1", nullable=False))
-    op.add_column(
-        "hazards",
-        sa.Column("existing_controls", sa.JSON(), server_default=sa.text("'[]'::json"), nullable=False),
-    )
-    op.add_column(
-        "hazards",
-        sa.Column("additional_controls", sa.JSON(), server_default=sa.text("'[]'::json"), nullable=False),
-    )
-    op.add_column("hazards", sa.Column("owner_user_id", sa.Integer(), nullable=True))
-    op.add_column("hazards", sa.Column("due_date", sa.Date(), nullable=True))
-    op.add_column("hazards", sa.Column("review_date", sa.Date(), nullable=True))
-    op.add_column(
-        "hazards",
-        sa.Column("attachments_metadata", sa.JSON(), server_default=sa.text("'[]'::json"), nullable=False),
-    )
-    op.add_column("hazards", sa.Column("incident_id", sa.Integer(), nullable=True))
-    op.create_foreign_key(
-        "fk_hazards_owner_user_id_users",
-        "hazards",
-        "users",
-        ["owner_user_id"],
-        ["id"],
-        ondelete="SET NULL",
-    )
-    op.create_foreign_key(
-        "fk_hazards_incident_id_incidents",
-        "hazards",
-        "incidents",
-        ["incident_id"],
-        ["id"],
-        ondelete="SET NULL",
-    )
-    op.create_index(op.f("ix_hazards_owner_user_id"), "hazards", ["owner_user_id"], unique=False)
-    op.create_index(op.f("ix_hazards_incident_id"), "hazards", ["incident_id"], unique=False)
-    op.alter_column("hazards", "likelihood", server_default=None)
-    op.alter_column("hazards", "impact", server_default=None)
-    op.alter_column("hazards", "risk_score", server_default=None)
-    op.alter_column("hazards", "existing_controls", server_default=None)
-    op.alter_column("hazards", "additional_controls", server_default=None)
-    op.alter_column("hazards", "attachments_metadata", server_default=None)
+    bind = op.get_bind()
+    if bind.dialect.name == "postgresql":
+        op.execute("ALTER TYPE hazardrisklevel ADD VALUE IF NOT EXISTS 'critical'")
+    with op.batch_alter_table("hazards") as batch_op:
+        batch_op.add_column(sa.Column("likelihood", sa.Integer(), server_default="1", nullable=False))
+        batch_op.add_column(sa.Column("impact", sa.Integer(), server_default="1", nullable=False))
+        batch_op.add_column(sa.Column("risk_score", sa.Integer(), server_default="1", nullable=False))
+        batch_op.add_column(sa.Column("existing_controls", sa.JSON(), server_default=sa.text("'[]'"), nullable=False))
+        batch_op.add_column(sa.Column("additional_controls", sa.JSON(), server_default=sa.text("'[]'"), nullable=False))
+        batch_op.add_column(sa.Column("owner_user_id", sa.Integer(), nullable=True))
+        batch_op.add_column(sa.Column("due_date", sa.Date(), nullable=True))
+        batch_op.add_column(sa.Column("review_date", sa.Date(), nullable=True))
+        batch_op.add_column(sa.Column("attachments_metadata", sa.JSON(), server_default=sa.text("'[]'"), nullable=False))
+        batch_op.add_column(sa.Column("incident_id", sa.Integer(), nullable=True))
+        batch_op.create_foreign_key("fk_hazards_owner_user_id_users", "users", ["owner_user_id"], ["id"], ondelete="SET NULL")
+        batch_op.create_foreign_key("fk_hazards_incident_id_incidents", "incidents", ["incident_id"], ["id"], ondelete="SET NULL")
+        batch_op.create_index(op.f("ix_hazards_owner_user_id"), ["owner_user_id"], unique=False)
+        batch_op.create_index(op.f("ix_hazards_incident_id"), ["incident_id"], unique=False)
+        for column in ("likelihood", "impact", "risk_score", "existing_controls", "additional_controls", "attachments_metadata"):
+            batch_op.alter_column(column, server_default=None)
 
 
 def downgrade() -> None:

@@ -6,10 +6,19 @@ from sqlalchemy import Boolean, DateTime, Enum, ForeignKey, Integer, String, Tex
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db.base_class import Base
-from app.models.common import utcnow
+from app.models.common import OrganisationOwnedMixin, utcnow
 
 
 class NotificationType(str, enum.Enum):
+    sio_assigned = "sio_assigned"
+    sio_reassigned = "sio_reassigned"
+    sio_assignment_declined = "sio_assignment_declined"
+    sio_due_soon = "sio_due_soon"
+    sio_overdue = "sio_overdue"
+    sio_closure_requested = "sio_closure_requested"
+    sio_verification_required = "sio_verification_required"
+    sio_reopened = "sio_reopened"
+    sio_urgent_high = "sio_urgent_high"
     corrective_action_due_soon = "corrective_action_due_soon"
     corrective_action_overdue = "corrective_action_overdue"
     critical_hazard_created = "critical_hazard_created"
@@ -57,6 +66,7 @@ class NotificationSeverity(str, enum.Enum):
 
 
 class RelatedEntityType(str, enum.Enum):
+    sio = "sio"
     incident = "incident"
     hazard = "hazard"
     inspection = "inspection"
@@ -75,7 +85,7 @@ class RelatedEntityType(str, enum.Enum):
     audit_management = "audit_management"
 
 
-class Notification(Base):
+class Notification(OrganisationOwnedMixin, Base):
     __tablename__ = "notifications"
 
     id: Mapped[int] = mapped_column(primary_key=True, index=True)

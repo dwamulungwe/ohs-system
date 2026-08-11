@@ -5,10 +5,10 @@ from sqlalchemy import JSON, DateTime, ForeignKey, Integer, String
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db.base_class import Base
-from app.models.common import utcnow
+from app.models.common import OrganisationOwnedMixin, utcnow
 
 
-class AuditLog(Base):
+class AuditLog(OrganisationOwnedMixin, Base):
     __tablename__ = "audit_logs"
 
     id: Mapped[int] = mapped_column(primary_key=True, index=True)

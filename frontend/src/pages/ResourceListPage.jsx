@@ -9,9 +9,10 @@ import { NotAuthorizedState } from '../components/NotAuthorizedState.jsx'
 import { PageHeader } from '../components/PageHeader.jsx'
 import { PaginationControls } from '../components/PaginationControls.jsx'
 import { ResourceFormModal } from '../components/ResourceFormModal.jsx'
+import { SIOBulkActionsPanel } from '../components/SIOBulkActionsPanel.jsx'
 import { workflowFormConfigs } from '../config/workflowForms.js'
 import { useAuth } from '../context/AuthContext.jsx'
-import { canCreateResource, canViewResource, isForbiddenError } from '../lib/rbac.js'
+import { canCreateResource, canEditRecord, canViewResource, isForbiddenError } from '../lib/rbac.js'
 
 const DEFAULT_LIMIT = 25
 
@@ -46,6 +47,8 @@ export function ResourceListPage({ resource }) {
     Object.fromEntries((resource.filters ?? []).map((filter) => [filter.name, ''])),
   )
   const [appliedFilters, setAppliedFilters] = useState({})
+  const [selectedIds, setSelectedIds] = useState([])
+  const [filterReferences, setFilterReferences] = useState({ departments: [], users: [] })
 
   const formConfig = workflowFormConfigs[resource.key]
   const supportsForm = Boolean(formConfig)
@@ -95,6 +98,21 @@ export function ResourceListPage({ resource }) {
     return () => {
       ignore = true
     }
+  }, [resource.filters, token])
+
+  useEffect(() => {
+    const filters = resource.filters ?? []
+    if (!filters.some((filter) => ['department', 'user'].includes(filter.type))) return undefined
+    let ignore = false
+    Promise.all([
+      apiClient.getCollection(token, '/departments?limit=500'),
+      apiClient.getCollection(token, '/users?limit=500'),
+    ]).then(([departments, users]) => {
+      if (!ignore) setFilterReferences({ departments, users })
+    }).catch(() => {
+      if (!ignore) setFilterReferences({ departments: [], users: [] })
+    })
+    return () => { ignore = true }
   }, [resource.filters, token])
 
   async function handleMarkAllAsRead() {
@@ -212,6 +230,18 @@ export function ResourceListPage({ resource }) {
           {successMessage}
         </div>
       ) : null}
+      {resource.key === 'sios' ? (
+        <SIOBulkActionsPanel
+          selectedIds={selectedIds}
+          token={token}
+          onCompleted={async (message) => {
+            setSuccessMessage(message)
+            setSelectedIds([])
+            await loadItems(data.skip)
+          }}
+          onError={setError}
+        />
+      ) : null}
       {resource.filters?.length ? (
         <section className="rounded-xl border border-stone-200 bg-white p-4 shadow-sm shadow-stone-200/60">
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
@@ -220,14 +250,20 @@ export function ResourceListPage({ resource }) {
                 <span className="text-xs font-semibold uppercase tracking-[0.08em] text-stone-500">
                   {filter.label}
                 </span>
-                {filter.type === 'select' || filter.type === 'site' ? (
+                {['select', 'site', 'department', 'user'].includes(filter.type) ? (
                   <select
                     value={filterValues[filter.name] ?? ''}
                     onChange={(event) => setFilterValues((current) => ({ ...current, [filter.name]: event.target.value }))}
                     className="mt-2 w-full rounded-md border border-stone-300 bg-white px-3 py-2 text-sm outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200"
                   >
                     <option value="">All</option>
-                    {(filter.type === 'site' ? sites.map((site) => ({ value: site.id, label: site.name })) : filter.options.map((value) => ({ value, label: value.replaceAll('_', ' ') }))).map((option) => (
+                    {(filter.type === 'site'
+                      ? sites.map((site) => ({ value: site.id, label: site.name }))
+                      : filter.type === 'department'
+                        ? filterReferences.departments.map((item) => ({ value: item.id, label: item.name }))
+                        : filter.type === 'user'
+                          ? filterReferences.users.map((item) => ({ value: item.id, label: item.full_name }))
+                          : filter.options.map((value) => ({ value, label: value.replaceAll('_', ' ') }))).map((option) => (
                       <option key={`${filter.name}-${option.value}`} value={option.value}>{option.label}</option>
                     ))}
                   </select>
@@ -290,6 +326,10 @@ export function ResourceListPage({ resource }) {
             }
             emptyTitle={`No ${resource.label.toLowerCase()} yet`}
             emptyMessage={`The backend returned no ${resource.label.toLowerCase()} for this view.`}
+            selectedIds={resource.key === 'sios' ? selectedIds : undefined}
+            onSelectionChange={resource.key === 'sios' && canEditRecord('sios', user, {}) ? (itemId, checked) => {
+              setSelectedIds((current) => checked ? [...new Set([...current, itemId])] : current.filter((id) => id !== itemId))
+            } : undefined}
           />
 
           <div className="rounded-lg border border-stone-200 bg-white shadow-sm">

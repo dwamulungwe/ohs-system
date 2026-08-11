@@ -26,6 +26,7 @@ from app.services.rbac import (
     resolve_site_scope,
 )
 from app.services.corrective_action_service import (
+    CorrectiveActionDepartmentNotFoundError,
     CorrectiveActionInvalidSourceError,
     CorrectiveActionNotFoundError,
     CorrectiveActionSiteNotFoundError,
@@ -93,6 +94,8 @@ def create_corrective_action(
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Site not found")
     except CorrectiveActionUserNotFoundError:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Referenced user not found")
+    except CorrectiveActionDepartmentNotFoundError:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Department not found")
     except CorrectiveActionSourceNotFoundError:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Source record not found")
     except CorrectiveActionInvalidSourceError:
@@ -165,6 +168,8 @@ def patch_corrective_action(
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Site not found")
     except CorrectiveActionUserNotFoundError:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Referenced user not found")
+    except CorrectiveActionDepartmentNotFoundError:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Department not found")
     except CorrectiveActionSourceNotFoundError:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Source record not found")
     except CorrectiveActionInvalidSourceError:

@@ -34,6 +34,9 @@ from app.models.training import (
     TrainingType,
 )
 from app.models.user import User
+from app.schemas.organisation import OrganisationCreate
+from app.services.organisation_service import create_organisation_record
+from app.services.tenancy import set_tenant_context, unscoped_session
 from app.services.corrective_action_service import notify_action_pending_verification
 from app.services.hazard_service import calculate_risk_score, derive_risk_level
 from app.services.inspection_service import calculate_checklist_counts, derive_overall_result
@@ -58,6 +61,7 @@ DEMO_USER_DOMAIN = "@demo.ohs.local"
 DEMO_SITE_CODE_PREFIX = "DEMO-"
 DEMO_TITLE_PREFIX = "Demo:"
 DEMO_PERMIT_PREFIX = "DEMO-PTW-"
+DEMO_ORGANISATION_CODE = "DEMO"
 
 REQUIRED_ROLE_NAMES = {"admin", "ohs_manager", "safety_officer", "supervisor", "employee"}
 
@@ -1192,6 +1196,23 @@ def _count_demo_records(db: Session) -> SeedSummary:
 
 def seed_demo_data(db: Session) -> SeedSummary:
     base = _now()
+    previous_organisation_id = db.info.get("organisation_id")
+    with unscoped_session(db):
+        from app.models.organisation import Organisation
+
+        demo_organisation = db.scalar(
+            select(Organisation).where(Organisation.code == DEMO_ORGANISATION_CODE)
+        )
+    if demo_organisation is None:
+        demo_organisation = create_organisation_record(
+            db,
+            OrganisationCreate(
+                name="Demo Organisation",
+                code=DEMO_ORGANISATION_CODE,
+                slug="demo-organisation",
+            ),
+        )
+    set_tenant_context(db, demo_organisation.id)
     _delete_demo_rows(db)
 
     roles = _load_roles(db)
@@ -1223,8 +1244,24 @@ def seed_demo_data(db: Session) -> SeedSummary:
     generate_permit_nearing_expiry_notifications(db)
     generate_permit_expired_notifications(db)
 
-    return _count_demo_records(db)
+    summary = _count_demo_records(db)
+    if previous_organisation_id:
+        set_tenant_context(db, previous_organisation_id)
+    return summary
 
 
 def collect_demo_counts(db: Session) -> SeedSummary:
-    return _count_demo_records(db)
+    from app.models.organisation import Organisation
+
+    previous_organisation_id = db.info.get("organisation_id")
+    with unscoped_session(db):
+        demo_organisation_id = db.scalar(
+            select(Organisation.id).where(Organisation.code == DEMO_ORGANISATION_CODE)
+        )
+    if demo_organisation_id is None:
+        return SeedSummary(0, 0, 0, 0, 0, 0, 0, 0, 0, 0)
+    set_tenant_context(db, demo_organisation_id)
+    summary = _count_demo_records(db)
+    if previous_organisation_id:
+        set_tenant_context(db, previous_organisation_id)
+    return summary

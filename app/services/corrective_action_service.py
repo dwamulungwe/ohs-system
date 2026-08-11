@@ -10,6 +10,7 @@ from app.models.corrective_action import (
     CorrectiveActionSourceType,
     CorrectiveActionStatus,
 )
+from app.models.department import Department
 from app.models.hazard import Hazard
 from app.models.incident import Incident
 from app.models.inspection import Inspection
@@ -38,6 +39,10 @@ class CorrectiveActionUserNotFoundError(CorrectiveActionServiceError):
     pass
 
 
+class CorrectiveActionDepartmentNotFoundError(CorrectiveActionServiceError):
+    pass
+
+
 class CorrectiveActionSourceNotFoundError(CorrectiveActionServiceError):
     pass
 
@@ -61,6 +66,13 @@ def _ensure_site_exists(db: Session, site_id: int) -> None:
 def _ensure_user_exists(db: Session, user_id: Optional[int]) -> None:
     if user_id is not None and db.get(User, user_id) is None:
         raise CorrectiveActionUserNotFoundError(f"User {user_id} was not found")
+
+
+def _ensure_department_exists(db: Session, department_id: Optional[int]) -> None:
+    if department_id is not None and db.get(Department, department_id) is None:
+        raise CorrectiveActionDepartmentNotFoundError(
+            f"Department {department_id} was not found"
+        )
 
 
 def _validate_source(
@@ -167,6 +179,8 @@ def create_corrective_action(
     _ensure_user_exists(db, data.get("assigned_to_user_id"))
     _ensure_user_exists(db, data.get("created_by_user_id"))
     _ensure_user_exists(db, data.get("verified_by_user_id"))
+    _ensure_department_exists(db, data.get("department_id"))
+    _ensure_department_exists(db, data.get("responsible_department_id"))
     _validate_source(db, source_type=data["source_type"], source_id=data.get("source_id"))
     apply_overdue_status(data)
     _apply_status_timestamps(data)
@@ -207,6 +221,9 @@ def update_corrective_action(
     for user_field in ("assigned_to_user_id", "created_by_user_id", "verified_by_user_id"):
         if user_field in update_data:
             _ensure_user_exists(db, update_data[user_field])
+    for department_field in ("department_id", "responsible_department_id"):
+        if department_field in update_data:
+            _ensure_department_exists(db, update_data[department_field])
 
     _validate_source(db, source_type=effective_source_type, source_id=effective_source_id)
 

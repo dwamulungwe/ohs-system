@@ -22,6 +22,7 @@ class SiteUpdate(BaseModel):
 
 class SiteRead(SiteBase):
     id: int
+    organisation_id: int
     created_by_id: Optional[int] = None
     created_at: datetime
     updated_at: datetime

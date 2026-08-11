@@ -28,11 +28,12 @@ ack_status = sa.Enum("assigned", "acknowledged", "overdue", "superseded", name="
 
 
 def upgrade() -> None:
-    op.execute("ALTER TYPE notificationtype ADD VALUE IF NOT EXISTS 'training_overdue'")
-    op.execute("ALTER TYPE notificationtype ADD VALUE IF NOT EXISTS 'training_expired'")
-    op.execute("ALTER TYPE notificationtype ADD VALUE IF NOT EXISTS 'compliance_acknowledgement_overdue'")
-    op.execute("ALTER TYPE relatedentitytype ADD VALUE IF NOT EXISTS 'training_record'")
-    op.execute("ALTER TYPE relatedentitytype ADD VALUE IF NOT EXISTS 'compliance_acknowledgement'")
+    if op.get_bind().dialect.name == "postgresql":
+        op.execute("ALTER TYPE notificationtype ADD VALUE IF NOT EXISTS 'training_overdue'")
+        op.execute("ALTER TYPE notificationtype ADD VALUE IF NOT EXISTS 'training_expired'")
+        op.execute("ALTER TYPE notificationtype ADD VALUE IF NOT EXISTS 'compliance_acknowledgement_overdue'")
+        op.execute("ALTER TYPE relatedentitytype ADD VALUE IF NOT EXISTS 'training_record'")
+        op.execute("ALTER TYPE relatedentitytype ADD VALUE IF NOT EXISTS 'compliance_acknowledgement'")
 
     op.create_table(
         "training_records",

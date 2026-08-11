@@ -6,10 +6,11 @@ from sqlalchemy import DateTime, Enum, ForeignKey, Integer, String, Text
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db.base_class import Base
-from app.models.common import utcnow
+from app.models.common import OrganisationOwnedMixin, utcnow
 
 
 class AttachmentEntityType(str, enum.Enum):
+    sio = "sio"
     incident = "incident"
     hazard = "hazard"
     inspection = "inspection"
@@ -30,7 +31,7 @@ class AttachmentEntityType(str, enum.Enum):
     audit_management = "audit_management"
 
 
-class Attachment(Base):
+class Attachment(OrganisationOwnedMixin, Base):
     __tablename__ = "attachments"
 
     id: Mapped[int] = mapped_column(primary_key=True, index=True)
@@ -51,6 +52,7 @@ class Attachment(Base):
     file_size: Mapped[int] = mapped_column(Integer, nullable=False)
     storage_path: Mapped[str] = mapped_column(String(512), nullable=False)
     description: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
+    evidence_type: Mapped[Optional[str]] = mapped_column(String(80), index=True, nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow, nullable=False)
 
     uploaded_by: Mapped[Optional["User"]] = relationship(lazy="selectin")

@@ -13,6 +13,7 @@ from app.db.session import SessionLocal
 from app.models.job_run import JobRun, JobRunStatus
 from app.models.legal_compliance import LegalComplianceItem
 from app.models.notification import NotificationSeverity, NotificationType, RelatedEntityType
+from app.models.organisation import Organisation
 from app.models.training import (
     ComplianceAcknowledgement,
     ComplianceAcknowledgementStatus,
@@ -42,11 +43,13 @@ from app.services.permit_service import (
     generate_permit_nearing_expiry_notifications,
 )
 from app.services.query_utils import paginate
+from app.services.sio_service import generate_sio_due_notifications
 from app.services.training_service import (
     generate_expired_training_notifications,
     generate_overdue_compliance_acknowledgement_notifications,
     generate_overdue_training_notifications,
 )
+from app.services.tenancy import current_organisation_id, organisation_has_feature, set_tenant_context, unscoped_session
 
 _scheduler_stop_event = Event()
 _scheduler_thread: Optional[Thread] = None
@@ -130,21 +133,24 @@ def _run_document_control_job(db: Session) -> tuple[int, dict]:
 
 def _run_general_reminders_job(db: Session) -> tuple[int, dict]:
     total = 0
+    organisation_id = current_organisation_id(db)
     parts = {
-        "corrective_action_due_soon": len(generate_corrective_action_due_soon_notifications(db)),
-        "corrective_action_overdue": len(generate_corrective_action_overdue_notifications(db)),
-        "training_overdue": len(generate_overdue_training_notifications(db)),
-        "training_expired": len(generate_expired_training_notifications(db)),
+        "corrective_action_due_soon": len(generate_corrective_action_due_soon_notifications(db)) if organisation_has_feature(db, organisation_id, "corrective_actions") else 0,
+        "corrective_action_overdue": len(generate_corrective_action_overdue_notifications(db)) if organisation_has_feature(db, organisation_id, "corrective_actions") else 0,
+        "training_overdue": len(generate_overdue_training_notifications(db)) if organisation_has_feature(db, organisation_id, "training") else 0,
+        "training_expired": len(generate_expired_training_notifications(db)) if organisation_has_feature(db, organisation_id, "training") else 0,
         "compliance_acknowledgements_overdue": len(
             generate_overdue_compliance_acknowledgement_notifications(db)
-        ),
-        "permit_due_soon": len(generate_permit_nearing_expiry_notifications(db)),
-        "permit_expired": len(generate_permit_expired_notifications(db)),
+        ) if organisation_has_feature(db, organisation_id, "compliance") else 0,
+        "permit_due_soon": len(generate_permit_nearing_expiry_notifications(db)) if organisation_has_feature(db, organisation_id, "permits") else 0,
+        "permit_expired": len(generate_permit_expired_notifications(db)) if organisation_has_feature(db, organisation_id, "permits") else 0,
+        "sio_due_and_overdue": len(generate_sio_due_notifications(db)) if organisation_has_feature(db, organisation_id, "sios") else 0,
     }
     total += sum(parts.values())
 
     today = _now().date()
-    for item in db.scalars(select(LegalComplianceItem)).all():
+    compliance_items = db.scalars(select(LegalComplianceItem)).all() if organisation_has_feature(db, organisation_id, "compliance") else []
+    for item in compliance_items:
         notification = None
         if item.next_review_date is None or item.owner_user_id is None:
             continue
@@ -219,9 +225,21 @@ JOB_RUNNERS = {
     "kpi_refresh": _run_kpi_refresh_job,
 }
 
+JOB_FEATURES = {
+    "medical_surveillance_maintenance": "medical_surveillance",
+    "emergency_drill_maintenance": "emergency_drills",
+    "document_control_maintenance": "document_control",
+}
+
 
 def run_all_scheduled_jobs(db: Session) -> list[JobRun]:
-    return [_run_job(db, job_name, runner) for job_name, runner in JOB_RUNNERS.items()]
+    organisation_id = current_organisation_id(db)
+    return [
+        _run_job(db, job_name, runner)
+        for job_name, runner in JOB_RUNNERS.items()
+        if JOB_FEATURES.get(job_name) is None
+        or organisation_has_feature(db, organisation_id, JOB_FEATURES[job_name])
+    ]
 
 
 def list_job_runs(
@@ -253,7 +271,15 @@ def _scheduler_loop() -> None:
     while not _scheduler_stop_event.is_set():
         db = SessionLocal()
         try:
-            run_all_scheduled_jobs(db)
+            with unscoped_session(db):
+                organisation_ids = list(
+                    db.scalars(
+                        select(Organisation.id).where(Organisation.is_active.is_(True))
+                    ).all()
+                )
+            for organisation_id in organisation_ids:
+                set_tenant_context(db, organisation_id)
+                run_all_scheduled_jobs(db)
         finally:
             db.close()
         for _ in range(settings.SCHEDULER_POLL_SECONDS):

@@ -21,6 +21,7 @@ function uploaderLabel(attachment) {
 export function AttachmentsPanel({ resource, item, token, user }) {
   const [attachments, setAttachments] = useState([])
   const [description, setDescription] = useState('')
+  const [evidenceType, setEvidenceType] = useState('observation')
   const [selectedFile, setSelectedFile] = useState(null)
   const [isLoading, setIsLoading] = useState(true)
   const [isUploading, setIsUploading] = useState(false)
@@ -81,10 +82,11 @@ export function AttachmentsPanel({ resource, item, token, user }) {
         token,
         resource.attachmentEntityType,
         item.id,
-        { file: selectedFile, description },
+        { file: selectedFile, description, evidenceType },
       )
       setAttachments((current) => [uploaded, ...current])
       setDescription('')
+      setEvidenceType('observation')
       setSelectedFile(null)
       event.currentTarget.reset()
       setSuccessMessage('Attachment uploaded successfully.')
@@ -163,7 +165,7 @@ export function AttachmentsPanel({ resource, item, token, user }) {
       ) : null}
 
       {canUpload ? (
-        <form onSubmit={handleUpload} className="mt-5 grid gap-4 rounded-xl border border-dashed border-stone-300 bg-stone-50 p-4 md:grid-cols-[1.2fr_1fr_auto]">
+        <form onSubmit={handleUpload} className="mt-5 grid gap-4 rounded-xl border border-dashed border-stone-300 bg-stone-50 p-4 md:grid-cols-2 xl:grid-cols-[1.2fr_0.8fr_1fr_auto]">
           <label className="space-y-2 text-sm text-stone-700">
             <span className="block font-medium text-stone-900">Select file</span>
             <input
@@ -173,6 +175,17 @@ export function AttachmentsPanel({ resource, item, token, user }) {
               className="block w-full rounded-md border border-stone-300 bg-white px-3 py-2 text-sm text-stone-700 file:mr-3 file:rounded-md file:border-0 file:bg-stone-900 file:px-3 file:py-2 file:text-sm file:font-medium file:text-white hover:file:bg-stone-700"
             />
           </label>
+          {resource.key === 'sios' ? (
+            <label className="space-y-2 text-sm text-stone-700">
+              <span className="block font-medium text-stone-900">Evidence type</span>
+              <select value={evidenceType} onChange={(event) => setEvidenceType(event.target.value)} className="w-full rounded-md border border-stone-300 bg-white px-3 py-2.5 text-sm">
+                <option value="observation">Initial observation</option>
+                <option value="investigation">Investigation</option>
+                <option value="corrective">Corrective evidence</option>
+                <option value="closure">Closure evidence</option>
+              </select>
+            </label>
+          ) : null}
           <label className="space-y-2 text-sm text-stone-700">
             <span className="block font-medium text-stone-900">Description</span>
             <input
@@ -220,6 +233,7 @@ export function AttachmentsPanel({ resource, item, token, user }) {
                       <span>{formatFileSize(attachment.file_size)}</span>
                       <span>{uploaderLabel(attachment)}</span>
                       <span>{formatDateTime(attachment.created_at)}</span>
+                      {attachment.evidence_type ? <span className="font-medium capitalize">{attachment.evidence_type} evidence</span> : null}
                     </div>
                     {attachment.description ? (
                       <p className="text-sm leading-6 text-stone-700">{attachment.description}</p>

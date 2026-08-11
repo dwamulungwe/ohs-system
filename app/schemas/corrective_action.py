@@ -14,6 +14,8 @@ from app.schemas.common import AttachmentMetadata, PaginatedResponse
 
 class CorrectiveActionBase(BaseModel):
     site_id: int
+    department_id: Optional[int] = None
+    responsible_department_id: Optional[int] = None
     title: str = Field(min_length=2, max_length=200)
     description: str = Field(min_length=2)
     source_type: CorrectiveActionSourceType = CorrectiveActionSourceType.manual
@@ -38,6 +40,8 @@ class CorrectiveActionCreate(CorrectiveActionBase):
 
 class CorrectiveActionUpdate(BaseModel):
     site_id: Optional[int] = None
+    department_id: Optional[int] = None
+    responsible_department_id: Optional[int] = None
     title: Optional[str] = Field(default=None, min_length=2, max_length=200)
     description: Optional[str] = Field(default=None, min_length=2)
     source_type: Optional[CorrectiveActionSourceType] = None

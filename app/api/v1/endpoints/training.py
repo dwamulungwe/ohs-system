@@ -40,13 +40,14 @@ from app.services.rbac import (
     has_permission,
     resolve_site_scope,
 )
+from app.services.tenancy import require_feature
 
 router = APIRouter()
 TRAINING_SELF_UPDATE_FIELDS = {"completed_at", "status", "certificate_metadata", "notes"}
 COMPLIANCE_SELF_UPDATE_FIELDS = {"acknowledged_at", "status", "notes"}
 
 
-@router.get("/training", response_model=TrainingRecordListRead)
+@router.get("/training", response_model=TrainingRecordListRead, dependencies=[Depends(require_feature("training"))])
 def list_training(
     skip: int = Query(default=0, ge=0),
     limit: int = Query(default=100, ge=1, le=500),
@@ -82,7 +83,7 @@ def list_training(
     )
 
 
-@router.post("/training", response_model=TrainingRecordRead, status_code=status.HTTP_201_CREATED)
+@router.post("/training", response_model=TrainingRecordRead, status_code=status.HTTP_201_CREATED, dependencies=[Depends(require_feature("training"))])
 def create_training(
     training_in: TrainingRecordCreate,
     db: Session = Depends(get_db),
@@ -101,7 +102,7 @@ def create_training(
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Referenced user not found")
 
 
-@router.get("/training/{training_id}", response_model=TrainingRecordRead)
+@router.get("/training/{training_id}", response_model=TrainingRecordRead, dependencies=[Depends(require_feature("training"))])
 def get_training(
     training_id: int,
     db: Session = Depends(get_db),
@@ -121,7 +122,7 @@ def get_training(
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Training record not found")
 
 
-@router.patch("/training/{training_id}", response_model=TrainingRecordRead)
+@router.patch("/training/{training_id}", response_model=TrainingRecordRead, dependencies=[Depends(require_feature("training"))])
 def patch_training(
     training_id: int,
     training_in: TrainingRecordUpdate,
@@ -149,7 +150,7 @@ def patch_training(
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Referenced user not found")
 
 
-@router.get("/compliance-acknowledgements", response_model=ComplianceAcknowledgementListRead)
+@router.get("/compliance-acknowledgements", response_model=ComplianceAcknowledgementListRead, dependencies=[Depends(require_feature("compliance"))])
 def list_acknowledgements(
     skip: int = Query(default=0, ge=0),
     limit: int = Query(default=100, ge=1, le=500),
@@ -181,7 +182,7 @@ def list_acknowledgements(
     )
 
 
-@router.post("/compliance-acknowledgements", response_model=ComplianceAcknowledgementRead, status_code=status.HTTP_201_CREATED)
+@router.post("/compliance-acknowledgements", response_model=ComplianceAcknowledgementRead, status_code=status.HTTP_201_CREATED, dependencies=[Depends(require_feature("compliance"))])
 def create_acknowledgement(
     acknowledgement_in: ComplianceAcknowledgementCreate,
     db: Session = Depends(get_db),
@@ -200,7 +201,7 @@ def create_acknowledgement(
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Referenced user not found")
 
 
-@router.get("/compliance-acknowledgements/{acknowledgement_id}", response_model=ComplianceAcknowledgementRead)
+@router.get("/compliance-acknowledgements/{acknowledgement_id}", response_model=ComplianceAcknowledgementRead, dependencies=[Depends(require_feature("compliance"))])
 def get_acknowledgement(
     acknowledgement_id: int,
     db: Session = Depends(get_db),
@@ -224,7 +225,7 @@ def get_acknowledgement(
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Compliance acknowledgement not found")
 
 
-@router.patch("/compliance-acknowledgements/{acknowledgement_id}", response_model=ComplianceAcknowledgementRead)
+@router.patch("/compliance-acknowledgements/{acknowledgement_id}", response_model=ComplianceAcknowledgementRead, dependencies=[Depends(require_feature("compliance"))])
 def patch_acknowledgement(
     acknowledgement_id: int,
     acknowledgement_in: ComplianceAcknowledgementUpdate,

@@ -39,10 +39,11 @@ permit_status = sa.Enum(
 
 
 def upgrade() -> None:
-    op.execute("ALTER TYPE notificationtype ADD VALUE IF NOT EXISTS 'permit_pending_approval'")
-    op.execute("ALTER TYPE notificationtype ADD VALUE IF NOT EXISTS 'permit_nearing_expiry'")
-    op.execute("ALTER TYPE notificationtype ADD VALUE IF NOT EXISTS 'permit_expired'")
-    op.execute("ALTER TYPE relatedentitytype ADD VALUE IF NOT EXISTS 'permit'")
+    if op.get_bind().dialect.name == "postgresql":
+        op.execute("ALTER TYPE notificationtype ADD VALUE IF NOT EXISTS 'permit_pending_approval'")
+        op.execute("ALTER TYPE notificationtype ADD VALUE IF NOT EXISTS 'permit_nearing_expiry'")
+        op.execute("ALTER TYPE notificationtype ADD VALUE IF NOT EXISTS 'permit_expired'")
+        op.execute("ALTER TYPE relatedentitytype ADD VALUE IF NOT EXISTS 'permit'")
 
     op.create_table(
         "permits_to_work",

@@ -16,6 +16,7 @@ class AttachmentRead(BaseModel):
     content_type: str = Field(min_length=3, max_length=120)
     file_size: int = Field(ge=0)
     description: Optional[str] = None
+    evidence_type: Optional[str] = None
     created_at: datetime
     download_url: str = Field(min_length=1, max_length=2048)
 

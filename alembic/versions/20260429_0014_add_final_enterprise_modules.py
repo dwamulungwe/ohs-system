@@ -156,24 +156,10 @@ def upgrade() -> None:
     op.create_index(op.f("ix_document_control_records_document_type"), "document_control_records", ["document_type"], unique=False)
     op.create_index(op.f("ix_document_control_records_status"), "document_control_records", ["status"], unique=False)
 
-    op.add_column(
-        "compliance_acknowledgements",
-        sa.Column("document_control_id", sa.Integer(), nullable=True),
-    )
-    op.create_index(
-        op.f("ix_compliance_acknowledgements_document_control_id"),
-        "compliance_acknowledgements",
-        ["document_control_id"],
-        unique=False,
-    )
-    op.create_foreign_key(
-        "fk_compliance_acknowledgements_document_control_id",
-        "compliance_acknowledgements",
-        "document_control_records",
-        ["document_control_id"],
-        ["id"],
-        ondelete="SET NULL",
-    )
+    with op.batch_alter_table("compliance_acknowledgements") as batch_op:
+        batch_op.add_column(sa.Column("document_control_id", sa.Integer(), nullable=True))
+        batch_op.create_index(op.f("ix_compliance_acknowledgements_document_control_id"), ["document_control_id"], unique=False)
+        batch_op.create_foreign_key("fk_compliance_acknowledgements_document_control_id", "document_control_records", ["document_control_id"], ["id"], ondelete="SET NULL")
 
     op.create_table(
         "audit_management_records",

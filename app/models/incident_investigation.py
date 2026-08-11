@@ -7,7 +7,7 @@ from sqlalchemy.ext.mutable import MutableList
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db.base_class import Base
-from app.models.common import TimestampMixin
+from app.models.common import OrganisationOwnedMixin, TimestampMixin
 
 
 class IncidentInvestigationStatus(str, enum.Enum):
@@ -18,7 +18,7 @@ class IncidentInvestigationStatus(str, enum.Enum):
     closed = "closed"
 
 
-class IncidentInvestigation(TimestampMixin, Base):
+class IncidentInvestigation(OrganisationOwnedMixin, TimestampMixin, Base):
     __tablename__ = "incident_investigations"
     __table_args__ = (UniqueConstraint("incident_id", name="uq_incident_investigations_incident_id"),)
 

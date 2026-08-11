@@ -7,6 +7,7 @@ from app.models.audit_log import AuditLog
 from app.models.contractor import ContractorRecord
 from app.models.corrective_action import CorrectiveAction
 from app.models.data_import import DataImportJob, DataImportRow
+from app.models.department import Department
 from app.models.document_control import DocumentControlRecord
 from app.models.emergency_drill import EmergencyDrillRecord
 from app.models.hazard import Hazard
@@ -19,12 +20,18 @@ from app.models.legal_compliance import LegalComplianceItem
 from app.models.medical_surveillance import MedicalSurveillanceRecord
 from app.models.notification import Notification
 from app.models.notification_delivery import NotificationDeliveryLog
+from app.models.organisation import Organisation, OrganisationFeature, OrganisationSettings
 from app.models.permit import PermitToWork
 from app.models.role import Role
 from app.models.safety_communication import SafetyCommunication
 from app.models.safety_kpi import SafetyKPIRecord
 from app.models.site import Site
-from app.models.sio import SafetyImprovementObservation
+from app.models.sio import (
+    SIOActivity,
+    SIOComment,
+    SIOReferenceSequence,
+    SafetyImprovementObservation,
+)
 from app.models.training import ComplianceAcknowledgement, TrainingRecord
 from app.models.user import User
 
@@ -39,6 +46,7 @@ __all__ = [
     "CorrectiveAction",
     "DataImportJob",
     "DataImportRow",
+    "Department",
     "DocumentControlRecord",
     "EmergencyDrillRecord",
     "Hazard",
@@ -51,12 +59,18 @@ __all__ = [
     "MedicalSurveillanceRecord",
     "Notification",
     "NotificationDeliveryLog",
+    "Organisation",
+    "OrganisationFeature",
+    "OrganisationSettings",
     "PermitToWork",
     "Role",
     "SafetyCommunication",
     "SafetyKPIRecord",
     "Site",
     "SafetyImprovementObservation",
+    "SIOActivity",
+    "SIOComment",
+    "SIOReferenceSequence",
     "ComplianceAcknowledgement",
     "TrainingRecord",
     "User",

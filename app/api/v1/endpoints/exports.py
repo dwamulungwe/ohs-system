@@ -32,8 +32,10 @@ from app.models.medical_surveillance import (
     MedicalSurveillanceRecord,
     MedicalSurveillanceStatus,
 )
+from app.models.sio import SIOStatus, SIOUrgency
 from app.models.user import User
 from app.services.rbac import Permission, ensure_permission, ensure_site_access, resolve_site_scope
+from app.services.tenancy import require_feature
 from app.services.export_service import (
     ExportNotFoundError,
     export_asset_register_csv,
@@ -42,6 +44,7 @@ from app.services.export_service import (
     export_hazards_csv,
     export_incident_investigations_csv,
     export_incidents_csv,
+    export_sios_csv,
     export_inspections_csv,
     export_jsas_csv,
     export_legal_compliance_csv,
@@ -79,7 +82,7 @@ def _csv_response(content: str, filename: str) -> Response:
     )
 
 
-@router.get("/incidents/{incident_id}/report", response_class=HTMLResponse)
+@router.get("/incidents/{incident_id}/report", response_class=HTMLResponse, dependencies=[Depends(require_feature("incidents"))])
 def incident_report(
     incident_id: int,
     db: Session = Depends(get_db),
@@ -96,7 +99,7 @@ def incident_report(
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Incident not found")
 
 
-@router.get("/hazards/{hazard_id}/report", response_class=HTMLResponse)
+@router.get("/hazards/{hazard_id}/report", response_class=HTMLResponse, dependencies=[Depends(require_feature("hazards"))])
 def hazard_report(
     hazard_id: int,
     db: Session = Depends(get_db),
@@ -113,7 +116,7 @@ def hazard_report(
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Hazard not found")
 
 
-@router.get("/inspections/{inspection_id}/report", response_class=HTMLResponse)
+@router.get("/inspections/{inspection_id}/report", response_class=HTMLResponse, dependencies=[Depends(require_feature("inspections"))])
 def inspection_report(
     inspection_id: int,
     db: Session = Depends(get_db),
@@ -130,7 +133,7 @@ def inspection_report(
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Inspection not found")
 
 
-@router.get("/corrective-actions/{action_id}/report", response_class=HTMLResponse)
+@router.get("/corrective-actions/{action_id}/report", response_class=HTMLResponse, dependencies=[Depends(require_feature("corrective_actions"))])
 def corrective_action_report(
     action_id: int,
     db: Session = Depends(get_db),
@@ -147,7 +150,7 @@ def corrective_action_report(
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Corrective action not found")
 
 
-@router.get("/incident-investigations/{investigation_id}/report", response_class=HTMLResponse)
+@router.get("/incident-investigations/{investigation_id}/report", response_class=HTMLResponse, dependencies=[Depends(require_feature("incident_investigations"))])
 def incident_investigation_report(
     investigation_id: int,
     db: Session = Depends(get_db),
@@ -164,7 +167,7 @@ def incident_investigation_report(
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Incident investigation not found")
 
 
-@router.get("/legal-compliance/{item_id}/report", response_class=HTMLResponse)
+@router.get("/legal-compliance/{item_id}/report", response_class=HTMLResponse, dependencies=[Depends(require_feature("compliance"))])
 def legal_compliance_report(
     item_id: int,
     db: Session = Depends(get_db),
@@ -181,7 +184,7 @@ def legal_compliance_report(
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Legal compliance item not found")
 
 
-@router.get("/jsas/{jsa_id}/report", response_class=HTMLResponse)
+@router.get("/jsas/{jsa_id}/report", response_class=HTMLResponse, dependencies=[Depends(require_feature("jsas"))])
 def jsa_report(
     jsa_id: int,
     db: Session = Depends(get_db),
@@ -198,7 +201,7 @@ def jsa_report(
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="JSA not found")
 
 
-@router.get("/contractors/{contractor_id}/report", response_class=HTMLResponse)
+@router.get("/contractors/{contractor_id}/report", response_class=HTMLResponse, dependencies=[Depends(require_feature("contractors"))])
 def contractor_report(
     contractor_id: int,
     db: Session = Depends(get_db),
@@ -215,7 +218,7 @@ def contractor_report(
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Contractor not found")
 
 
-@router.get("/asset-register/{asset_id}/report", response_class=HTMLResponse)
+@router.get("/asset-register/{asset_id}/report", response_class=HTMLResponse, dependencies=[Depends(require_feature("assets"))])
 def asset_register_report(
     asset_id: int,
     db: Session = Depends(get_db),
@@ -232,7 +235,7 @@ def asset_register_report(
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Asset register item not found")
 
 
-@router.get("/medical-surveillance/{record_id}/report", response_class=HTMLResponse)
+@router.get("/medical-surveillance/{record_id}/report", response_class=HTMLResponse, dependencies=[Depends(require_feature("medical_surveillance"))])
 def medical_surveillance_report(
     record_id: int,
     db: Session = Depends(get_db),
@@ -249,7 +252,7 @@ def medical_surveillance_report(
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Medical surveillance record not found")
 
 
-@router.get("/emergency-drills/{drill_id}/report", response_class=HTMLResponse)
+@router.get("/emergency-drills/{drill_id}/report", response_class=HTMLResponse, dependencies=[Depends(require_feature("emergency_drills"))])
 def emergency_drill_report(
     drill_id: int,
     db: Session = Depends(get_db),
@@ -266,7 +269,7 @@ def emergency_drill_report(
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Emergency drill not found")
 
 
-@router.get("/documents/{document_id}/report", response_class=HTMLResponse)
+@router.get("/documents/{document_id}/report", response_class=HTMLResponse, dependencies=[Depends(require_feature("document_control"))])
 def document_control_report(
     document_id: int,
     db: Session = Depends(get_db),
@@ -283,7 +286,7 @@ def document_control_report(
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Document not found")
 
 
-@router.get("/audits/{audit_id}/report", response_class=HTMLResponse)
+@router.get("/audits/{audit_id}/report", response_class=HTMLResponse, dependencies=[Depends(require_feature("audits"))])
 def audit_management_report(
     audit_id: int,
     db: Session = Depends(get_db),
@@ -300,7 +303,7 @@ def audit_management_report(
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Audit not found")
 
 
-@router.get("/incidents.csv")
+@router.get("/incidents.csv", dependencies=[Depends(require_feature("incidents"))])
 def incidents_csv(
     site_id: Optional[int] = None,
     status: Optional[IncidentStatus] = None,
@@ -318,7 +321,41 @@ def incidents_csv(
     )
 
 
-@router.get("/hazards.csv")
+@router.get("/sios.csv", dependencies=[Depends(require_feature("sios"))])
+def sios_csv(
+    site_id: Optional[int] = None,
+    status: Optional[SIOStatus] = None,
+    urgency: Optional[SIOUrgency] = None,
+    department_id: Optional[int] = None,
+    responsible_department_id: Optional[int] = None,
+    responsible_user_id: Optional[int] = None,
+    overdue: Optional[bool] = None,
+    date_from: Optional[date] = None,
+    date_to: Optional[date] = None,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+) -> Response:
+    ensure_permission(current_user, Permission.SIOS_VIEW)
+    ensure_permission(current_user, Permission.EXPORTS_VIEW)
+    site_id = resolve_site_scope(current_user, site_id)
+    return _csv_response(
+        export_sios_csv(
+            db,
+            site_id=site_id,
+            status=status,
+            urgency=urgency,
+            department_id=department_id,
+            responsible_department_id=responsible_department_id,
+            responsible_user_id=responsible_user_id,
+            overdue=overdue,
+            date_from=date_from,
+            date_to=date_to,
+        ),
+        "sios.csv",
+    )
+
+
+@router.get("/hazards.csv", dependencies=[Depends(require_feature("hazards"))])
 def hazards_csv(
     site_id: Optional[int] = None,
     status: Optional[HazardStatus] = None,
@@ -336,7 +373,7 @@ def hazards_csv(
     )
 
 
-@router.get("/inspections.csv")
+@router.get("/inspections.csv", dependencies=[Depends(require_feature("inspections"))])
 def inspections_csv(
     site_id: Optional[int] = None,
     status: Optional[InspectionStatus] = None,
@@ -354,7 +391,7 @@ def inspections_csv(
     )
 
 
-@router.get("/corrective-actions.csv")
+@router.get("/corrective-actions.csv", dependencies=[Depends(require_feature("corrective_actions"))])
 def corrective_actions_csv(
     site_id: Optional[int] = None,
     status: Optional[CorrectiveActionStatus] = None,
@@ -383,7 +420,7 @@ def corrective_actions_csv(
     )
 
 
-@router.get("/incident-investigations.csv")
+@router.get("/incident-investigations.csv", dependencies=[Depends(require_feature("incident_investigations"))])
 def incident_investigations_csv(
     site_id: Optional[int] = None,
     status: Optional[IncidentInvestigationStatus] = None,
@@ -408,7 +445,7 @@ def incident_investigations_csv(
     )
 
 
-@router.get("/legal-compliance.csv")
+@router.get("/legal-compliance.csv", dependencies=[Depends(require_feature("compliance"))])
 def legal_compliance_csv(
     site_id: Optional[int] = None,
     status: Optional[LegalComplianceStatus] = None,
@@ -433,7 +470,7 @@ def legal_compliance_csv(
     )
 
 
-@router.get("/jsas.csv")
+@router.get("/jsas.csv", dependencies=[Depends(require_feature("jsas"))])
 def jsas_csv(
     site_id: Optional[int] = None,
     status: Optional[JSAStatus] = None,
@@ -458,7 +495,7 @@ def jsas_csv(
     )
 
 
-@router.get("/contractors.csv")
+@router.get("/contractors.csv", dependencies=[Depends(require_feature("contractors"))])
 def contractors_csv(
     site_id: Optional[int] = None,
     approved_for_work: Optional[bool] = None,
@@ -483,7 +520,7 @@ def contractors_csv(
     )
 
 
-@router.get("/asset-register.csv")
+@router.get("/asset-register.csv", dependencies=[Depends(require_feature("assets"))])
 def asset_register_csv(
     site_id: Optional[int] = None,
     asset_type: Optional[AssetType] = None,
@@ -510,7 +547,7 @@ def asset_register_csv(
     )
 
 
-@router.get("/medical-surveillance.csv")
+@router.get("/medical-surveillance.csv", dependencies=[Depends(require_feature("medical_surveillance"))])
 def medical_surveillance_csv(
     site_id: Optional[int] = None,
     status: Optional[MedicalSurveillanceStatus] = None,
@@ -537,7 +574,7 @@ def medical_surveillance_csv(
     )
 
 
-@router.get("/emergency-drills.csv")
+@router.get("/emergency-drills.csv", dependencies=[Depends(require_feature("emergency_drills"))])
 def emergency_drills_csv(
     site_id: Optional[int] = None,
     status: Optional[EmergencyDrillStatus] = None,
@@ -560,7 +597,7 @@ def emergency_drills_csv(
     )
 
 
-@router.get("/documents.csv")
+@router.get("/documents.csv", dependencies=[Depends(require_feature("document_control"))])
 def documents_csv(
     site_id: Optional[int] = None,
     status: Optional[DocumentStatus] = None,
@@ -585,7 +622,7 @@ def documents_csv(
     )
 
 
-@router.get("/audits.csv")
+@router.get("/audits.csv", dependencies=[Depends(require_feature("audits"))])
 def audits_csv(
     site_id: Optional[int] = None,
     status: Optional[AuditStatus] = None,
@@ -610,7 +647,7 @@ def audits_csv(
     )
 
 
-@router.get("/reports/executive-summary", response_class=HTMLResponse)
+@router.get("/reports/executive-summary", response_class=HTMLResponse, dependencies=[Depends(require_feature("dashboard"))])
 def executive_summary_report(
     site_id: Optional[int] = None,
     date_from: Optional[date] = None,
@@ -623,7 +660,7 @@ def executive_summary_report(
     return render_executive_summary_report(db, site_id=site_id, date_from=date_from, date_to=date_to)
 
 
-@router.get("/reports/overdue-corrective-actions", response_class=HTMLResponse)
+@router.get("/reports/overdue-corrective-actions", response_class=HTMLResponse, dependencies=[Depends(require_feature("corrective_actions"))])
 def overdue_corrective_actions_report(
     site_id: Optional[int] = None,
     db: Session = Depends(get_db),
@@ -634,7 +671,7 @@ def overdue_corrective_actions_report(
     return render_overdue_corrective_actions_report(db, site_id=site_id)
 
 
-@router.get("/reports/critical-hazards", response_class=HTMLResponse)
+@router.get("/reports/critical-hazards", response_class=HTMLResponse, dependencies=[Depends(require_feature("hazards"))])
 def critical_hazards_report(
     site_id: Optional[int] = None,
     db: Session = Depends(get_db),
@@ -645,7 +682,7 @@ def critical_hazards_report(
     return render_critical_hazards_report(db, site_id=site_id)
 
 
-@router.get("/reports/incidents-summary", response_class=HTMLResponse)
+@router.get("/reports/incidents-summary", response_class=HTMLResponse, dependencies=[Depends(require_feature("incidents"))])
 def incidents_summary_report(
     site_id: Optional[int] = None,
     date_from: Optional[date] = None,

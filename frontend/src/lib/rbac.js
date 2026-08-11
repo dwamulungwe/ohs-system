@@ -22,6 +22,7 @@ const ROLE_PRIORITY = [
 
 const RESOURCE_RULES = {
   sites: { view: ROLE_PRIORITY, nav: [ROLES.ADMIN, ROLES.OHS_MANAGER], create: [ROLES.ADMIN, ROLES.OHS_MANAGER], edit: [ROLES.ADMIN, ROLES.OHS_MANAGER] },
+  departments: { view: [ROLES.ADMIN, ROLES.OHS_MANAGER, ROLES.SAFETY_OFFICER], nav: [ROLES.ADMIN, ROLES.OHS_MANAGER], create: [ROLES.ADMIN, ROLES.OHS_MANAGER], edit: [ROLES.ADMIN, ROLES.OHS_MANAGER] },
   users: { view: [ROLES.ADMIN], nav: [ROLES.ADMIN], create: [ROLES.ADMIN], edit: [ROLES.ADMIN] },
   roles: { view: [ROLES.ADMIN], nav: [ROLES.ADMIN], create: [ROLES.ADMIN], edit: [ROLES.ADMIN] },
   'audit-logs': { view: [ROLES.ADMIN], nav: [ROLES.ADMIN], create: [], edit: [] },
@@ -50,6 +51,18 @@ const RESOURCE_RULES = {
   'safety-kpis': { view: [ROLES.ADMIN, ROLES.OHS_MANAGER, ROLES.SAFETY_OFFICER, ROLES.SUPERVISOR], nav: [ROLES.ADMIN, ROLES.OHS_MANAGER, ROLES.SAFETY_OFFICER, ROLES.SUPERVISOR], create: [ROLES.ADMIN, ROLES.OHS_MANAGER, ROLES.SAFETY_OFFICER], edit: [ROLES.ADMIN, ROLES.OHS_MANAGER, ROLES.SAFETY_OFFICER] },
   'safety-communications': { view: ROLE_PRIORITY, nav: ROLE_PRIORITY, create: [ROLES.ADMIN, ROLES.OHS_MANAGER, ROLES.SAFETY_OFFICER, ROLES.SUPERVISOR], edit: [ROLES.ADMIN, ROLES.OHS_MANAGER, ROLES.SAFETY_OFFICER, ROLES.SUPERVISOR] },
   'behaviour-observations': { view: ROLE_PRIORITY, nav: ROLE_PRIORITY, create: ROLE_PRIORITY, edit: [ROLES.ADMIN, ROLES.OHS_MANAGER, ROLES.SAFETY_OFFICER, ROLES.SUPERVISOR] },
+}
+
+const RESOURCE_MODULES = {
+  'data-imports': 'data_imports', incidents: 'incidents', sios: 'sios', hazards: 'hazards',
+  inspections: 'inspections', 'corrective-actions': 'corrective_actions', training: 'training',
+  'compliance-acknowledgements': 'compliance', permits: 'permits',
+  'incident-investigations': 'incident_investigations', 'legal-compliance': 'compliance',
+  jsas: 'jsas', contractors: 'contractors', 'asset-register': 'assets',
+  'medical-surveillance': 'medical_surveillance', 'emergency-drills': 'emergency_drills',
+  documents: 'document_control', audits: 'audits', 'safety-kpis': 'safety_kpis',
+  'safety-communications': 'safety_communications',
+  'behaviour-observations': 'behaviour_observations',
 }
 
 const DASHBOARD_VIEW_ROLES = [ROLES.ADMIN, ROLES.OHS_MANAGER, ROLES.SAFETY_OFFICER, ROLES.SUPERVISOR]
@@ -114,28 +127,43 @@ export function hasRole(user, allowedRoles = []) {
   return allowedRoles.some((roleName) => roleNames.includes(roleName))
 }
 
+export function hasPermission(user, permission) {
+  const permissions = Array.isArray(user?.effective_permissions) ? user.effective_permissions : []
+  return permissions.includes('*') || permissions.includes(permission)
+}
+
 export function formatRoleLabel(roleName) {
   return roleName ? roleName.replaceAll('_', ' ') : 'User'
 }
 
 export function canViewDashboard(user) {
-  return hasRole(user, DASHBOARD_VIEW_ROLES)
+  return hasModule(user, 'dashboard') && hasRole(user, DASHBOARD_VIEW_ROLES)
+}
+
+export function hasModule(user, moduleKey) {
+  return !moduleKey || (
+    Array.isArray(user?.enabled_modules) && user.enabled_modules.includes(moduleKey)
+  )
+}
+
+function resourceModuleEnabled(resourceKey, user) {
+  return hasModule(user, RESOURCE_MODULES[resourceKey])
 }
 
 export function canViewResource(resourceKey, user) {
-  return hasRole(user, RESOURCE_RULES[resourceKey]?.view ?? [])
+  return resourceModuleEnabled(resourceKey, user) && hasRole(user, RESOURCE_RULES[resourceKey]?.view ?? [])
 }
 
 export function canShowResourceInNav(resourceKey, user) {
-  return hasRole(user, RESOURCE_RULES[resourceKey]?.nav ?? [])
+  return resourceModuleEnabled(resourceKey, user) && hasRole(user, RESOURCE_RULES[resourceKey]?.nav ?? [])
 }
 
 export function canCreateResource(resourceKey, user) {
-  return hasRole(user, RESOURCE_RULES[resourceKey]?.create ?? [])
+  return resourceModuleEnabled(resourceKey, user) && hasRole(user, RESOURCE_RULES[resourceKey]?.create ?? [])
 }
 
 export function canEditRecord(resourceKey, user, item) {
-  if (!hasRole(user, RESOURCE_RULES[resourceKey]?.edit ?? [])) {
+  if (!resourceModuleEnabled(resourceKey, user) || !hasRole(user, RESOURCE_RULES[resourceKey]?.edit ?? [])) {
     return false
   }
 
@@ -203,7 +231,9 @@ export function canUseUserReferences(user) {
 }
 
 export function canAccessQuickReport(user) {
-  return hasRole(user, ROLE_PRIORITY)
+  return hasRole(user, ROLE_PRIORITY) && ['incidents', 'hazards', 'sios', 'behaviour_observations'].some(
+    (moduleKey) => hasModule(user, moduleKey),
+  )
 }
 
 export function getDefaultRoute(user) {

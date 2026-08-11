@@ -47,6 +47,8 @@ class Permission:
     ROLES_MANAGE = "roles.manage"
     SITES_READ = "sites.read"
     SITES_MANAGE = "sites.manage"
+    DEPARTMENTS_READ = "departments.read"
+    DEPARTMENTS_MANAGE = "departments.manage"
     INCIDENTS_VIEW = "incidents.view"
     INCIDENTS_CREATE = "incidents.create"
     INCIDENTS_EDIT = "incidents.edit"
@@ -91,6 +93,7 @@ class Permission:
     SIOS_VIEW = "sios.view"
     SIOS_CREATE = "sios.create"
     SIOS_EDIT = "sios.edit"
+    SIOS_VERIFY = "sios.verify"
     DATA_IMPORTS_MANAGE = "data_imports.manage"
     INVESTIGATIONS_VIEW = "investigations.view"
     INVESTIGATIONS_CREATE = "investigations.create"
@@ -139,6 +142,8 @@ ROLE_PERMISSIONS = {
         Permission.ROLES_READ,
         Permission.SITES_READ,
         Permission.SITES_MANAGE,
+        Permission.DEPARTMENTS_READ,
+        Permission.DEPARTMENTS_MANAGE,
         Permission.INCIDENTS_VIEW,
         Permission.INCIDENTS_CREATE,
         Permission.INCIDENTS_EDIT,
@@ -178,6 +183,7 @@ ROLE_PERMISSIONS = {
         Permission.SIOS_VIEW,
         Permission.SIOS_CREATE,
         Permission.SIOS_EDIT,
+        Permission.SIOS_VERIFY,
         Permission.DATA_IMPORTS_MANAGE,
         Permission.INVESTIGATIONS_VIEW,
         Permission.INVESTIGATIONS_CREATE,
@@ -220,6 +226,7 @@ ROLE_PERMISSIONS = {
     ROLE_SAFETY_OFFICER: {
         Permission.USERS_READ,
         Permission.SITES_READ,
+        Permission.DEPARTMENTS_READ,
         Permission.INCIDENTS_VIEW,
         Permission.INCIDENTS_CREATE,
         Permission.INCIDENTS_EDIT,
@@ -254,6 +261,7 @@ ROLE_PERMISSIONS = {
         Permission.SIOS_VIEW,
         Permission.SIOS_CREATE,
         Permission.SIOS_EDIT,
+        Permission.SIOS_VERIFY,
         Permission.INVESTIGATIONS_VIEW,
         Permission.INVESTIGATIONS_CREATE,
         Permission.INVESTIGATIONS_EDIT,
@@ -389,6 +397,15 @@ def has_permission(user, permission: str) -> bool:
         effective_permissions.update(ROLE_PERMISSIONS.get(role_name, set()))
 
     return "*" in effective_permissions or permission in effective_permissions
+
+
+def get_effective_permissions(user) -> list[str]:
+    permissions: set[str] = set()
+    for role_name in get_normalized_role_names(user):
+        permissions.update(ROLE_PERMISSIONS.get(role_name, set()))
+    if "*" in permissions:
+        return ["*"]
+    return sorted(permissions)
 
 
 def ensure_permission(user, permission: str, detail: str = "Not authorized") -> None:

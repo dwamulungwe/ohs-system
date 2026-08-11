@@ -15,6 +15,7 @@ class AuditLogCreate(BaseModel):
 
 class AuditLogRead(AuditLogCreate):
     id: int
+    organisation_id: int
     created_at: datetime
 
     model_config = ConfigDict(from_attributes=True)

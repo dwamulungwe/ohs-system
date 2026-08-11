@@ -15,11 +15,11 @@ depends_on = None
 
 
 def upgrade() -> None:
-    op.add_column(
-        "incidents",
-        sa.Column("attachments_metadata", sa.JSON(), server_default=sa.text("'[]'::json"), nullable=False),
-    )
-    op.alter_column("incidents", "attachments_metadata", server_default=None)
+    with op.batch_alter_table("incidents") as batch_op:
+        batch_op.add_column(
+            sa.Column("attachments_metadata", sa.JSON(), server_default=sa.text("'[]'"), nullable=False)
+        )
+        batch_op.alter_column("attachments_metadata", server_default=None)
 
 
 def downgrade() -> None:

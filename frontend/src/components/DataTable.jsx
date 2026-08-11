@@ -28,6 +28,8 @@ export function DataTable({
   getRowHref,
   emptyTitle,
   emptyMessage,
+  selectedIds = [],
+  onSelectionChange,
 }) {
   if (!items.length) {
     return <EmptyState title={emptyTitle} message={emptyMessage} />
@@ -66,13 +68,24 @@ export function DataTable({
             </>
           )
 
-          return href ? (
-            <Link key={item.id} to={href} className={cardClassName}>
-              {cardContent}
-            </Link>
-          ) : (
-            <div key={item.id} className={cardClassName}>
-              {cardContent}
+          return (
+            <div key={item.id} className="flex items-start gap-2">
+              {onSelectionChange ? (
+                <input
+                  type="checkbox"
+                  checked={selectedIds.includes(item.id)}
+                  onChange={(event) => onSelectionChange(item.id, event.target.checked)}
+                  className="mt-4 size-4 rounded border-stone-300 text-emerald-600"
+                  aria-label={`Select record ${item.id}`}
+                />
+              ) : null}
+              {href ? (
+                <Link to={href} className={`${cardClassName} min-w-0 flex-1`}>
+                  {cardContent}
+                </Link>
+              ) : (
+                <div className={`${cardClassName} min-w-0 flex-1`}>{cardContent}</div>
+              )}
             </div>
           )
         })}
@@ -82,6 +95,17 @@ export function DataTable({
         <table className="min-w-full divide-y divide-stone-200">
           <thead className="bg-stone-50/90">
             <tr>
+              {onSelectionChange ? (
+                <th className="w-12 px-5 py-3.5">
+                  <input
+                    type="checkbox"
+                    checked={items.length > 0 && items.every((item) => selectedIds.includes(item.id))}
+                    onChange={(event) => items.forEach((item) => onSelectionChange(item.id, event.target.checked))}
+                    className="size-4 rounded border-stone-300 text-emerald-600"
+                    aria-label="Select all visible records"
+                  />
+                </th>
+              ) : null}
               {columns.map((column) => (
                 <th
                   key={column.key}
@@ -105,6 +129,17 @@ export function DataTable({
                     rowIndex % 2 === 0 ? 'bg-white' : 'bg-stone-50/40',
                   ].join(' ')}
                 >
+                  {onSelectionChange ? (
+                    <td className="px-5 py-4 align-top">
+                      <input
+                        type="checkbox"
+                        checked={selectedIds.includes(item.id)}
+                        onChange={(event) => onSelectionChange(item.id, event.target.checked)}
+                        className="size-4 rounded border-stone-300 text-emerald-600"
+                        aria-label={`Select record ${item.id}`}
+                      />
+                    </td>
+                  ) : null}
                   {columns.map((column, index) => (
                     <td
                       key={column.key}

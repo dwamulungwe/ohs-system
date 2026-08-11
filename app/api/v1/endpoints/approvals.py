@@ -16,6 +16,11 @@ from app.services.approval_service import (
     list_approvals,
     request_approval,
 )
+from app.services.tenancy import (
+    ENTITY_FEATURE_KEYS,
+    ensure_entity_feature_enabled,
+    organisation_has_feature,
+)
 
 router = APIRouter()
 
@@ -32,6 +37,7 @@ def create_approval_request(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ) -> ApprovalWorkflow:
+    ensure_entity_feature_enabled(db, current_user, entity_type)
     try:
         return request_approval(
             db,
@@ -59,6 +65,17 @@ def list_approval_records(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ) -> dict:
+    if entity_type is not None:
+        ensure_entity_feature_enabled(db, current_user, entity_type)
+    allowed_entity_types = [
+        candidate
+        for candidate in ApprovalEntityType
+        if organisation_has_feature(
+            db,
+            current_user.organisation_id,
+            ENTITY_FEATURE_KEYS[candidate.value],
+        )
+    ]
     return list_approvals(
         db,
         current_user=current_user,
@@ -68,6 +85,7 @@ def list_approval_records(
         entity_id=entity_id,
         action_type=action_type,
         approval_status=approval_status,
+        allowed_entity_types=allowed_entity_types,
     )
 
 
@@ -77,6 +95,9 @@ def get_approval_record(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ) -> ApprovalWorkflow:
+    approval = db.get(ApprovalWorkflow, approval_id)
+    if approval is not None:
+        ensure_entity_feature_enabled(db, current_user, approval.entity_type)
     try:
         return get_approval(db, approval_id, current_user=current_user)
     except ApprovalNotFoundError:
@@ -92,6 +113,9 @@ def decide_approval_record(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ) -> ApprovalWorkflow:
+    approval = db.get(ApprovalWorkflow, approval_id)
+    if approval is not None:
+        ensure_entity_feature_enabled(db, current_user, approval.entity_type)
     try:
         return decide_approval(
             db,

@@ -307,6 +307,22 @@ export function DashboardPage() {
       description: 'High-priority observations requiring prompt attention.',
     },
     {
+      key: 'overdue_sios',
+      label: 'Overdue SIOs',
+      value: sioAnalytics?.overdue_observations ?? 0,
+      accent: 'text-rose-700',
+      accentBg: 'bg-rose-200',
+      description: 'Assigned observations that have passed their due date.',
+    },
+    {
+      key: 'verification_sios',
+      label: 'Awaiting Verification',
+      value: sioAnalytics?.pending_verification_observations ?? 0,
+      accent: 'text-violet-700',
+      accentBg: 'bg-violet-200',
+      description: 'Closure requests awaiting authorised verification.',
+    },
+    {
       key: 'critical_open_incidents_count',
       label: 'Critical Open Incidents',
       value: summary?.incident_snapshot?.critical_open_incidents_count ?? 0,
@@ -561,6 +577,47 @@ export function DashboardPage() {
           description="Departments represented in the observation register."
           values={sioAnalytics?.observations_by_department}
         />
+        <DistributionPanel
+          title="SIOs by Responsible Department"
+          description="Current operational backlog by accountable department."
+          values={sioAnalytics?.observations_by_responsible_department}
+        />
+        <DistributionPanel
+          title="SIOs by Responsible Person"
+          description="Observation ownership by responsible user."
+          values={sioAnalytics?.observations_by_responsible_user}
+        />
+        <DistributionPanel
+          title="SIOs by Status"
+          description="Current workflow distribution."
+          values={sioAnalytics?.observations_by_status}
+        />
+        <DistributionPanel
+          title="SIOs by Urgency"
+          description="Priority distribution in the selected scope."
+          values={sioAnalytics?.observations_by_urgency}
+        />
+      </section>
+
+      <section className="grid gap-4 xl:grid-cols-2">
+        <RecordListPanel
+          title="Oldest Open SIOs"
+          description="Long-running observations that remain operationally open."
+          items={sioAnalytics?.oldest_open_sios ?? []}
+          emptyTitle="No open SIOs"
+          emptyMessage="No open observations matched the current filters."
+          renderItem={(item) => <div><p className="font-semibold text-stone-950">{item.reference_number}</p><p className="mt-1 text-sm text-stone-600">{item.description}</p><p className="mt-1 text-xs text-stone-500">Age: {item.age_days} days · {item.status.replaceAll('_', ' ')}</p></div>}
+        />
+        <RecordListPanel
+          title="Most Overdue SIOs"
+          description="The observations furthest beyond their due date."
+          items={sioAnalytics?.most_overdue_sios ?? []}
+          emptyTitle="No overdue SIOs"
+          emptyMessage="No overdue observations matched the current filters."
+          renderItem={(item) => <div><p className="font-semibold text-stone-950">{item.reference_number}</p><p className="mt-1 text-sm text-stone-600">{item.description}</p><p className="mt-1 text-xs font-semibold text-rose-700">{item.days_overdue} days overdue</p></div>}
+        />
+        <DistributionPanel title="Open Backlog by Department" description="Departments with the largest active SIO workload." values={sioAnalytics?.departments_with_highest_open_backlog} />
+        <DistributionPanel title="Overdue by Responsible User" description="Responsible users with overdue SIO assignments." values={sioAnalytics?.responsible_users_with_overdue_sios} />
       </section>
 
       <section className="grid gap-4 xl:grid-cols-[1.2fr_0.8fr]">

@@ -10,7 +10,10 @@ from app.core.security import get_password_hash
 from app.db.session import SessionLocal
 from app.models.role import Role
 from app.models.user import User
+from app.services.organisation_service import ensure_default_organisation
+from app.services.role_service import ensure_default_roles
 from app.services.scheduler_service import start_scheduler, stop_scheduler
+from app.services.tenancy import set_tenant_context, unscoped_session
 
 
 logger = logging.getLogger(__name__)
@@ -29,6 +32,9 @@ REQUIRED_ROLES = {
 def ensure_superadmin_user() -> None:
     db = SessionLocal()
     try:
+        organisation = ensure_default_organisation(db)
+        set_tenant_context(db, organisation.id, platform_admin=True)
+        ensure_default_roles(db)
         roles = {
             role.name: role
             for role in db.scalars(select(Role).where(Role.name.in_(REQUIRED_ROLES))).all()
@@ -39,16 +45,25 @@ def ensure_superadmin_user() -> None:
                 db.add(role)
                 roles[role_name] = role
 
-        existing_user = db.scalar(select(User).where(User.email == SUPERADMIN_EMAIL))
+        with unscoped_session(db):
+            existing_user = db.scalar(select(User).where(User.email == SUPERADMIN_EMAIL))
         if existing_user is None:
             admin_user = User(
                 email=SUPERADMIN_EMAIL,
                 full_name="System Administrator",
                 hashed_password=get_password_hash(SUPERADMIN_PASSWORD),
                 is_active=True,
+                is_platform_admin=True,
+                organisation_id=organisation.id,
                 roles=[roles["admin"]],
             )
             db.add(admin_user)
+        else:
+            existing_user.is_platform_admin = True
+            if existing_user.organisation_id != organisation.id:
+                existing_user.organisation_id = organisation.id
+            if roles["admin"] not in existing_user.roles:
+                existing_user.roles.append(roles["admin"])
 
         db.commit()
     except Exception:

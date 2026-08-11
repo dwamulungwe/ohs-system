@@ -361,10 +361,13 @@ def list_approvals(
     entity_id: Optional[int] = None,
     action_type: Optional[ApprovalActionType] = None,
     approval_status: Optional[ApprovalStatus] = None,
+    allowed_entity_types: Optional[list[ApprovalEntityType]] = None,
 ) -> dict:
     ensure_permission(current_user, Permission.APPROVALS_VIEW)
 
     statement: Select[tuple[ApprovalWorkflow]] = select(ApprovalWorkflow)
+    if allowed_entity_types is not None:
+        statement = statement.where(ApprovalWorkflow.entity_type.in_(allowed_entity_types))
     if entity_type is not None:
         statement = statement.where(ApprovalWorkflow.entity_type == entity_type)
     if entity_id is not None:

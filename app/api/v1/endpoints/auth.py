@@ -11,6 +11,8 @@ from app.schemas.token import Token
 from app.schemas.user import UserBootstrap, UserCreate, UserRead
 from app.services.audit_service import write_audit_log
 from app.services.role_service import ensure_default_roles
+from app.services.organisation_service import ensure_default_organisation
+from app.services.tenancy import set_user_tenant_context, set_tenant_context, unscoped_session
 from app.services.user_service import authenticate_user, count_users, create_user, get_user_by_email
 
 router = APIRouter()
@@ -22,7 +24,8 @@ def login(
     db: Session = Depends(get_db),
     form_data: OAuth2PasswordRequestForm = Depends(),
 ) -> Token:
-    user = authenticate_user(db, email=form_data.username, password=form_data.password)
+    with unscoped_session(db):
+        user = authenticate_user(db, email=form_data.username, password=form_data.password)
     if not user:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
@@ -30,6 +33,7 @@ def login(
             headers={"WWW-Authenticate": "Bearer"},
         )
 
+    set_user_tenant_context(db, user)
     write_audit_log(
         db,
         actor_id=user.id,
@@ -38,16 +42,26 @@ def login(
         resource_id=user.id,
         ip_address=request.client.host if request.client else None,
     )
-    return Token(access_token=create_access_token(str(user.id)))
+    return Token(
+        access_token=create_access_token(
+            str(user.id),
+            organisation_id=user.organisation_id,
+            is_platform_admin=user.is_platform_admin,
+        )
+    )
 
 
 @router.post("/bootstrap-admin", response_model=UserRead, status_code=status.HTTP_201_CREATED)
 def bootstrap_admin(user_in: UserBootstrap, db: Session = Depends(get_db)) -> User:
-    if count_users(db) > 0:
+    with unscoped_session(db):
+        existing_user_count = count_users(db)
+    if existing_user_count > 0:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Bootstrap is only available before any users exist",
         )
+    organisation = ensure_default_organisation(db)
+    set_tenant_context(db, organisation.id, platform_admin=True)
     if get_user_by_email(db, email=user_in.email):
         raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="Email already registered")
 
@@ -63,6 +77,7 @@ def bootstrap_admin(user_in: UserBootstrap, db: Session = Depends(get_db)) -> Us
             is_active=user_in.is_active,
             role_ids=role_ids,
         ),
+        is_platform_admin=True,
     )
 
 

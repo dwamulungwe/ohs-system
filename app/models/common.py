@@ -1,7 +1,7 @@
 from datetime import datetime, timezone
 
-from sqlalchemy import DateTime
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy import DateTime, ForeignKey
+from sqlalchemy.orm import Mapped, declared_attr, mapped_column
 
 
 def utcnow() -> datetime:
@@ -16,3 +16,15 @@ class TimestampMixin:
         onupdate=utcnow,
         nullable=False,
     )
+
+
+class OrganisationOwnedMixin:
+    """Marks records that must always be isolated by organisation."""
+
+    @declared_attr
+    def organisation_id(cls) -> Mapped[int]:
+        return mapped_column(
+            ForeignKey("organisations.id", ondelete="RESTRICT"),
+            index=True,
+            nullable=False,
+        )

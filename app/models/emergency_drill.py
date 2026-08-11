@@ -7,7 +7,7 @@ from sqlalchemy.ext.mutable import MutableList
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db.base_class import Base
-from app.models.common import TimestampMixin
+from app.models.common import OrganisationOwnedMixin, TimestampMixin
 
 
 class EmergencyDrillStatus(str, enum.Enum):
@@ -17,7 +17,7 @@ class EmergencyDrillStatus(str, enum.Enum):
     archived = "archived"
 
 
-class EmergencyDrillRecord(TimestampMixin, Base):
+class EmergencyDrillRecord(OrganisationOwnedMixin, TimestampMixin, Base):
     __tablename__ = "emergency_drills"
 
     id: Mapped[int] = mapped_column(primary_key=True, index=True)

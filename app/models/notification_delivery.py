@@ -6,7 +6,7 @@ from sqlalchemy import DateTime, Enum, ForeignKey, String, Text
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db.base_class import Base
-from app.models.common import TimestampMixin
+from app.models.common import OrganisationOwnedMixin, TimestampMixin
 
 
 class NotificationDeliveryChannel(str, enum.Enum):
@@ -21,7 +21,7 @@ class NotificationDeliveryStatus(str, enum.Enum):
     skipped = "skipped"
 
 
-class NotificationDeliveryLog(TimestampMixin, Base):
+class NotificationDeliveryLog(OrganisationOwnedMixin, TimestampMixin, Base):
     __tablename__ = "notification_delivery_logs"
 
     id: Mapped[int] = mapped_column(primary_key=True, index=True)

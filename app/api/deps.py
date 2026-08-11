@@ -9,7 +9,8 @@ from app.core.config import settings
 from app.db.session import SessionLocal
 from app.models.user import User
 from app.services.rbac import ensure_permission, get_normalized_role_names, normalize_role_name
-from app.services.user_service import get_user_by_id
+from app.services.user_service import get_user_for_authentication
+from app.services.tenancy import TenantBoundaryError, set_user_tenant_context, unscoped_session
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl=f"{settings.API_V1_STR}/auth/login")
 
@@ -34,11 +35,19 @@ def get_current_user(db: Session = Depends(get_db), token: str = Depends(oauth2_
         if subject is None:
             raise credentials_exception
         user_id = int(subject)
+        token_organisation_id = payload.get("organisation_id")
     except (JWTError, ValueError):
         raise credentials_exception
 
-    user = get_user_by_id(db, user_id=user_id)
+    with unscoped_session(db):
+        user = get_user_for_authentication(db, user_id=user_id)
     if user is None or not user.is_active:
+        raise credentials_exception
+    if token_organisation_id is not None and int(token_organisation_id) != user.organisation_id:
+        raise credentials_exception
+    try:
+        set_user_tenant_context(db, user)
+    except TenantBoundaryError:
         raise credentials_exception
     return user
 

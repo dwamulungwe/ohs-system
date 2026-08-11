@@ -38,6 +38,13 @@ function buildOptions(field, references) {
     }))
   }
 
+  if (field.optionsSource === 'departments') {
+    return (references.departments ?? []).map((department) => ({
+      value: String(department.id),
+      label: department.code ? `${department.name} (${department.code})` : department.name,
+    }))
+  }
+
   return field.options ?? []
 }
 
@@ -126,7 +133,7 @@ export function ResourceFormModal({
   const [formError, setFormError] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [isLoadingRefs, setIsLoadingRefs] = useState(false)
-  const [references, setReferences] = useState({ sites: [], users: [], roles: [] })
+  const [references, setReferences] = useState({ sites: [], users: [], roles: [], departments: [] })
 
   const visibleFields = useMemo(
     () =>
@@ -183,6 +190,11 @@ export function ResourceFormModal({
         if (config.refs.includes('roles')) {
           tasks.push(apiClient.getCollection(token, '/roles'))
           refKeys.push('roles')
+        }
+
+        if (config.refs.includes('departments')) {
+          tasks.push(apiClient.getCollection(token, '/departments'))
+          refKeys.push('departments')
         }
 
         const responses = await Promise.allSettled(tasks)

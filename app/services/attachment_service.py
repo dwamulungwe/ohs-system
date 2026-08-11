@@ -27,6 +27,7 @@ from app.models.legal_compliance import LegalComplianceItem
 from app.models.medical_surveillance import MedicalSurveillanceRecord
 from app.models.permit import PermitToWork
 from app.models.safety_communication import SafetyCommunication
+from app.models.sio import SafetyImprovementObservation
 from app.models.training import ComplianceAcknowledgement, TrainingRecord
 from app.models.user import User
 from app.schemas.attachment import AttachmentRead
@@ -55,6 +56,7 @@ ALLOWED_FILE_TYPES: dict[str, set[str]] = {
     "csv": {"text/csv", "application/csv", "application/vnd.ms-excel"},
 }
 ENTITY_MODELS = {
+    AttachmentEntityType.sio: SafetyImprovementObservation,
     AttachmentEntityType.incident: Incident,
     AttachmentEntityType.hazard: Hazard,
     AttachmentEntityType.inspection: Inspection,
@@ -331,6 +333,16 @@ def _ensure_audit_management_access(
 
 
 def ensure_entity_access(user: User, entity_type: AttachmentEntityType, entity, *, write: bool) -> None:
+    if entity_type == AttachmentEntityType.sio:
+        ensure_site_access(user, entity.site_id)
+        if write:
+            if entity.responsible_user_id == user.id:
+                ensure_permission(user, Permission.SIOS_VIEW)
+            else:
+                ensure_permission(user, Permission.SIOS_EDIT)
+        else:
+            ensure_permission(user, Permission.SIOS_VIEW)
+        return
     if entity_type == AttachmentEntityType.incident:
         ensure_permission(user, Permission.INCIDENTS_EDIT if write else Permission.INCIDENTS_VIEW)
         ensure_site_access(user, entity.site_id)
@@ -414,6 +426,7 @@ def _serialize_attachment(attachment: Attachment) -> AttachmentRead:
             "content_type": attachment.content_type,
             "file_size": attachment.file_size,
             "description": attachment.description,
+            "evidence_type": attachment.evidence_type,
             "created_at": attachment.created_at,
             "download_url": f"{settings.API_V1_STR}/attachments/{attachment.id}/download",
         }
@@ -441,6 +454,7 @@ async def create_attachment(
     entity_id: int,
     upload_file: UploadFile,
     description: Optional[str],
+    evidence_type: Optional[str],
     current_user: User,
 ) -> AttachmentRead:
     entity = _get_entity(db, entity_type, entity_id)
@@ -483,6 +497,7 @@ async def create_attachment(
         file_size=file_size,
         storage_path=storage_path,
         description=description.strip() if description and description.strip() else None,
+        evidence_type=evidence_type.strip()[:80] if evidence_type and evidence_type.strip() else None,
     )
     try:
         db.add(attachment)
@@ -501,6 +516,21 @@ async def create_attachment(
         resource_id=attachment.id,
         details={"entity_type": entity_type.value, "entity_id": entity_id},
     )
+    if entity_type == AttachmentEntityType.sio:
+        from app.services.sio_service import record_sio_activity
+
+        record_sio_activity(
+            db,
+            entity,
+            event_type="attachment_added",
+            message=f"Attachment added: {original_filename}",
+            actor_id=current_user.id,
+            metadata={
+                "attachment_id": attachment.id,
+                "evidence_type": attachment.evidence_type,
+            },
+            commit=True,
+        )
     return _serialize_attachment(attachment)
 
 

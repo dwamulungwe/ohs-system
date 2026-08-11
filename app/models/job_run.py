@@ -6,7 +6,7 @@ from sqlalchemy import JSON, DateTime, Enum, Integer, String, Text
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.db.base_class import Base
-from app.models.common import TimestampMixin, utcnow
+from app.models.common import OrganisationOwnedMixin, TimestampMixin, utcnow
 
 
 class JobRunStatus(str, enum.Enum):
@@ -15,7 +15,7 @@ class JobRunStatus(str, enum.Enum):
     failed = "failed"
 
 
-class JobRun(TimestampMixin, Base):
+class JobRun(OrganisationOwnedMixin, TimestampMixin, Base):
     __tablename__ = "job_runs"
 
     id: Mapped[int] = mapped_column(primary_key=True, index=True)

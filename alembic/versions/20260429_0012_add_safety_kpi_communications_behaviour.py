@@ -154,8 +154,9 @@ def upgrade() -> None:
         unique=False,
     )
 
-    op.alter_column("incidents", "is_recordable", server_default=None)
-    op.alter_column("incidents", "is_lost_time", server_default=None)
+    with op.batch_alter_table("incidents") as batch_op:
+        batch_op.alter_column("is_recordable", server_default=None)
+        batch_op.alter_column("is_lost_time", server_default=None)
 
 
 def downgrade() -> None:

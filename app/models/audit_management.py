@@ -7,7 +7,7 @@ from sqlalchemy.ext.mutable import MutableList
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db.base_class import Base
-from app.models.common import TimestampMixin
+from app.models.common import OrganisationOwnedMixin, TimestampMixin
 
 
 class AuditType(str, enum.Enum):
@@ -21,7 +21,7 @@ class AuditStatus(str, enum.Enum):
     closed = "closed"
 
 
-class AuditManagementRecord(TimestampMixin, Base):
+class AuditManagementRecord(OrganisationOwnedMixin, TimestampMixin, Base):
     __tablename__ = "audit_management_records"
 
     id: Mapped[int] = mapped_column(primary_key=True, index=True)

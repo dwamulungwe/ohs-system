@@ -26,60 +26,28 @@ def upgrade() -> None:
     bind = op.get_bind()
     inspection_overall_result.create(bind, checkfirst=True)
 
-    op.execute(
-        "CREATE TYPE inspectionstatus_new AS ENUM ('draft', 'in_progress', 'completed', 'archived')"
-    )
-    op.execute(
-        """
-        ALTER TABLE inspections
-        ALTER COLUMN status TYPE inspectionstatus_new
-        USING (
-            CASE status::text
-                WHEN 'scheduled' THEN 'draft'
-                WHEN 'cancelled' THEN 'archived'
-                ELSE status::text
-            END
-        )::inspectionstatus_new
-        """
-    )
-    op.execute("DROP TYPE inspectionstatus")
-    op.execute("ALTER TYPE inspectionstatus_new RENAME TO inspectionstatus")
+    if bind.dialect.name == "postgresql":
+        op.execute("CREATE TYPE inspectionstatus_new AS ENUM ('draft', 'in_progress', 'completed', 'archived')")
+        op.execute("""ALTER TABLE inspections ALTER COLUMN status TYPE inspectionstatus_new USING (CASE status::text WHEN 'scheduled' THEN 'draft' WHEN 'cancelled' THEN 'archived' ELSE status::text END)::inspectionstatus_new""")
+        op.execute("DROP TYPE inspectionstatus")
+        op.execute("ALTER TYPE inspectionstatus_new RENAME TO inspectionstatus")
 
-    op.alter_column("inspections", "scheduled_at", new_column_name="inspection_date")
-    op.alter_column("inspections", "inspector_id", new_column_name="inspector_user_id")
-    op.drop_column("inspections", "completed_at")
+    with op.batch_alter_table("inspections") as batch_op:
+        batch_op.alter_column("scheduled_at", new_column_name="inspection_date")
+        batch_op.alter_column("inspector_id", new_column_name="inspector_user_id")
+        batch_op.drop_column("completed_at")
 
-    op.add_column(
-        "inspections",
-        sa.Column("inspection_type", sa.String(length=120), server_default="general", nullable=False),
-    )
-    op.add_column(
-        "inspections",
-        sa.Column("area_location", sa.String(length=255), server_default="Unspecified", nullable=False),
-    )
-    op.add_column("inspections", sa.Column("findings_summary", sa.Text(), nullable=True))
-    op.add_column(
-        "inspections",
-        sa.Column("overall_result", inspection_overall_result, server_default="compliant", nullable=False),
-    )
-    op.add_column(
-        "inspections",
-        sa.Column("number_of_non_conformities", sa.Integer(), server_default="0", nullable=False),
-    )
-    op.add_column(
-        "inspections",
-        sa.Column("number_of_observations", sa.Integer(), server_default="0", nullable=False),
-    )
-    op.add_column(
-        "inspections",
-        sa.Column("checklist_items", sa.JSON(), server_default=sa.text("'[]'::json"), nullable=False),
-    )
-    op.add_column(
-        "inspections",
-        sa.Column("attachments_metadata", sa.JSON(), server_default=sa.text("'[]'::json"), nullable=False),
-    )
-    op.create_index(op.f("ix_inspections_inspection_type"), "inspections", ["inspection_type"], unique=False)
-    op.create_index(op.f("ix_inspections_inspector_user_id"), "inspections", ["inspector_user_id"], unique=False)
+    with op.batch_alter_table("inspections") as batch_op:
+        batch_op.add_column(sa.Column("inspection_type", sa.String(length=120), server_default="general", nullable=False))
+        batch_op.add_column(sa.Column("area_location", sa.String(length=255), server_default="Unspecified", nullable=False))
+        batch_op.add_column(sa.Column("findings_summary", sa.Text(), nullable=True))
+        batch_op.add_column(sa.Column("overall_result", inspection_overall_result, server_default="compliant", nullable=False))
+        batch_op.add_column(sa.Column("number_of_non_conformities", sa.Integer(), server_default="0", nullable=False))
+        batch_op.add_column(sa.Column("number_of_observations", sa.Integer(), server_default="0", nullable=False))
+        batch_op.add_column(sa.Column("checklist_items", sa.JSON(), server_default=sa.text("'[]'"), nullable=False))
+        batch_op.add_column(sa.Column("attachments_metadata", sa.JSON(), server_default=sa.text("'[]'"), nullable=False))
+        batch_op.create_index(op.f("ix_inspections_inspection_type"), ["inspection_type"], unique=False)
+        batch_op.create_index(op.f("ix_inspections_inspector_user_id"), ["inspector_user_id"], unique=False)
 
     op.create_table(
         "inspection_linked_hazards",
@@ -90,14 +58,10 @@ def upgrade() -> None:
         sa.PrimaryKeyConstraint("inspection_id", "hazard_id"),
     )
 
-    op.alter_column("inspections", "inspection_type", server_default=None)
-    op.alter_column("inspections", "area_location", server_default=None)
-    op.alter_column("inspections", "overall_result", server_default=None)
-    op.alter_column("inspections", "number_of_non_conformities", server_default=None)
-    op.alter_column("inspections", "number_of_observations", server_default=None)
-    op.alter_column("inspections", "checklist_items", server_default=None)
-    op.alter_column("inspections", "attachments_metadata", server_default=None)
-    op.alter_column("inspections", "inspector_user_id", nullable=False)
+    with op.batch_alter_table("inspections") as batch_op:
+        for column in ("inspection_type", "area_location", "overall_result", "number_of_non_conformities", "number_of_observations", "checklist_items", "attachments_metadata"):
+            batch_op.alter_column(column, server_default=None)
+        batch_op.alter_column("inspector_user_id", nullable=False)
 
 
 def downgrade() -> None:

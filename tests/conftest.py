@@ -6,8 +6,8 @@ from datetime import date as RealDate, datetime as RealDateTime
 
 import pytest
 from fastapi.testclient import TestClient
-from sqlalchemy import create_engine
-from sqlalchemy.orm import Session, sessionmaker
+from sqlalchemy import create_engine, select
+from sqlalchemy.orm import Session, selectinload, sessionmaker
 from sqlalchemy.pool import StaticPool
 
 os.environ.setdefault("SECRET_KEY", "test-secret-key")
@@ -17,17 +17,20 @@ os.environ.setdefault("ENVIRONMENT", "test")
 from app.api.deps import get_current_user, get_db
 from app.db.base import Base
 from app.main import app
+from app.db.session import TenantSession
 from app.models.role import Role
+from app.models.organisation import Organisation, OrganisationFeature, OrganisationSettings
 from app.models.site import Site
 from app.models.user import User
 from app.services.rbac import STANDARD_ROLE_DESCRIPTIONS
+from app.services.tenancy import MODULE_KEYS, set_tenant_context, set_user_tenant_context, unscoped_session
 
 engine = create_engine(
     "sqlite+pysqlite://",
     connect_args={"check_same_thread": False},
     poolclass=StaticPool,
 )
-TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine, class_=TenantSession)
 
 
 class FrozenDateMeta(type):
@@ -82,6 +85,22 @@ def reset_database() -> Generator[None, None, None]:
 def db_session() -> Generator[Session, None, None]:
     db = TestingSessionLocal()
     try:
+        organisation = Organisation(
+            id=1,
+            name="Test Organisation",
+            code="TEST",
+            slug="test-organisation",
+            timezone="Africa/Lusaka",
+            is_active=True,
+        )
+        db.add(organisation)
+        db.flush()
+        set_tenant_context(db, organisation.id, platform_admin=True)
+        db.add(OrganisationSettings(organisation_id=organisation.id))
+        db.add_all(
+            OrganisationFeature(organisation_id=organisation.id, key=key, is_enabled=True)
+            for key in MODULE_KEYS
+        )
         roles = [
             Role(id=index, name=name, description=description)
             for index, (name, description) in enumerate(STANDARD_ROLE_DESCRIPTIONS.items(), start=1)
@@ -92,10 +111,12 @@ def db_session() -> Generator[Session, None, None]:
             full_name="Admin User",
             hashed_password="not-used",
             is_active=True,
+            is_platform_admin=True,
+            organisation_id=organisation.id,
             assigned_site_id=1,
             roles=[roles[0]],
         )
-        site = Site(id=1, name="Main Plant", code="MAIN", address="Industrial Area", created_by_id=1)
+        site = Site(id=1, organisation_id=organisation.id, name="Main Plant", code="MAIN", address="Industrial Area", created_by_id=1)
         db.add_all([*roles, user, site])
         db.commit()
         yield db
@@ -111,7 +132,16 @@ def client(db_session: Session) -> Generator[TestClient, None, None]:
         yield db_session
 
     def override_current_user() -> User:
-        return db_session.get(User, auth_state["current_user_id"])
+        with unscoped_session(db_session):
+            db_session.expire_all()
+            user = db_session.scalar(
+                select(User)
+                .where(User.id == auth_state["current_user_id"])
+                .options(selectinload(User.roles), selectinload(User.organisation))
+                .execution_options(populate_existing=True)
+            )
+        set_user_tenant_context(db_session, user)
+        return user
 
     app.dependency_overrides[get_db] = override_get_db
     app.dependency_overrides[get_current_user] = override_current_user

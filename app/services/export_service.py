@@ -36,6 +36,7 @@ from app.models.medical_surveillance import (
     MedicalSurveillanceRecord,
     MedicalSurveillanceStatus,
 )
+from app.models.sio import SIOStatus, SIOUrgency, SafetyImprovementObservation
 from app.services.attachment_service import get_attachment_report_rows
 from app.services.dashboard_service import get_dashboard_overview, get_site_summaries
 from app.services.query_utils import apply_date_filters, is_corrective_action_overdue
@@ -686,6 +687,100 @@ def export_incidents_csv(
             "Severity": _enum_value(item.severity),
             "Occurred At": _date_value(item.occurred_at),
             "Reported By User ID": item.reported_by_id or "",
+            "Description": item.description,
+        }
+        for item in records
+    ]
+    return _csv(headers, rows)
+
+
+def export_sios_csv(
+    db: Session,
+    *,
+    site_id: Optional[int] = None,
+    status: Optional[SIOStatus] = None,
+    urgency: Optional[SIOUrgency] = None,
+    department_id: Optional[int] = None,
+    responsible_department_id: Optional[int] = None,
+    responsible_user_id: Optional[int] = None,
+    overdue: Optional[bool] = None,
+    date_from: Optional[date] = None,
+    date_to: Optional[date] = None,
+) -> str:
+    statement = _apply_common_filters(
+        select(SafetyImprovementObservation),
+        SafetyImprovementObservation,
+        site_id=site_id,
+        date_field=SafetyImprovementObservation.observation_date,
+        date_from=date_from,
+        date_to=date_to,
+    )
+    for value, column in (
+        (status, SafetyImprovementObservation.status),
+        (urgency, SafetyImprovementObservation.urgency),
+        (department_id, SafetyImprovementObservation.department_id),
+        (responsible_department_id, SafetyImprovementObservation.responsible_department_id),
+        (responsible_user_id, SafetyImprovementObservation.responsible_user_id),
+    ):
+        if value is not None:
+            statement = statement.where(column == value)
+    if overdue is True:
+        statement = statement.where(
+            SafetyImprovementObservation.due_date < date.today(),
+            SafetyImprovementObservation.status.notin_(
+                [SIOStatus.closed, SIOStatus.complete, SIOStatus.no_action_required]
+            ),
+        )
+    records = db.scalars(
+        statement.order_by(
+            SafetyImprovementObservation.observation_date.desc().nullslast(),
+            SafetyImprovementObservation.id.desc(),
+        )
+    ).all()
+    headers = [
+        "Reference Number", "External Reference ID", "Observation Date", "Site ID",
+        "Originating Department", "Originating Department ID", "Responsible Department",
+        "Responsible Department ID", "Responsible User ID", "Responsible Person", "Source",
+        "Category", "Nature", "Urgency", "Status", "Due Date", "Age Days", "Days Overdue",
+        "Investigation Required", "Investigator User ID", "Immediate Cause", "Underlying Cause",
+        "Root Cause", "Contributing Factors", "Investigation Summary", "Lessons Learned",
+        "Closure Requested At", "Closure Notes", "Verified By User ID", "Verified At",
+        "Verification Notes", "Closed At", "Description",
+    ]
+    rows = [
+        {
+            "Reference Number": item.reference_number,
+            "External Reference ID": item.external_reference_id or "",
+            "Observation Date": _date_value(item.observation_date),
+            "Site ID": item.site_id,
+            "Originating Department": item.department,
+            "Originating Department ID": item.department_id or "",
+            "Responsible Department": item.responsible_department or "",
+            "Responsible Department ID": item.responsible_department_id or "",
+            "Responsible User ID": item.responsible_user_id or "",
+            "Responsible Person": item.responsible_person_name or "",
+            "Source": item.source_type,
+            "Category": item.category or "",
+            "Nature": _enum_value(item.observation_nature),
+            "Urgency": _enum_value(item.urgency) if item.urgency else "",
+            "Status": _enum_value(item.status),
+            "Due Date": _date_value(item.due_date),
+            "Age Days": item.age_days,
+            "Days Overdue": item.days_overdue,
+            "Investigation Required": item.investigation_required,
+            "Investigator User ID": item.investigator_user_id or "",
+            "Immediate Cause": item.immediate_cause or "",
+            "Underlying Cause": item.underlying_cause or "",
+            "Root Cause": item.root_cause or "",
+            "Contributing Factors": _json_value(item.contributing_factors),
+            "Investigation Summary": item.investigation_summary or "",
+            "Lessons Learned": item.lessons_learned or "",
+            "Closure Requested At": _date_value(item.closure_requested_at),
+            "Closure Notes": item.closure_notes or "",
+            "Verified By User ID": item.verified_by_user_id or "",
+            "Verified At": _date_value(item.verified_at),
+            "Verification Notes": item.verification_notes or "",
+            "Closed At": _date_value(item.closed_at),
             "Description": item.description,
         }
         for item in records

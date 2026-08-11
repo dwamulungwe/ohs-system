@@ -13,6 +13,7 @@ import { NotAuthorizedState } from '../components/NotAuthorizedState.jsx'
 import { PageHeader } from '../components/PageHeader.jsx'
 import { ResourceFormModal } from '../components/ResourceFormModal.jsx'
 import { SIOLinksPanel } from '../components/SIOLinksPanel.jsx'
+import { SIOWorkflowWorkspace } from '../components/SIOWorkflowWorkspace.jsx'
 import { workflowFormConfigs } from '../config/workflowForms.js'
 import { useAuth } from '../context/AuthContext.jsx'
 import { mapResourceSubtitle } from '../config/resources.jsx'
@@ -148,6 +149,7 @@ export function ResourceDetailPage({ resource }) {
           item.name ??
           item.document_title ??
           item.permit_number ??
+          item.reference_number ??
           `${resource.singular} #${item.id}`
         }
         description={mapResourceSubtitle(resource, item)}
@@ -201,7 +203,10 @@ export function ResourceDetailPage({ resource }) {
       </div>
 
       {resource.key === 'sios' ? (
-        <SIOLinksPanel item={item} token={token} user={user} onUpdated={setItem} />
+        <>
+          <SIOWorkflowWorkspace item={item} token={token} user={user} onUpdated={setItem} />
+          <SIOLinksPanel item={item} token={token} user={user} onUpdated={setItem} />
+        </>
       ) : null}
 
       {resource.approvalConfig ? (

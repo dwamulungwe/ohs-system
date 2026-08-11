@@ -6,7 +6,7 @@ from sqlalchemy import DateTime, Enum, ForeignKey, Integer, String, Text
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db.base_class import Base
-from app.models.common import TimestampMixin
+from app.models.common import OrganisationOwnedMixin, TimestampMixin
 
 
 class ApprovalEntityType(str, enum.Enum):
@@ -32,7 +32,7 @@ class ApprovalStatus(str, enum.Enum):
     cancelled = "cancelled"
 
 
-class ApprovalWorkflow(TimestampMixin, Base):
+class ApprovalWorkflow(OrganisationOwnedMixin, TimestampMixin, Base):
     __tablename__ = "approval_workflows"
 
     id: Mapped[int] = mapped_column(primary_key=True, index=True)

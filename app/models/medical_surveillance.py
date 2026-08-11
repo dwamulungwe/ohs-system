@@ -7,7 +7,7 @@ from sqlalchemy.ext.mutable import MutableList
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db.base_class import Base
-from app.models.common import TimestampMixin
+from app.models.common import OrganisationOwnedMixin, TimestampMixin
 
 
 class MedicalSurveillanceStatus(str, enum.Enum):
@@ -23,7 +23,7 @@ class MedicalClearanceStatus(str, enum.Enum):
     not_cleared = "not_cleared"
 
 
-class MedicalSurveillanceRecord(TimestampMixin, Base):
+class MedicalSurveillanceRecord(OrganisationOwnedMixin, TimestampMixin, Base):
     __tablename__ = "medical_surveillance_records"
 
     id: Mapped[int] = mapped_column(primary_key=True, index=True)

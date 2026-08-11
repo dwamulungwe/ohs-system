@@ -158,6 +158,35 @@ export const apiClient = {
   getCurrentUser(token) {
     return request('/auth/me', { token })
   },
+  getOrganisations(token) {
+    return request('/organisations', { token })
+  },
+  createOrganisation(token, payload) {
+    return request('/organisations', { token, method: 'POST', body: payload })
+  },
+  updateOrganisation(token, organisationId, payload) {
+    return request(`/organisations/${organisationId}`, { token, method: 'PATCH', body: payload })
+  },
+  getOrganisationFeatures(token, organisationId) {
+    return request(`/organisations/${organisationId}/features`, { token })
+  },
+  updateOrganisationFeatures(token, organisationId, features) {
+    return request(`/organisations/${organisationId}/features`, {
+      token,
+      method: 'PATCH',
+      body: { features },
+    })
+  },
+  getOrganisationSettings(token, organisationId) {
+    return request(`/organisations/${organisationId}/settings`, { token })
+  },
+  updateOrganisationSettings(token, organisationId, payload) {
+    return request(`/organisations/${organisationId}/settings`, {
+      token,
+      method: 'PATCH',
+      body: payload,
+    })
+  },
   getDashboardOverview(token, params = {}) {
     return request(withQuery('/dashboard/overview', params), { token })
   },
@@ -187,6 +216,35 @@ export const apiClient = {
   },
   getDashboardSios(token, params = {}) {
     return request(withQuery('/dashboard/sios', params), { token })
+  },
+  getSioComments(token, sioId) {
+    return request(`/sios/${sioId}/comments`, { token })
+  },
+  addSioComment(token, sioId, body) {
+    return request(`/sios/${sioId}/comments`, { token, method: 'POST', body: { body } })
+  },
+  getSioActivity(token, sioId) {
+    return request(`/sios/${sioId}/activity`, { token })
+  },
+  sioAction(token, sioId, action, body = {}) {
+    return request(`/sios/${sioId}/${action}`, { token, method: 'POST', body })
+  },
+  updateSioInvestigation(token, sioId, body) {
+    return request(`/sios/${sioId}/investigation`, { token, method: 'PATCH', body })
+  },
+  bulkUpdateSios(token, body) {
+    return request('/sios/bulk', { token, method: 'POST', body })
+  },
+  async bulkExportSios(token, sioIds) {
+    const response = await requestResponse('/sios/bulk/export', {
+      token,
+      method: 'POST',
+      body: { sio_ids: sioIds },
+    })
+    return {
+      blob: await response.blob(),
+      filename: parseFilenameFromDisposition(response.headers.get('content-disposition')) ?? 'sios-selected.csv',
+    }
   },
   previewDataImport(token, file, importerType = 'yalelo_sio') {
     const body = new FormData()
@@ -275,11 +333,14 @@ export const apiClient = {
   listAttachments(token, entityType, entityId) {
     return request(`/attachments/${entityType}/${entityId}`, { token })
   },
-  uploadAttachment(token, entityType, entityId, { file, description }) {
+  uploadAttachment(token, entityType, entityId, { file, description, evidenceType }) {
     const body = new FormData()
     body.append('file', file)
     if (description) {
       body.append('description', description)
+    }
+    if (evidenceType) {
+      body.append('evidence_type', evidenceType)
     }
 
     return request(`/attachments/${entityType}/${entityId}`, {

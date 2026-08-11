@@ -7,7 +7,7 @@ from sqlalchemy.ext.mutable import MutableList
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db.base_class import Base
-from app.models.common import TimestampMixin
+from app.models.common import OrganisationOwnedMixin, TimestampMixin
 
 
 class DocumentType(str, enum.Enum):
@@ -25,7 +25,7 @@ class DocumentStatus(str, enum.Enum):
     archived = "archived"
 
 
-class DocumentControlRecord(TimestampMixin, Base):
+class DocumentControlRecord(OrganisationOwnedMixin, TimestampMixin, Base):
     __tablename__ = "document_control_records"
 
     id: Mapped[int] = mapped_column(primary_key=True, index=True)

@@ -7,7 +7,7 @@ from sqlalchemy.ext.mutable import MutableList
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db.base_class import Base
-from app.models.common import TimestampMixin
+from app.models.common import OrganisationOwnedMixin, TimestampMixin
 
 
 inspection_linked_hazards = Table(
@@ -32,7 +32,7 @@ class InspectionOverallResult(str, enum.Enum):
     critical_non_conformance = "critical_non_conformance"
 
 
-class Inspection(TimestampMixin, Base):
+class Inspection(OrganisationOwnedMixin, TimestampMixin, Base):
     __tablename__ = "inspections"
 
     id: Mapped[int] = mapped_column(primary_key=True, index=True)

@@ -15,51 +15,28 @@ depends_on = None
 
 
 def upgrade() -> None:
-    op.execute("ALTER TYPE correctiveactionpriority ADD VALUE IF NOT EXISTS 'critical'")
-    op.execute("ALTER TYPE correctiveactionstatus ADD VALUE IF NOT EXISTS 'pending_verification'")
-    op.execute("ALTER TYPE correctiveactionstatus ADD VALUE IF NOT EXISTS 'closed'")
+    bind = op.get_bind()
+    if bind.dialect.name == "postgresql":
+        op.execute("ALTER TYPE correctiveactionpriority ADD VALUE IF NOT EXISTS 'critical'")
+        op.execute("ALTER TYPE correctiveactionstatus ADD VALUE IF NOT EXISTS 'pending_verification'")
+        op.execute("ALTER TYPE correctiveactionstatus ADD VALUE IF NOT EXISTS 'closed'")
 
-    op.alter_column("corrective_actions", "assigned_to_id", new_column_name="assigned_to_user_id")
-    op.add_column("corrective_actions", sa.Column("started_at", sa.DateTime(timezone=True), nullable=True))
-    op.add_column("corrective_actions", sa.Column("closure_notes", sa.Text(), nullable=True))
-    op.add_column(
-        "corrective_actions",
-        sa.Column("closure_evidence_metadata", sa.JSON(), server_default=sa.text("'[]'::json"), nullable=False),
-    )
-    op.add_column("corrective_actions", sa.Column("verification_notes", sa.Text(), nullable=True))
-    op.add_column("corrective_actions", sa.Column("created_by_user_id", sa.Integer(), nullable=True))
-    op.add_column("corrective_actions", sa.Column("verified_by_user_id", sa.Integer(), nullable=True))
-    op.add_column("corrective_actions", sa.Column("verified_at", sa.DateTime(timezone=True), nullable=True))
+    with op.batch_alter_table("corrective_actions") as batch_op:
+        batch_op.alter_column("assigned_to_id", new_column_name="assigned_to_user_id")
 
-    op.create_foreign_key(
-        "fk_corrective_actions_created_by_user_id_users",
-        "corrective_actions",
-        "users",
-        ["created_by_user_id"],
-        ["id"],
-        ondelete="SET NULL",
-    )
-    op.create_foreign_key(
-        "fk_corrective_actions_verified_by_user_id_users",
-        "corrective_actions",
-        "users",
-        ["verified_by_user_id"],
-        ["id"],
-        ondelete="SET NULL",
-    )
-    op.create_index(
-        op.f("ix_corrective_actions_assigned_to_user_id"),
-        "corrective_actions",
-        ["assigned_to_user_id"],
-        unique=False,
-    )
-    op.create_index(
-        op.f("ix_corrective_actions_created_by_user_id"),
-        "corrective_actions",
-        ["created_by_user_id"],
-        unique=False,
-    )
-    op.alter_column("corrective_actions", "closure_evidence_metadata", server_default=None)
+    with op.batch_alter_table("corrective_actions") as batch_op:
+        batch_op.add_column(sa.Column("started_at", sa.DateTime(timezone=True), nullable=True))
+        batch_op.add_column(sa.Column("closure_notes", sa.Text(), nullable=True))
+        batch_op.add_column(sa.Column("closure_evidence_metadata", sa.JSON(), server_default=sa.text("'[]'"), nullable=False))
+        batch_op.add_column(sa.Column("verification_notes", sa.Text(), nullable=True))
+        batch_op.add_column(sa.Column("created_by_user_id", sa.Integer(), nullable=True))
+        batch_op.add_column(sa.Column("verified_by_user_id", sa.Integer(), nullable=True))
+        batch_op.add_column(sa.Column("verified_at", sa.DateTime(timezone=True), nullable=True))
+        batch_op.create_foreign_key("fk_corrective_actions_created_by_user_id_users", "users", ["created_by_user_id"], ["id"], ondelete="SET NULL")
+        batch_op.create_foreign_key("fk_corrective_actions_verified_by_user_id_users", "users", ["verified_by_user_id"], ["id"], ondelete="SET NULL")
+        batch_op.create_index(op.f("ix_corrective_actions_assigned_to_user_id"), ["assigned_to_user_id"], unique=False)
+        batch_op.create_index(op.f("ix_corrective_actions_created_by_user_id"), ["created_by_user_id"], unique=False)
+        batch_op.alter_column("closure_evidence_metadata", server_default=None)
 
 
 def downgrade() -> None:

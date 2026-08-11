@@ -8,6 +8,7 @@ from app.services.crud import list_records
 from app.services.rbac import Permission, ensure_permission
 from app.services.user_service import (
     UserSiteNotFoundError,
+    UserDepartmentNotFoundError,
     create_user,
     get_user_by_email,
     get_user_by_id,
@@ -39,8 +40,8 @@ def create_new_user(
         raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="Email already registered")
     try:
         return create_user(db, user_in)
-    except UserSiteNotFoundError:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Assigned site not found")
+    except (UserSiteNotFoundError, UserDepartmentNotFoundError) as exc:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(exc))
 
 
 @router.get("/me", response_model=UserRead)
@@ -75,5 +76,5 @@ def patch_user(
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
     try:
         return update_user(db, user=user, user_in=user_in)
-    except UserSiteNotFoundError:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Assigned site not found")
+    except (UserSiteNotFoundError, UserDepartmentNotFoundError) as exc:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(exc))
