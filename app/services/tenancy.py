@@ -33,6 +33,7 @@ MODULE_KEYS = (
     "safety_kpis",
     "document_control",
     "data_imports",
+    "reporting",
 )
 
 ENTITY_FEATURE_KEYS = {

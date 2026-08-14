@@ -217,6 +217,56 @@ export const apiClient = {
   getDashboardSios(token, params = {}) {
     return request(withQuery('/dashboard/sios', params), { token })
   },
+  getReportingPeriods(token, params = {}) {
+    return request(withQuery('/reporting/periods', params), { token })
+  },
+  createReportingPeriod(token, body) {
+    return request('/reporting/periods', { token, method: 'POST', body })
+  },
+  getReportingScorecard(token, periodId, params = {}) {
+    return request(withQuery(`/reporting/periods/${periodId}/scorecard`, params), { token })
+  },
+  getReportingSections(token, periodId) {
+    return request(`/reporting/periods/${periodId}/sections`, { token })
+  },
+  updateReportingSection(token, periodId, sectionKey, content) {
+    return request(`/reporting/periods/${periodId}/sections/${sectionKey}`, {
+      token,
+      method: 'PATCH',
+      body: { content },
+    })
+  },
+  runReportingCommand(token, periodId, command, body) {
+    return request(`/reporting/periods/${periodId}/${command}`, {
+      token,
+      method: 'POST',
+      body,
+    })
+  },
+  generateReportingSnapshots(token, periodId) {
+    return request(`/reporting/periods/${periodId}/snapshots`, { token, method: 'POST' })
+  },
+  getKpiDefinitions(token, params = {}) {
+    return request(withQuery('/reporting/kpi-definitions', params), { token })
+  },
+  getKpiTargets(token, params = {}) {
+    return request(withQuery('/reporting/kpi-targets', params), { token })
+  },
+  createKpiTarget(token, body) {
+    return request('/reporting/kpi-targets', { token, method: 'POST', body })
+  },
+  getWorkforceExposure(token, params = {}) {
+    return request(withQuery('/reporting/workforce-exposure', params), { token })
+  },
+  createWorkforceExposure(token, body) {
+    return request('/reporting/workforce-exposure', { token, method: 'POST', body })
+  },
+  getReportingForwardView(token, params = {}) {
+    return request(withQuery('/reporting/forward-view', params), { token })
+  },
+  getReportingExceptions(token, params = {}) {
+    return request(withQuery('/reporting/exceptions', params), { token })
+  },
   getSioComments(token, sioId) {
     return request(`/sios/${sioId}/comments`, { token })
   },

@@ -66,6 +66,7 @@ const RESOURCE_MODULES = {
 }
 
 const DASHBOARD_VIEW_ROLES = [ROLES.ADMIN, ROLES.OHS_MANAGER, ROLES.SAFETY_OFFICER, ROLES.SUPERVISOR]
+const REPORTING_VIEW_ROLES = [ROLES.ADMIN, ROLES.OHS_MANAGER, ROLES.SAFETY_OFFICER, ROLES.SUPERVISOR]
 
 const DEFAULT_ROUTE_ORDER = [
   '/dashboard',
@@ -138,6 +139,10 @@ export function formatRoleLabel(roleName) {
 
 export function canViewDashboard(user) {
   return hasModule(user, 'dashboard') && hasRole(user, DASHBOARD_VIEW_ROLES)
+}
+
+export function canViewReporting(user) {
+  return hasModule(user, 'reporting') && hasRole(user, REPORTING_VIEW_ROLES)
 }
 
 export function hasModule(user, moduleKey) {

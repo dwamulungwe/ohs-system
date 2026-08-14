@@ -30,6 +30,7 @@ from app.api.v1.endpoints import (
     organisations,
     permits,
     roles,
+    reporting,
     safety_communications,
     safety_kpis,
     sios,
@@ -59,6 +60,12 @@ api_router.include_router(
     prefix="/corrective-actions",
     tags=["corrective_actions"],
     dependencies=[Depends(require_feature("corrective_actions"))],
+)
+api_router.include_router(
+    reporting.router,
+    prefix="/reporting",
+    tags=["reporting"],
+    dependencies=[Depends(require_feature("reporting"))],
 )
 api_router.include_router(audit_logs.router, prefix="/audit-logs", tags=["audit_logs"])
 api_router.include_router(audits.router, prefix="/audits", tags=["audits"], dependencies=[Depends(require_feature("audits"))])

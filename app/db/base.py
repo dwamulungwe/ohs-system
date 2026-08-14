@@ -44,6 +44,18 @@ from app.models.sio import (
 )
 from app.models.training import ComplianceAcknowledgement, TrainingRecord
 from app.models.user import User
+from app.models.reporting import (
+    KPIDefinition,
+    KPISnapshot,
+    KPITarget,
+    ManagementActionPlanItem,
+    OrganisationKPISetting,
+    ReportExport,
+    ReportSection,
+    ReportingPeriod,
+    ReportingPeriodHistory,
+    WorkforceExposure,
+)
 
 __all__ = [
     "AssetRegisterItem",
@@ -92,4 +104,14 @@ __all__ = [
     "ComplianceAcknowledgement",
     "TrainingRecord",
     "User",
+    "KPIDefinition",
+    "KPISnapshot",
+    "KPITarget",
+    "ManagementActionPlanItem",
+    "OrganisationKPISetting",
+    "ReportExport",
+    "ReportSection",
+    "ReportingPeriod",
+    "ReportingPeriodHistory",
+    "WorkforceExposure",
 ]

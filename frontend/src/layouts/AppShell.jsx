@@ -1,4 +1,4 @@
-import { Bell, Building2, LayoutDashboard, LogOut, Settings, ShieldCheck, Smartphone } from 'lucide-react'
+import { Bell, Building2, ChartNoAxesCombined, LayoutDashboard, LogOut, Settings, ShieldCheck, Smartphone } from 'lucide-react'
 import { NavLink, Outlet, useLocation } from 'react-router-dom'
 import { useEffect, useState } from 'react'
 import { resources } from '../config/resources.jsx'
@@ -6,7 +6,7 @@ import { useAuth } from '../context/AuthContext.jsx'
 import { apiClient } from '../api/client.js'
 import { ConfirmDialog } from '../components/ConfirmDialog.jsx'
 import { formatValue } from '../lib/formatters.js'
-import { canAccessQuickReport, canShowResourceInNav, canViewDashboard, formatRoleLabel, hasRole, ROLES } from '../lib/rbac.js'
+import { canAccessQuickReport, canShowResourceInNav, canViewDashboard, canViewReporting, formatRoleLabel, hasRole, ROLES } from '../lib/rbac.js'
 
 function getPageTitle(pathname) {
   if (pathname === '/dashboard') {
@@ -18,6 +18,7 @@ function getPageTitle(pathname) {
   }
   if (pathname === '/platform/organisations') return 'Platform Administration'
   if (pathname === '/organisation-settings') return 'Organisation Settings'
+  if (pathname === '/reports') return 'Reporting Centre'
 
   const exactMatch = resources.find(
     (resource) =>
@@ -37,6 +38,7 @@ export function AppShell() {
   )
   const showDashboard = canViewDashboard(user)
   const showQuickReport = canAccessQuickReport(user)
+  const showReporting = canViewReporting(user)
   const showOrganisationSettings = Boolean(user?.is_platform_admin || hasRole(user, [ROLES.ADMIN]))
 
   useEffect(() => {
@@ -111,6 +113,11 @@ export function AppShell() {
               >
                 <Smartphone className="size-4" />
                 <span>Quick Report</span>
+              </NavLink>
+            ) : null}
+            {showReporting ? (
+              <NavLink to="/reports" className={({ isActive }) => ['flex items-center gap-3 rounded-xl px-3 py-3 text-sm font-medium transition', isActive ? 'bg-emerald-100 text-emerald-900 shadow-sm' : 'text-stone-700 hover:bg-stone-100 hover:text-stone-950'].join(' ')}>
+                <ChartNoAxesCombined className="size-4" /><span>Management Reports</span>
               </NavLink>
             ) : null}
             {user?.is_platform_admin ? (
@@ -224,6 +231,9 @@ export function AppShell() {
                   <Smartphone className="size-4" />
                   Quick Report
                 </NavLink>
+              ) : null}
+              {showReporting ? (
+                <NavLink to="/reports" className={({ isActive }) => ['inline-flex shrink-0 items-center gap-2 rounded-full px-3 py-2 text-sm font-medium transition', isActive ? 'bg-emerald-100 text-emerald-900 shadow-sm' : 'bg-stone-100 text-stone-700 hover:bg-stone-200'].join(' ')}><ChartNoAxesCombined className="size-4" />Reports</NavLink>
               ) : null}
               {user?.is_platform_admin ? (
                 <NavLink to="/platform/organisations" className={({ isActive }) => ['inline-flex shrink-0 items-center gap-2 rounded-full px-3 py-2 text-sm font-medium transition', isActive ? 'bg-emerald-100 text-emerald-900 shadow-sm' : 'bg-stone-100 text-stone-700 hover:bg-stone-200'].join(' ')}><Building2 className="size-4" />Platform Admin</NavLink>

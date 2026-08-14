@@ -52,6 +52,13 @@ def enforce_tenant_reads(execute_state) -> None:
 @event.listens_for(Session, "before_flush")
 def enforce_tenant_writes(session: Session, _flush_context, _instances) -> None:
     from app.models.common import OrganisationOwnedMixin
+    from app.models.reporting import (
+        KPISnapshot,
+        ManagementActionPlanItem,
+        ReportSection,
+        ReportingPeriod,
+        ReportingPeriodStatus,
+    )
 
     organisation_id = session.info.get("organisation_id")
     allow_cross_tenant = session.info.get("allow_cross_tenant_writes", False)
@@ -69,3 +76,10 @@ def enforce_tenant_writes(session: Session, _flush_context, _instances) -> None:
             raise RuntimeError("Tenant-owned writes require an organisation context")
         if record_organisation_id != organisation_id:
             raise RuntimeError("Cross-organisation write blocked")
+
+        if isinstance(record, (KPISnapshot, ReportSection, ManagementActionPlanItem)):
+            period = getattr(record, "reporting_period", None)
+            if period is None and getattr(record, "reporting_period_id", None):
+                period = session.get(ReportingPeriod, record.reporting_period_id)
+            if period is not None and period.status == ReportingPeriodStatus.locked:
+                raise RuntimeError("Locked report data is immutable")

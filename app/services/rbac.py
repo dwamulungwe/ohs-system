@@ -137,6 +137,12 @@ class Permission:
     APPROVALS_REQUEST = "approvals.request"
     APPROVALS_DECIDE = "approvals.decide"
     AUDIT_LOGS_VIEW = "audit_logs.view"
+    REPORTING_VIEW = "reporting.view"
+    REPORTING_PREPARE = "reporting.prepare"
+    REPORTING_REVIEW = "reporting.review"
+    REPORTING_APPROVE = "reporting.approve"
+    REPORTING_ADMIN = "reporting.admin"
+    REPORTING_EXPORT = "reporting.export"
 
 
 ROLE_PERMISSIONS = {
@@ -230,6 +236,12 @@ ROLE_PERMISSIONS = {
         Permission.APPROVALS_VIEW,
         Permission.APPROVALS_REQUEST,
         Permission.APPROVALS_DECIDE,
+        Permission.REPORTING_VIEW,
+        Permission.REPORTING_PREPARE,
+        Permission.REPORTING_REVIEW,
+        Permission.REPORTING_APPROVE,
+        Permission.REPORTING_ADMIN,
+        Permission.REPORTING_EXPORT,
     },
     ROLE_SAFETY_OFFICER: {
         Permission.USERS_READ,
@@ -305,6 +317,8 @@ ROLE_PERMISSIONS = {
         Permission.JOB_RUNS_VIEW,
         Permission.APPROVALS_VIEW,
         Permission.APPROVALS_REQUEST,
+        Permission.REPORTING_VIEW,
+        Permission.REPORTING_EXPORT,
     },
     ROLE_SUPERVISOR: {
         Permission.SITES_READ,
@@ -349,6 +363,7 @@ ROLE_PERMISSIONS = {
         Permission.AUDITS_VIEW,
         Permission.APPROVALS_VIEW,
         Permission.APPROVALS_REQUEST,
+        Permission.REPORTING_VIEW,
     },
     ROLE_EMPLOYEE: {
         Permission.SITES_READ,

@@ -25,6 +25,18 @@ from app.models.sio import (
     SIOReferenceSequence,
     SafetyImprovementObservation,
 )
+from app.models.reporting import (
+    KPIDefinition,
+    KPISnapshot,
+    KPITarget,
+    ManagementActionPlanItem,
+    OrganisationKPISetting,
+    ReportExport,
+    ReportSection,
+    ReportingPeriod,
+    ReportingPeriodHistory,
+    WorkforceExposure,
+)
 
 __all__ = [
     "ApprovalWorkflow",
@@ -54,4 +66,14 @@ __all__ = [
     "SIOActivity",
     "SIOComment",
     "SIOReferenceSequence",
+    "KPIDefinition",
+    "KPISnapshot",
+    "KPITarget",
+    "ManagementActionPlanItem",
+    "OrganisationKPISetting",
+    "ReportExport",
+    "ReportSection",
+    "ReportingPeriod",
+    "ReportingPeriodHistory",
+    "WorkforceExposure",
 ]
