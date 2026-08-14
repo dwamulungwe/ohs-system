@@ -14,6 +14,7 @@ class UserBase(BaseModel):
     is_active: bool = True
     assigned_site_id: Optional[int] = None
     department_id: Optional[int] = None
+    job_title: Optional[str] = Field(default=None, max_length=180)
 
 
 class UserCreate(UserBase):
@@ -32,6 +33,7 @@ class UserUpdate(BaseModel):
     is_active: Optional[bool] = None
     assigned_site_id: Optional[int] = None
     department_id: Optional[int] = None
+    job_title: Optional[str] = Field(default=None, max_length=180)
     role_ids: Optional[list[int]] = None
 
 

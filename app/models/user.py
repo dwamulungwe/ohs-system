@@ -15,6 +15,7 @@ class User(OrganisationOwnedMixin, TimestampMixin, Base):
     full_name: Mapped[str] = mapped_column(String(255), nullable=False)
     hashed_password: Mapped[str] = mapped_column(String(255), nullable=False)
     phone_number: Mapped[Optional[str]] = mapped_column(String(40), nullable=True)
+    job_title: Mapped[Optional[str]] = mapped_column(String(180), index=True, nullable=True)
     is_active: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
     is_platform_admin: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
     department_id: Mapped[Optional[int]] = mapped_column(

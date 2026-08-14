@@ -30,6 +30,7 @@ from app.models.safety_communication import SafetyCommunication
 from app.models.sio import SafetyImprovementObservation
 from app.models.training import ComplianceAcknowledgement, TrainingRecord
 from app.models.user import User
+from app.models.ppe import PPEInspection, PPEIssue, PPEItem, PPELossDamageReport
 from app.schemas.attachment import AttachmentRead
 from app.services.audit_service import write_audit_log
 from app.services.rbac import (
@@ -76,6 +77,10 @@ ENTITY_MODELS = {
     AttachmentEntityType.emergency_drill: EmergencyDrillRecord,
     AttachmentEntityType.document_control: DocumentControlRecord,
     AttachmentEntityType.audit_management: AuditManagementRecord,
+    AttachmentEntityType.ppe_item: PPEItem,
+    AttachmentEntityType.ppe_issue: PPEIssue,
+    AttachmentEntityType.ppe_inspection: PPEInspection,
+    AttachmentEntityType.ppe_loss_damage: PPELossDamageReport,
 }
 
 
@@ -347,6 +352,20 @@ def _ensure_audit_management_access(
 
 
 def ensure_entity_access(user: User, entity_type: AttachmentEntityType, entity, *, write: bool) -> None:
+    if entity_type in {
+        AttachmentEntityType.ppe_item,
+        AttachmentEntityType.ppe_issue,
+        AttachmentEntityType.ppe_inspection,
+        AttachmentEntityType.ppe_loss_damage,
+    }:
+        if entity_type == AttachmentEntityType.ppe_loss_damage and entity.reported_by_user_id == user.id:
+            ensure_permission(user, Permission.PPE_REPORT_LOSS_DAMAGE)
+            return
+        if entity_type == AttachmentEntityType.ppe_issue and not write and entity.recipient_user_id == user.id:
+            ensure_permission(user, Permission.PPE_SELF_VIEW)
+            return
+        ensure_permission(user, Permission.PPE_INSPECT if write else Permission.PPE_VIEW)
+        return
     if entity_type == AttachmentEntityType.sio:
         ensure_site_access(user, entity.site_id)
         if write:

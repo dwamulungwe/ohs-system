@@ -372,6 +372,7 @@ class CorrectiveAction(OrganisationOwnedMixin, TimestampMixin, Base):
             CorrectiveActionSourceType.contractor: "contractors",
             CorrectiveActionSourceType.emergency_drill: "emergency-drills",
             CorrectiveActionSourceType.document_control: "documents",
+            CorrectiveActionSourceType.ppe: "ppe",
         }
         route = routes.get(self.source_type)
         return f"/{route}/{self.source_id}" if route else None

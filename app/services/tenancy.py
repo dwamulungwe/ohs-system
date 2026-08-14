@@ -34,6 +34,7 @@ MODULE_KEYS = (
     "document_control",
     "data_imports",
     "reporting",
+    "ppe",
 )
 
 ENTITY_FEATURE_KEYS = {
@@ -57,6 +58,10 @@ ENTITY_FEATURE_KEYS = {
     "emergency_drill": "emergency_drills",
     "document_control": "document_control",
     "audit_management": "audits",
+    "ppe_item": "ppe",
+    "ppe_issue": "ppe",
+    "ppe_inspection": "ppe",
+    "ppe_loss_damage": "ppe",
 }
 
 

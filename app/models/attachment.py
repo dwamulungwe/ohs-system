@@ -29,6 +29,10 @@ class AttachmentEntityType(str, enum.Enum):
     emergency_drill = "emergency_drill"
     document_control = "document_control"
     audit_management = "audit_management"
+    ppe_item = "ppe_item"
+    ppe_issue = "ppe_issue"
+    ppe_inspection = "ppe_inspection"
+    ppe_loss_damage = "ppe_loss_damage"
 
 
 class Attachment(OrganisationOwnedMixin, Base):

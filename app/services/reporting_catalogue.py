@@ -18,6 +18,7 @@ CATEGORY_FEATURES = {
     "Audits": "audits",
     "Training": "training",
     "Permits & Compliance": "compliance",
+    "PPE": "ppe",
 }
 
 
@@ -108,6 +109,16 @@ KPI_CATALOGUE = [
         "compliance_due_soon", "compliance_overdue",
     )],
     _entry("compliance_rate", "Permits & Compliance", unit="percent", direction=KPIDirection.higher_is_better, numerator="Compliant obligations", denominator="Applicable compliance obligations"),
+    # PPE
+    *[_entry(key, "PPE", direction=KPIDirection.lower_is_better) for key in (
+        "ppe_employees_partially_compliant", "ppe_employees_non_compliant", "ppe_replacement_due",
+        "ppe_replacement_overdue", "ppe_expiring_30", "ppe_expiring_60", "ppe_expiring_90",
+        "ppe_inspections_overdue", "ppe_requests_outstanding", "ppe_low_stock_items", "ppe_damaged", "ppe_lost",
+    )],
+    *[_entry(key, "PPE") for key in ("ppe_employees_requiring", "ppe_employees_compliant", "ppe_issued")],
+    _entry("ppe_compliance_rate", "PPE", unit="percent", direction=KPIDirection.higher_is_better, numerator="Fully PPE compliant employees", denominator="Employees with applicable PPE requirements"),
+    _entry("ppe_issue_cost", "PPE", unit="currency"),
+    _entry("ppe_replacement_cost", "PPE", unit="currency"),
 ]
 
 

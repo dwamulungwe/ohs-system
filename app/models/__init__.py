@@ -17,6 +17,22 @@ from app.models.legal_compliance import LegalComplianceItem
 from app.models.medical_surveillance import MedicalSurveillanceRecord
 from app.models.notification_delivery import NotificationDeliveryLog
 from app.models.organisation import Organisation, OrganisationFeature, OrganisationSettings
+from app.models.ppe import (
+    PPEAsset,
+    PPECategory,
+    PPEInspection,
+    PPEInventory,
+    PPEIssue,
+    PPEItem,
+    PPELossDamageReport,
+    PPEReminderDelivery,
+    PPERequest,
+    PPERequirement,
+    PPEReturn,
+    PPEStockLocation,
+    PPEStockMovement,
+    PPEVariant,
+)
 from app.models.safety_communication import SafetyCommunication
 from app.models.safety_kpi import SafetyKPIRecord
 from app.models.sio import (
@@ -60,6 +76,20 @@ __all__ = [
     "Organisation",
     "OrganisationFeature",
     "OrganisationSettings",
+    "PPEAsset",
+    "PPECategory",
+    "PPEInspection",
+    "PPEInventory",
+    "PPEIssue",
+    "PPEItem",
+    "PPELossDamageReport",
+    "PPEReminderDelivery",
+    "PPERequest",
+    "PPERequirement",
+    "PPEReturn",
+    "PPEStockLocation",
+    "PPEStockMovement",
+    "PPEVariant",
     "SafetyCommunication",
     "SafetyKPIRecord",
     "SafetyImprovementObservation",

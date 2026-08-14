@@ -30,6 +30,8 @@ from app.models.sio import (
     SafetyImprovementObservation,
 )
 from app.models.training import TrainingRecord, TrainingStatus
+from app.models.ppe import PPEIssueStatus
+from app.services.ppe_service import ACTIVE_ISSUE_STATUSES, dashboard as ppe_dashboard, list_issues as list_ppe_issues
 
 
 @dataclass(frozen=True)
@@ -577,6 +579,65 @@ def _permit_compliance_metric(context: CalculationContext, key: str) -> MetricVa
     return MetricValue(None, metadata=metadata, insufficient_reason="Calculation is not available")
 
 
+def _ppe_metric(context: CalculationContext, key: str) -> MetricValue:
+    metadata = _base_metadata(context, source="ppe catalogue, inventory, issues, requirements and requests", formula=key)
+    summary = ppe_dashboard(
+        context.db,
+        site_id=context.site_id,
+        department_id=context.department_id,
+        as_of=context.end,
+    )
+    issues = list_ppe_issues(
+        context.db,
+        site_id=context.site_id,
+        department_id=context.department_id,
+        limit=5000,
+    )["items"]
+    active = [item for item in issues if item.status in ACTIVE_ISSUE_STATUSES]
+    period_issues = [item for item in issues if context.start <= item.issue_date <= context.end]
+
+    def expiring(days: int) -> int:
+        return sum(
+            bool(item.expiry_date and context.end < item.expiry_date <= context.end + timedelta(days=days))
+            for item in active
+        )
+
+    values = {
+        "ppe_employees_requiring": summary["employees_requiring_ppe"],
+        "ppe_employees_compliant": summary["fully_compliant_employees"],
+        "ppe_employees_partially_compliant": summary["partially_compliant_employees"],
+        "ppe_employees_non_compliant": summary["non_compliant_employees"],
+        "ppe_compliance_rate": summary["compliance_rate"],
+        "ppe_replacement_due": summary["replacements_due"],
+        "ppe_replacement_overdue": summary["overdue_replacements"],
+        "ppe_expiring_30": expiring(30),
+        "ppe_expiring_60": expiring(60),
+        "ppe_expiring_90": expiring(90),
+        "ppe_inspections_overdue": summary["overdue_inspections"],
+        "ppe_requests_outstanding": summary["pending_requests"],
+        "ppe_low_stock_items": summary["low_stock_items"],
+        "ppe_damaged": summary["damaged_ppe"],
+        "ppe_lost": summary["lost_ppe"],
+        "ppe_issued": sum(item.quantity for item in period_issues),
+    }
+    metadata["issue_count"] = len(period_issues)
+    if key in values:
+        value = values[key]
+        if key == "ppe_compliance_rate" and value is None:
+            return MetricValue(None, metadata=metadata, insufficient_reason="No employees have applicable PPE requirements")
+        if key == "ppe_compliance_rate":
+            return MetricValue(float(value), float(summary["fully_compliant_employees"]), float(summary["employees_requiring_ppe"]), metadata)
+        return MetricValue(float(value), metadata=metadata)
+    if key in {"ppe_issue_cost", "ppe_replacement_cost"}:
+        cost_issues = period_issues if key == "ppe_issue_cost" else [item for item in period_issues if item.replacement_for_issue_id is not None]
+        unavailable = sum(item.unit_cost_snapshot is None for item in cost_issues)
+        metadata["unavailable_cost_records"] = unavailable
+        if unavailable:
+            return MetricValue(None, metadata=metadata, insufficient_reason="One or more PPE issues have no unit cost snapshot")
+        return MetricValue(float(sum((item.unit_cost_snapshot or 0) * item.quantity for item in cost_issues)), metadata=metadata)
+    return MetricValue(None, metadata=metadata, insufficient_reason="Calculation is not available")
+
+
 def calculate_kpi(context: CalculationContext, definition: KPIDefinition) -> MetricValue:
     key = definition.key
     if key.startswith("action_"):
@@ -605,6 +666,8 @@ def calculate_kpi(context: CalculationContext, definition: KPIDefinition) -> Met
         result = _training_metric(context, key)
     elif key.startswith("permit") or key.startswith("compliance") or key in {"active_permits", "expired_permits"}:
         result = _permit_compliance_metric(context, key)
+    elif key.startswith("ppe_"):
+        result = _ppe_metric(context, key)
     else:
         result = MetricValue(
             None,

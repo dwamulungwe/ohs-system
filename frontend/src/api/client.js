@@ -217,6 +217,18 @@ export const apiClient = {
   getDashboardSios(token, params = {}) {
     return request(withQuery('/dashboard/sios', params), { token })
   },
+  getPpeDashboard(token, params = {}) {
+    return request(withQuery('/ppe/dashboard', params), { token })
+  },
+  getPpeCollection(token, path, params = {}) {
+    return request(withQuery(`/ppe/${path}`, params), { token })
+  },
+  ppeCommand(token, path, body = {}) {
+    return request(`/ppe/${path}`, { token, method: 'POST', body })
+  },
+  updatePpeRecord(token, path, body = {}) {
+    return request(`/ppe/${path}`, { token, method: 'PATCH', body })
+  },
   getReportingPeriods(token, params = {}) {
     return request(withQuery('/reporting/periods', params), { token })
   },

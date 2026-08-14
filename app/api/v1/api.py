@@ -29,6 +29,7 @@ from app.api.v1.endpoints import (
     notification_deliveries,
     organisations,
     permits,
+    ppe,
     roles,
     reporting,
     safety_communications,
@@ -81,6 +82,7 @@ api_router.include_router(
 api_router.include_router(exports.router, prefix="/exports", tags=["exports"])
 api_router.include_router(training.router, tags=["training_compliance"])
 api_router.include_router(permits.router, prefix="/permits", tags=["permits"], dependencies=[Depends(require_feature("permits"))])
+api_router.include_router(ppe.router, prefix="/ppe", tags=["ppe"], dependencies=[Depends(require_feature("ppe"))])
 api_router.include_router(job_runs.router, prefix="/job-runs", tags=["job_runs"])
 api_router.include_router(
     medical_surveillance.router,

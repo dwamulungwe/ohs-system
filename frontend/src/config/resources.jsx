@@ -16,6 +16,7 @@ import {
   Siren,
   Users,
   Wrench,
+  HardHat,
 } from 'lucide-react'
 import { formatDate, formatDateTime, summarizeList } from '../lib/formatters.js'
 import { Badge } from '../components/Badge.jsx'
@@ -33,6 +34,15 @@ function renderBadge(item, key) {
 }
 
 export const resources = [
+  {
+    key: 'ppe',
+    label: 'PPE Management',
+    singular: 'PPE Record',
+    route: '/ppe',
+    icon: HardHat,
+    customPage: true,
+    description: 'Catalogue, stock, issues, inspections, requests and employee PPE compliance.',
+  },
   {
     key: 'sites',
     label: 'Sites',

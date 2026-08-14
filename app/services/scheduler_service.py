@@ -43,6 +43,7 @@ from app.services.permit_service import (
     generate_permit_expired_notifications,
     generate_permit_nearing_expiry_notifications,
 )
+from app.services.ppe_service import generate_ppe_reminders
 from app.services.query_utils import paginate
 from app.services.sio_service import generate_sio_due_notifications
 from app.services.training_service import (
@@ -149,6 +150,7 @@ def _run_general_reminders_job(db: Session) -> tuple[int, dict]:
         "permit_due_soon": len(generate_permit_nearing_expiry_notifications(db)) if organisation_has_feature(db, organisation_id, "permits") else 0,
         "permit_expired": len(generate_permit_expired_notifications(db)) if organisation_has_feature(db, organisation_id, "permits") else 0,
         "sio_due_and_overdue": len(generate_sio_due_notifications(db)) if organisation_has_feature(db, organisation_id, "sios") else 0,
+        "ppe_reminders": sum(generate_ppe_reminders(db).values()) if organisation_has_feature(db, organisation_id, "ppe") else 0,
     }
     total += sum(parts.values())
 

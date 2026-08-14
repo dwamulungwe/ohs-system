@@ -44,6 +44,22 @@ from app.models.sio import (
 )
 from app.models.training import ComplianceAcknowledgement, TrainingRecord
 from app.models.user import User
+from app.models.ppe import (
+    PPEAsset,
+    PPECategory,
+    PPEInspection,
+    PPEInventory,
+    PPEIssue,
+    PPEItem,
+    PPELossDamageReport,
+    PPEReminderDelivery,
+    PPERequest,
+    PPERequirement,
+    PPEReturn,
+    PPEStockLocation,
+    PPEStockMovement,
+    PPEVariant,
+)
 from app.models.reporting import (
     KPIDefinition,
     KPISnapshot,
@@ -104,6 +120,20 @@ __all__ = [
     "ComplianceAcknowledgement",
     "TrainingRecord",
     "User",
+    "PPEAsset",
+    "PPECategory",
+    "PPEInspection",
+    "PPEInventory",
+    "PPEIssue",
+    "PPEItem",
+    "PPELossDamageReport",
+    "PPEReminderDelivery",
+    "PPERequest",
+    "PPERequirement",
+    "PPEReturn",
+    "PPEStockLocation",
+    "PPEStockMovement",
+    "PPEVariant",
     "KPIDefinition",
     "KPISnapshot",
     "KPITarget",

@@ -85,6 +85,7 @@ def create_user(
         full_name=user_in.full_name,
         hashed_password=get_password_hash(user_in.password),
         phone_number=user_in.phone_number,
+        job_title=user_in.job_title,
         is_active=user_in.is_active,
         is_platform_admin=is_platform_admin,
         department_id=user_in.department_id,

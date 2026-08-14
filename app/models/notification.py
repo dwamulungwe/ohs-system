@@ -72,6 +72,18 @@ class NotificationType(str, enum.Enum):
     document_due_soon = "document_due_soon"
     document_expired = "document_expired"
     audit_open = "audit_open"
+    ppe_request_submitted = "ppe_request_submitted"
+    ppe_request_approved = "ppe_request_approved"
+    ppe_request_rejected = "ppe_request_rejected"
+    ppe_issued = "ppe_issued"
+    ppe_replacement_due = "ppe_replacement_due"
+    ppe_replacement_overdue = "ppe_replacement_overdue"
+    ppe_inspection_due = "ppe_inspection_due"
+    ppe_inspection_overdue = "ppe_inspection_overdue"
+    ppe_expiring = "ppe_expiring"
+    ppe_low_stock = "ppe_low_stock"
+    ppe_critical_failure = "ppe_critical_failure"
+    ppe_loss_damage_review = "ppe_loss_damage_review"
 
 
 class NotificationSeverity(str, enum.Enum):
@@ -98,6 +110,11 @@ class RelatedEntityType(str, enum.Enum):
     emergency_drill = "emergency_drill"
     document_control = "document_control"
     audit_management = "audit_management"
+    ppe_item = "ppe_item"
+    ppe_issue = "ppe_issue"
+    ppe_request = "ppe_request"
+    ppe_inspection = "ppe_inspection"
+    ppe_loss_damage = "ppe_loss_damage"
 
 
 class Notification(OrganisationOwnedMixin, Base):

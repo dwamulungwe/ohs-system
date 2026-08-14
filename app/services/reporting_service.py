@@ -25,6 +25,8 @@ from app.models.reporting import (
     WorkforceExposure,
 )
 from app.models.site import Site
+from app.models.user import User
+from app.models.ppe import PPEInventory, PPEIssue, PPERequest, PPERequestStatus, PPEStockLocation
 from app.schemas.reporting import (
     KPIDefinitionCreate,
     KPITargetCreate,
@@ -70,6 +72,7 @@ SECTION_DEFINITIONS = (
     ("inspections_audits", "Inspections & Audits", ("inspections", "audits")),
     ("training", "Training & Competency", "training"),
     ("compliance_permits", "Compliance & Permits", ("compliance", "permits")),
+    ("ppe", "PPE Management", "ppe"),
     ("occupational_health", "Occupational Health", "medical_surveillance"),
     ("environmental", "Environmental", None),
     ("forward_view", "90-Day Forward View", None),
@@ -1060,6 +1063,30 @@ def get_kpi_drilldown(
             items.append({"id": item.id, "title": item.title, "status": item.status.value, "due_date": item.end_datetime, "site_id": item.site_id, "route": f"/permits/{item.id}"})
         for item in context.compliance:
             items.append({"id": item.id, "title": item.title, "status": item.compliance_status.value, "due_date": item.next_review_date, "site_id": item.site_id, "route": f"/legal-compliance/{item.id}"})
+    elif snapshot.kpi_definition.category == "PPE":
+        if kpi_key == "ppe_low_stock_items":
+            statement = select(PPEInventory).where(PPEInventory.quantity_available <= PPEInventory.reorder_level)
+            if site_id is not None:
+                statement = statement.join(PPEStockLocation).where(PPEStockLocation.site_id == site_id)
+            for item in db.scalars(statement).all():
+                items.append({"id": item.id, "title": item.item_name, "status": "low_stock", "site_id": item.location.site_id, "route": "/ppe"})
+        elif kpi_key == "ppe_requests_outstanding":
+            statement = select(PPERequest).where(PPERequest.status == PPERequestStatus.requested)
+            for item in db.scalars(statement).all():
+                recipient = db.get(User, item.recipient_user_id)
+                if site_id is not None and (recipient is None or recipient.assigned_site_id != site_id):
+                    continue
+                if department_id is not None and (recipient is None or recipient.department_id != department_id):
+                    continue
+                items.append({"id": item.id, "title": f"PPE request #{item.id}", "status": item.status.value, "site_id": recipient.assigned_site_id if recipient else None, "route": "/ppe"})
+        else:
+            statement = select(PPEIssue).where(PPEIssue.issue_date <= period.end_date)
+            if site_id is not None:
+                statement = statement.where(PPEIssue.site_id_snapshot == site_id)
+            if department_id is not None:
+                statement = statement.where(PPEIssue.department_id_snapshot == department_id)
+            for item in db.scalars(statement).all():
+                items.append({"id": item.id, "title": item.item_name_snapshot, "status": item.status.value, "due_date": item.expected_replacement_date, "site_id": item.site_id_snapshot, "department_id": item.department_id_snapshot, "route": "/ppe"})
     return {
         "reporting_period_id": period.id,
         "kpi_key": kpi_key,

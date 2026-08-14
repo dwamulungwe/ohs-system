@@ -143,6 +143,22 @@ class Permission:
     REPORTING_APPROVE = "reporting.approve"
     REPORTING_ADMIN = "reporting.admin"
     REPORTING_EXPORT = "reporting.export"
+    PPE_VIEW = "ppe.view"
+    PPE_SELF_VIEW = "ppe.self_view"
+    PPE_REQUEST = "ppe.request"
+    PPE_ACKNOWLEDGE = "ppe.acknowledge"
+    PPE_REPORT_LOSS_DAMAGE = "ppe.report_loss_damage"
+    PPE_REQUIREMENTS_MANAGE = "ppe.requirements_manage"
+    PPE_INSPECT = "ppe.inspect"
+    PPE_INVENTORY_RECEIVE = "ppe.inventory.receive"
+    PPE_INVENTORY_ISSUE = "ppe.inventory.issue"
+    PPE_INVENTORY_RETURN = "ppe.inventory.return"
+    PPE_INVENTORY_TRANSFER = "ppe.inventory.transfer"
+    PPE_INVENTORY_ADJUST = "ppe.inventory.adjust"
+    PPE_REQUEST_REVIEW = "ppe.request_review"
+    PPE_CONFIGURE = "ppe.configure"
+    PPE_EXPORT = "ppe.export"
+    PPE_INVENTORY_NEGATIVE_OVERRIDE = "ppe.inventory.negative_override"
 
 
 ROLE_PERMISSIONS = {
@@ -242,6 +258,21 @@ ROLE_PERMISSIONS = {
         Permission.REPORTING_APPROVE,
         Permission.REPORTING_ADMIN,
         Permission.REPORTING_EXPORT,
+        Permission.PPE_VIEW,
+        Permission.PPE_SELF_VIEW,
+        Permission.PPE_REQUEST,
+        Permission.PPE_ACKNOWLEDGE,
+        Permission.PPE_REPORT_LOSS_DAMAGE,
+        Permission.PPE_REQUIREMENTS_MANAGE,
+        Permission.PPE_INSPECT,
+        Permission.PPE_INVENTORY_RECEIVE,
+        Permission.PPE_INVENTORY_ISSUE,
+        Permission.PPE_INVENTORY_RETURN,
+        Permission.PPE_INVENTORY_TRANSFER,
+        Permission.PPE_INVENTORY_ADJUST,
+        Permission.PPE_REQUEST_REVIEW,
+        Permission.PPE_CONFIGURE,
+        Permission.PPE_EXPORT,
     },
     ROLE_SAFETY_OFFICER: {
         Permission.USERS_READ,
@@ -319,6 +350,15 @@ ROLE_PERMISSIONS = {
         Permission.APPROVALS_REQUEST,
         Permission.REPORTING_VIEW,
         Permission.REPORTING_EXPORT,
+        Permission.PPE_VIEW,
+        Permission.PPE_SELF_VIEW,
+        Permission.PPE_REQUEST,
+        Permission.PPE_ACKNOWLEDGE,
+        Permission.PPE_REPORT_LOSS_DAMAGE,
+        Permission.PPE_REQUIREMENTS_MANAGE,
+        Permission.PPE_INSPECT,
+        Permission.PPE_REQUEST_REVIEW,
+        Permission.PPE_EXPORT,
     },
     ROLE_SUPERVISOR: {
         Permission.SITES_READ,
@@ -364,6 +404,12 @@ ROLE_PERMISSIONS = {
         Permission.APPROVALS_VIEW,
         Permission.APPROVALS_REQUEST,
         Permission.REPORTING_VIEW,
+        Permission.PPE_VIEW,
+        Permission.PPE_SELF_VIEW,
+        Permission.PPE_REQUEST,
+        Permission.PPE_ACKNOWLEDGE,
+        Permission.PPE_REPORT_LOSS_DAMAGE,
+        Permission.PPE_REQUEST_REVIEW,
     },
     ROLE_EMPLOYEE: {
         Permission.SITES_READ,
@@ -388,6 +434,10 @@ ROLE_PERMISSIONS = {
         Permission.JSA_VIEW,
         Permission.ASSETS_VIEW,
         Permission.DOCUMENTS_VIEW,
+        Permission.PPE_SELF_VIEW,
+        Permission.PPE_REQUEST,
+        Permission.PPE_ACKNOWLEDGE,
+        Permission.PPE_REPORT_LOSS_DAMAGE,
     },
 }
 
