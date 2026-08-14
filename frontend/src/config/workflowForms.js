@@ -1481,23 +1481,45 @@ export const workflowFormConfigs = {
     }),
   },
   'corrective-actions': {
-    createTitle: 'Create Corrective Action',
-    editTitle: 'Edit Corrective Action',
-    description: 'Assign a simple action and let the backend handle lifecycle rules.',
-    refs: ['sites', 'users'],
+    createTitle: 'Create Action',
+    editTitle: 'Edit Action Overview',
+    description: 'Capture the accountable outcome here. Assignment, completion, verification, and extensions are managed in the action workspace.',
+    refs: ['sites', 'users', 'departments'],
     fields: [
-      { name: 'site_id', label: 'Site', type: 'select', required: true, optionsSource: 'sites' },
+      { name: 'site_id', label: 'Site', type: 'select', optionsSource: 'sites' },
+      { name: 'department_id', label: 'Department', type: 'select', optionsSource: 'departments' },
+      { name: 'responsible_department_id', label: 'Responsible department', type: 'select', optionsSource: 'departments' },
       baseTextField('title', 'Title', true),
       { name: 'description', label: 'Description', type: 'textarea', required: true },
+      { name: 'acceptance_criteria', label: 'Acceptance criteria / expected outcome', type: 'textarea' },
       {
         name: 'source_type',
         label: 'Source type',
         type: 'select',
         required: true,
-        options: buildSelectOptions(['incident', 'hazard', 'inspection', 'manual']),
+        options: buildSelectOptions([
+          'manual',
+          'sio',
+          'incident',
+          'hazard',
+          'inspection',
+          'audit',
+          'permit',
+          'jsa',
+          'training',
+          'compliance',
+          'contractor',
+          'emergency_drill',
+          'document_control',
+          'ppe',
+          'fleet',
+          'environmental',
+          'management_of_change',
+        ]),
       },
       { name: 'source_id', label: 'Source ID', type: 'number' },
-      { name: 'assigned_to_user_id', label: 'Assigned to', type: 'select', optionsSource: 'users' },
+      { name: 'owner_user_id', label: 'Accountable owner', type: 'select', optionsSource: 'users', visible: ({ mode }) => mode === 'create' },
+      { name: 'verifier_user_id', label: 'Verifier', type: 'select', optionsSource: 'users', visible: ({ mode }) => mode === 'create' },
       {
         name: 'priority',
         label: 'Priority',
@@ -1506,69 +1528,82 @@ export const workflowFormConfigs = {
         options: buildSelectOptions(['low', 'medium', 'high', 'critical']),
       },
       {
-        name: 'status',
-        label: 'Status',
+        name: 'lifecycle_status',
+        label: 'Initial lifecycle',
         type: 'select',
         required: true,
-        options: buildSelectOptions([
-          'open',
-          'in_progress',
-          'pending_verification',
-          'closed',
-          'overdue',
-          'cancelled',
-        ]),
+        visible: ({ mode }) => mode === 'create',
+        options: buildSelectOptions(['draft', 'open']),
       },
-      { name: 'due_date', label: 'Due date', type: 'date' },
-      { name: 'closure_notes', label: 'Closure notes', type: 'textarea' },
-      { name: 'verification_notes', label: 'Verification notes', type: 'textarea' },
+      { name: 'current_due_date', label: 'Initial due date', type: 'date', visible: ({ mode }) => mode === 'create', helperText: 'Later due-date changes use the governed extension workflow.' },
+      { name: 'progress_notes', label: 'Progress context', type: 'textarea' },
+      { name: 'recurrence_enabled', label: 'Recurring action', type: 'checkbox', checkboxLabel: 'Generate the next occurrence after closure' },
+      { name: 'recurrence_frequency', label: 'Recurrence frequency', type: 'select', options: buildSelectOptions(['daily', 'weekly', 'monthly', 'quarterly', 'yearly']) },
+      { name: 'recurrence_interval', label: 'Recurrence interval', type: 'number', min: 1, max: 365 },
+      { name: 'next_due_date', label: 'Next occurrence due', type: 'date' },
+      { name: 'recurrence_end_date', label: 'Recurrence end date', type: 'date' },
     ],
     getInitialValues: (item, currentUser) => ({
       site_id: item?.site_id ? String(item.site_id) : '',
+      department_id: item?.department_id ? String(item.department_id) : '',
+      responsible_department_id: item?.responsible_department_id ? String(item.responsible_department_id) : '',
       title: item?.title ?? '',
       description: item?.description ?? '',
+      acceptance_criteria: item?.acceptance_criteria ?? '',
       source_type: item?.source_type ?? 'manual',
       source_id: item?.source_id ? String(item.source_id) : '',
-      assigned_to_user_id: item?.assigned_to_user_id
-        ? String(item.assigned_to_user_id)
+      owner_user_id: item?.owner_user_id
+        ? String(item.owner_user_id)
         : String(currentUser?.id ?? ''),
+      verifier_user_id: item?.verifier_user_id ? String(item.verifier_user_id) : '',
       priority: item?.priority ?? 'medium',
-      status: item?.status ?? 'open',
-      due_date: item?.due_date ?? '',
-      closure_notes: item?.closure_notes ?? '',
-      verification_notes: item?.verification_notes ?? '',
+      lifecycle_status: item?.lifecycle_status ?? 'open',
+      current_due_date: item?.current_due_date ?? '',
+      progress_notes: item?.progress_notes ?? '',
+      recurrence_enabled: item?.recurrence_enabled ?? false,
+      recurrence_frequency: item?.recurrence_frequency ?? '',
+      recurrence_interval: String(item?.recurrence_interval ?? 1),
+      next_due_date: item?.next_due_date ?? '',
+      recurrence_end_date: item?.recurrence_end_date ?? '',
     }),
     validate(values) {
       const errors = {}
-      if (!values.site_id) errors.site_id = 'Select a site.'
       if (!values.title || values.title.trim().length < 2) errors.title = 'Title is required.'
       if (!values.description || values.description.trim().length < 2) errors.description = 'Description is required.'
       if (values.source_type !== 'manual' && !values.source_id) {
         errors.source_id = 'Source ID is required unless this is a manual action.'
       }
+      if (values.recurrence_enabled && !values.recurrence_frequency) {
+        errors.recurrence_frequency = 'Select a recurrence frequency.'
+      }
       return errors
     },
-    buildPayload: (values) => ({
-      site_id: Number(values.site_id),
-      title: values.title.trim(),
-      description: values.description.trim(),
-      source_type: values.source_type,
-      source_id: values.source_id ? Number(values.source_id) : null,
-      assigned_to_user_id: values.assigned_to_user_id
-        ? Number(values.assigned_to_user_id)
-        : null,
-      created_by_user_id: null,
-      priority: values.priority,
-      status: values.status,
-      due_date: values.due_date || null,
-      closure_notes: values.closure_notes.trim() || null,
-      closure_evidence_metadata: [],
-      verification_notes: values.verification_notes.trim() || null,
-      verified_by_user_id: null,
-      verified_at: null,
-      started_at: null,
-      completed_at: null,
-    }),
+    buildPayload: (values, { mode }) => {
+      const payload = {
+        site_id: values.site_id ? Number(values.site_id) : null,
+        department_id: values.department_id ? Number(values.department_id) : null,
+        responsible_department_id: values.responsible_department_id ? Number(values.responsible_department_id) : null,
+        title: values.title.trim(),
+        description: values.description.trim(),
+        acceptance_criteria: values.acceptance_criteria.trim() || null,
+        source_type: values.source_type,
+        source_id: values.source_id ? Number(values.source_id) : null,
+        priority: values.priority,
+        progress_notes: values.progress_notes.trim() || null,
+        recurrence_enabled: Boolean(values.recurrence_enabled),
+        recurrence_frequency: values.recurrence_enabled ? values.recurrence_frequency || null : null,
+        recurrence_interval: Number(values.recurrence_interval || 1),
+        next_due_date: values.recurrence_enabled ? values.next_due_date || null : null,
+        recurrence_end_date: values.recurrence_enabled ? values.recurrence_end_date || null : null,
+      }
+      if (mode === 'create') {
+        payload.owner_user_id = values.owner_user_id ? Number(values.owner_user_id) : null
+        payload.verifier_user_id = values.verifier_user_id ? Number(values.verifier_user_id) : null
+        payload.lifecycle_status = values.lifecycle_status
+        payload.current_due_date = values.current_due_date || null
+      }
+      return payload
+    },
   },
   permits: {
     createTitle: 'Create Permit',

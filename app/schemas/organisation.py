@@ -51,6 +51,7 @@ class OrganisationSettingsRead(BaseModel):
     risk_matrix_configuration: dict = {}
     numbering_prefixes: dict = {}
     sio_workflow_configuration: dict = {}
+    action_workflow_configuration: dict = {}
     created_at: datetime
     updated_at: datetime
 
@@ -67,6 +68,7 @@ class OrganisationSettingsUpdate(BaseModel):
     risk_matrix_configuration: Optional[dict] = None
     numbering_prefixes: Optional[dict] = None
     sio_workflow_configuration: Optional[dict] = None
+    action_workflow_configuration: Optional[dict] = None
 
 
 class OrganisationFeatureRead(BaseModel):

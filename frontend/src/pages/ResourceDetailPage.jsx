@@ -14,6 +14,7 @@ import { PageHeader } from '../components/PageHeader.jsx'
 import { ResourceFormModal } from '../components/ResourceFormModal.jsx'
 import { SIOLinksPanel } from '../components/SIOLinksPanel.jsx'
 import { SIOWorkflowWorkspace } from '../components/SIOWorkflowWorkspace.jsx'
+import { ActionWorkflowWorkspace } from '../components/ActionWorkflowWorkspace.jsx'
 import { workflowFormConfigs } from '../config/workflowForms.js'
 import { useAuth } from '../context/AuthContext.jsx'
 import { mapResourceSubtitle } from '../config/resources.jsx'
@@ -207,6 +208,10 @@ export function ResourceDetailPage({ resource }) {
           <SIOWorkflowWorkspace item={item} token={token} user={user} onUpdated={setItem} />
           <SIOLinksPanel item={item} token={token} user={user} onUpdated={setItem} />
         </>
+      ) : null}
+
+      {resource.key === 'corrective-actions' ? (
+        <ActionWorkflowWorkspace item={item} token={token} user={user} onUpdated={setItem} />
       ) : null}
 
       {resource.approvalConfig ? (

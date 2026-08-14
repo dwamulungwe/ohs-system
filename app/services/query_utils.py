@@ -37,20 +37,18 @@ def paginate(db: Session, statement: Select, *, skip: int, limit: int) -> tuple[
 
 def is_corrective_action_overdue(action: CorrectiveAction, *, today: Optional[date] = None) -> bool:
     today = today or date.today()
-    if action.status == CorrectiveActionStatus.overdue:
-        return True
-    if action.due_date is None:
+    if action.current_due_date is None:
         return False
-    if action.status in {CorrectiveActionStatus.closed, CorrectiveActionStatus.cancelled}:
+    if action.lifecycle_status in {
+        CorrectiveActionStatus.closed,
+        CorrectiveActionStatus.cancelled,
+        CorrectiveActionStatus.draft,
+    }:
         return False
-    return action.due_date < today
+    return action.current_due_date < today
 
 
 def apply_overdue_status(data: dict) -> None:
-    due_date = data.get("due_date")
-    status = data.get("status", CorrectiveActionStatus.open)
-    if due_date is not None and due_date < date.today() and status not in {
-        CorrectiveActionStatus.closed,
-        CorrectiveActionStatus.cancelled,
-    }:
-        data["status"] = CorrectiveActionStatus.overdue
+    """Compatibility no-op: overdue is derived and never a lifecycle state."""
+    if data.get("status") == CorrectiveActionStatus.overdue:
+        data["status"] = CorrectiveActionStatus.in_progress

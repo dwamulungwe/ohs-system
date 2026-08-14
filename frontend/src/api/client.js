@@ -235,6 +235,50 @@ export const apiClient = {
   bulkUpdateSios(token, body) {
     return request('/sios/bulk', { token, method: 'POST', body })
   },
+  getActionDashboard(token, params = {}) {
+    return request(withQuery('/corrective-actions/dashboard', params), { token })
+  },
+  getActionComments(token, actionId) {
+    return request(`/corrective-actions/${actionId}/comments`, { token })
+  },
+  addActionComment(token, actionId, body) {
+    return request(`/corrective-actions/${actionId}/comments`, { token, method: 'POST', body: { body } })
+  },
+  getActionActivity(token, actionId) {
+    return request(`/corrective-actions/${actionId}/activity`, { token })
+  },
+  actionCommand(token, actionId, command, body = {}) {
+    return request(`/corrective-actions/${actionId}/${command}`, { token, method: 'POST', body })
+  },
+  updateActionProgress(token, actionId, body) {
+    return request(`/corrective-actions/${actionId}/progress`, { token, method: 'PATCH', body })
+  },
+  createActionTask(token, actionId, body) {
+    return request(`/corrective-actions/${actionId}/tasks`, { token, method: 'POST', body })
+  },
+  updateActionTask(token, actionId, taskId, body) {
+    return request(`/corrective-actions/${actionId}/tasks/${taskId}`, { token, method: 'PATCH', body })
+  },
+  requestActionExtension(token, actionId, body) {
+    return request(`/corrective-actions/${actionId}/extensions`, { token, method: 'POST', body })
+  },
+  decideActionExtension(token, actionId, extensionId, body) {
+    return request(`/corrective-actions/${actionId}/extensions/${extensionId}/decision`, { token, method: 'POST', body })
+  },
+  bulkUpdateActions(token, body) {
+    return request('/corrective-actions/bulk', { token, method: 'POST', body })
+  },
+  async bulkExportActions(token, actionIds) {
+    const response = await requestResponse('/corrective-actions/bulk/export', {
+      token,
+      method: 'POST',
+      body: { action_ids: actionIds },
+    })
+    return {
+      blob: await response.blob(),
+      filename: parseFilenameFromDisposition(response.headers.get('content-disposition')) ?? 'actions-selected.csv',
+    }
+  },
   async bulkExportSios(token, sioIds) {
     const response = await requestResponse('/sios/bulk/export', {
       token,

@@ -25,6 +25,7 @@ from app.services.document_control_service import (
     generate_document_notifications,
     refresh_document_statuses,
 )
+from app.services.corrective_action_service import generate_action_escalations
 from app.services.emergency_drill_service import (
     generate_emergency_drill_notifications,
     refresh_emergency_drill_statuses,
@@ -135,8 +136,11 @@ def _run_general_reminders_job(db: Session) -> tuple[int, dict]:
     total = 0
     organisation_id = current_organisation_id(db)
     parts = {
-        "corrective_action_due_soon": len(generate_corrective_action_due_soon_notifications(db)) if organisation_has_feature(db, organisation_id, "corrective_actions") else 0,
-        "corrective_action_overdue": len(generate_corrective_action_overdue_notifications(db)) if organisation_has_feature(db, organisation_id, "corrective_actions") else 0,
+        # Compatibility keys remain in job details; the milestone-aware engine
+        # now owns scheduled action reminders and escalation deduplication.
+        "corrective_action_due_soon": 0,
+        "corrective_action_overdue": 0,
+        "action_escalations": len(generate_action_escalations(db)) if organisation_has_feature(db, organisation_id, "corrective_actions") else 0,
         "training_overdue": len(generate_overdue_training_notifications(db)) if organisation_has_feature(db, organisation_id, "training") else 0,
         "training_expired": len(generate_expired_training_notifications(db)) if organisation_has_feature(db, organisation_id, "training") else 0,
         "compliance_acknowledgements_overdue": len(

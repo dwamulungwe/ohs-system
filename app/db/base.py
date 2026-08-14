@@ -5,7 +5,17 @@ from app.models.attachment import Attachment
 from app.models.audit_management import AuditManagementRecord
 from app.models.audit_log import AuditLog
 from app.models.contractor import ContractorRecord
-from app.models.corrective_action import CorrectiveAction
+from app.models.corrective_action import (
+    ActionActivity,
+    ActionAssignmentHistory,
+    ActionComment,
+    ActionContributor,
+    ActionExtensionRequest,
+    ActionReferenceSequence,
+    ActionReminderDelivery,
+    ActionTask,
+    CorrectiveAction,
+)
 from app.models.data_import import DataImportJob, DataImportRow
 from app.models.department import Department
 from app.models.document_control import DocumentControlRecord
@@ -44,6 +54,14 @@ __all__ = [
     "Base",
     "ContractorRecord",
     "CorrectiveAction",
+    "ActionActivity",
+    "ActionAssignmentHistory",
+    "ActionComment",
+    "ActionContributor",
+    "ActionExtensionRequest",
+    "ActionReferenceSequence",
+    "ActionReminderDelivery",
+    "ActionTask",
     "DataImportJob",
     "DataImportRow",
     "Department",

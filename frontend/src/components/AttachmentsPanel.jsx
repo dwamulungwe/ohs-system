@@ -2,7 +2,7 @@ import { Download, LoaderCircle, Paperclip, Trash2, Upload } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { apiClient } from '../api/client.js'
 import { formatDateTime, formatFileSize } from '../lib/formatters.js'
-import { canDeleteAttachment, canEditRecord, isForbiddenError } from '../lib/rbac.js'
+import { canDeleteAttachment, canEditRecord, hasPermission, isForbiddenError } from '../lib/rbac.js'
 
 const ACCEPTED_FILES = '.jpg,.jpeg,.png,.webp,.pdf,.doc,.docx,.xls,.xlsx,.csv'
 
@@ -21,7 +21,7 @@ function uploaderLabel(attachment) {
 export function AttachmentsPanel({ resource, item, token, user }) {
   const [attachments, setAttachments] = useState([])
   const [description, setDescription] = useState('')
-  const [evidenceType, setEvidenceType] = useState('observation')
+  const [evidenceType, setEvidenceType] = useState(resource.key === 'corrective-actions' ? 'initial' : 'observation')
   const [selectedFile, setSelectedFile] = useState(null)
   const [isLoading, setIsLoading] = useState(true)
   const [isUploading, setIsUploading] = useState(false)
@@ -30,7 +30,12 @@ export function AttachmentsPanel({ resource, item, token, user }) {
   const [error, setError] = useState('')
   const [successMessage, setSuccessMessage] = useState('')
 
-  const canUpload = canEditRecord(resource.key, user, item)
+  const isActionOwner = resource.key === 'corrective-actions' && (
+    item.owner_user_id === user?.id || item.assigned_to_user_id === user?.id
+  )
+  const canUpload = canEditRecord(resource.key, user, item) || (
+    isActionOwner && hasPermission(user, 'corrective_actions.self_update')
+  )
 
   useEffect(() => {
     let ignore = false
@@ -86,7 +91,7 @@ export function AttachmentsPanel({ resource, item, token, user }) {
       )
       setAttachments((current) => [uploaded, ...current])
       setDescription('')
-      setEvidenceType('observation')
+      setEvidenceType(resource.key === 'corrective-actions' ? 'initial' : 'observation')
       setSelectedFile(null)
       event.currentTarget.reset()
       setSuccessMessage('Attachment uploaded successfully.')
@@ -183,6 +188,17 @@ export function AttachmentsPanel({ resource, item, token, user }) {
                 <option value="investigation">Investigation</option>
                 <option value="corrective">Corrective evidence</option>
                 <option value="closure">Closure evidence</option>
+              </select>
+            </label>
+          ) : null}
+          {resource.key === 'corrective-actions' ? (
+            <label className="space-y-2 text-sm text-stone-700">
+              <span className="block font-medium text-stone-900">Evidence category</span>
+              <select value={evidenceType} onChange={(event) => setEvidenceType(event.target.value)} className="w-full rounded-md border border-stone-300 bg-white px-3 py-2.5 text-sm">
+                <option value="initial">Initial</option>
+                <option value="progress">Progress</option>
+                <option value="completion">Completion</option>
+                <option value="verification">Verification</option>
               </select>
             </label>
           ) : null}

@@ -8,6 +8,7 @@ import { ResourceDetailPage } from './pages/ResourceDetailPage.jsx'
 import { QuickReportPage } from './pages/QuickReportPage.jsx'
 import { DataImportsPage } from './pages/DataImportsPage.jsx'
 import { OrganisationAdministrationPage } from './pages/OrganisationAdministrationPage.jsx'
+import { ActionCentrePage } from './pages/ActionCentrePage.jsx'
 import { resources } from './config/resources.jsx'
 import { useAuth } from './context/AuthContext.jsx'
 import { getDefaultRoute } from './lib/rbac.js'
@@ -18,6 +19,8 @@ function HomeRedirect() {
 }
 
 function App() {
+  const actionResource = resources.find((resource) => resource.key === 'corrective-actions')
+
   return (
     <Routes>
       <Route path="/login" element={<LoginPage />} />
@@ -29,6 +32,8 @@ function App() {
           <Route path="/data-imports" element={<DataImportsPage />} />
           <Route path="/platform/organisations" element={<OrganisationAdministrationPage platform />} />
           <Route path="/organisation-settings" element={<OrganisationAdministrationPage />} />
+          <Route path="/corrective-actions" element={<ActionCentrePage resource={actionResource} />} />
+          <Route path="/corrective-actions/:id" element={<ResourceDetailPage resource={actionResource} />} />
           {resources.filter((resource) => !resource.customPage).map((resource) => (
             <Route key={resource.key}>
               <Route

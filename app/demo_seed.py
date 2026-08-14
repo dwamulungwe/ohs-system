@@ -853,6 +853,14 @@ def _create_corrective_actions(
             verified_at=_at_day(base, 0, 7, 20),
         ),
     ]
+    for sequence, action in enumerate(actions, start=900001):
+        action.action_reference = f"ACT-{base.year}-{sequence:06d}"
+        action.original_due_date = action.due_date
+        action.assigned_at = action.created_at if getattr(action, "created_at", None) else base
+        if action.status == CorrectiveActionStatus.overdue:
+            action.status = CorrectiveActionStatus.in_progress
+        if action.status == CorrectiveActionStatus.closed:
+            action.closed_at = action.verified_at or action.completed_at
     db.add_all(actions)
     db.flush()
     return {action.title: action for action in actions}

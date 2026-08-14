@@ -65,6 +65,10 @@ class Permission:
     CORRECTIVE_ACTIONS_EDIT = "corrective_actions.edit"
     CORRECTIVE_ACTIONS_SELF_UPDATE = "corrective_actions.self_update"
     CORRECTIVE_ACTIONS_VERIFY = "corrective_actions.verify"
+    CORRECTIVE_ACTIONS_MANAGE_EXTENSIONS = "corrective_actions.manage_extensions"
+    CORRECTIVE_ACTIONS_BULK = "corrective_actions.bulk"
+    CORRECTIVE_ACTIONS_VIEW_ANALYTICS = "corrective_actions.view_analytics"
+    CORRECTIVE_ACTIONS_CONFIGURE = "corrective_actions.configure"
     DASHBOARD_VIEW = "dashboard.view"
     NOTIFICATIONS_VIEW = "notifications.view"
     NOTIFICATIONS_MANAGE = "notifications.manage"
@@ -159,6 +163,10 @@ ROLE_PERMISSIONS = {
         Permission.CORRECTIVE_ACTIONS_CREATE,
         Permission.CORRECTIVE_ACTIONS_EDIT,
         Permission.CORRECTIVE_ACTIONS_VERIFY,
+        Permission.CORRECTIVE_ACTIONS_MANAGE_EXTENSIONS,
+        Permission.CORRECTIVE_ACTIONS_BULK,
+        Permission.CORRECTIVE_ACTIONS_VIEW_ANALYTICS,
+        Permission.CORRECTIVE_ACTIONS_CONFIGURE,
         Permission.DASHBOARD_VIEW,
         Permission.NOTIFICATIONS_VIEW,
         Permission.NOTIFICATIONS_MANAGE,
@@ -239,6 +247,10 @@ ROLE_PERMISSIONS = {
         Permission.CORRECTIVE_ACTIONS_VIEW,
         Permission.CORRECTIVE_ACTIONS_CREATE,
         Permission.CORRECTIVE_ACTIONS_EDIT,
+        Permission.CORRECTIVE_ACTIONS_VERIFY,
+        Permission.CORRECTIVE_ACTIONS_MANAGE_EXTENSIONS,
+        Permission.CORRECTIVE_ACTIONS_BULK,
+        Permission.CORRECTIVE_ACTIONS_VIEW_ANALYTICS,
         Permission.DASHBOARD_VIEW,
         Permission.NOTIFICATIONS_VIEW,
         Permission.EXPORTS_VIEW,
@@ -302,7 +314,11 @@ ROLE_PERMISSIONS = {
         Permission.HAZARDS_CREATE,
         Permission.INSPECTIONS_VIEW,
         Permission.CORRECTIVE_ACTIONS_VIEW,
+        Permission.CORRECTIVE_ACTIONS_CREATE,
+        Permission.CORRECTIVE_ACTIONS_EDIT,
         Permission.CORRECTIVE_ACTIONS_SELF_UPDATE,
+        Permission.CORRECTIVE_ACTIONS_BULK,
+        Permission.CORRECTIVE_ACTIONS_VIEW_ANALYTICS,
         Permission.DASHBOARD_VIEW,
         Permission.NOTIFICATIONS_VIEW,
         Permission.PERMITS_VIEW,
@@ -340,6 +356,8 @@ ROLE_PERMISSIONS = {
         Permission.INCIDENTS_CREATE,
         Permission.HAZARDS_VIEW,
         Permission.HAZARDS_CREATE,
+        Permission.CORRECTIVE_ACTIONS_VIEW,
+        Permission.CORRECTIVE_ACTIONS_SELF_UPDATE,
         Permission.NOTIFICATIONS_VIEW,
         Permission.TRAINING_SELF_VIEW,
         Permission.TRAINING_SELF_UPDATE,

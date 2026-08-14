@@ -63,6 +63,9 @@ class OrganisationSettings(OrganisationOwnedMixin, TimestampMixin, Base):
     sio_workflow_configuration: Mapped[dict] = mapped_column(
         MutableDict.as_mutable(JSON), default=dict, nullable=False
     )
+    action_workflow_configuration: Mapped[dict] = mapped_column(
+        MutableDict.as_mutable(JSON), default=dict, nullable=False
+    )
 
     organisation: Mapped[Organisation] = relationship(back_populates="settings")
 

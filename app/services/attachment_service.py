@@ -40,6 +40,7 @@ from app.services.rbac import (
     ensure_site_access,
     has_any_role,
     has_permission,
+    is_site_scoped,
 )
 
 UPLOAD_CHUNK_SIZE = 1024 * 1024
@@ -175,6 +176,19 @@ def _ensure_compliance_access(user: User, record: ComplianceAcknowledgement, *, 
 
 def _ensure_corrective_action_access(user: User, action: CorrectiveAction, *, write: bool) -> None:
     ensure_site_access(user, action.site_id)
+    if is_site_scoped(user) and not has_permission(user, Permission.CORRECTIVE_ACTIONS_EDIT):
+        contributor_ids = {item.user_id for item in action.contributors}
+        permitted = (
+            user.id in {action.owner_user_id, action.created_by_user_id}
+            or user.id in contributor_ids
+            or bool(
+                user.department_id
+                and user.department_id
+                in {action.department_id, action.responsible_department_id}
+            )
+        )
+        if not permitted:
+            raise _not_authorized()
     if write:
         if has_permission(user, Permission.CORRECTIVE_ACTIONS_VERIFY):
             return
@@ -524,6 +538,21 @@ async def create_attachment(
             entity,
             event_type="attachment_added",
             message=f"Attachment added: {original_filename}",
+            actor_id=current_user.id,
+            metadata={
+                "attachment_id": attachment.id,
+                "evidence_type": attachment.evidence_type,
+            },
+            commit=True,
+        )
+    elif entity_type == AttachmentEntityType.corrective_action:
+        from app.services.corrective_action_service import record_action_activity
+
+        record_action_activity(
+            db,
+            entity,
+            event_type="evidence_uploaded",
+            summary=f"Evidence uploaded: {original_filename}",
             actor_id=current_user.id,
             metadata={
                 "attachment_id": attachment.id,
