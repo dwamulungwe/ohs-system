@@ -37,6 +37,7 @@ from app.api.v1.endpoints import (
     sios,
     sites,
     training,
+    training_competency,
     users,
 )
 from app.services.tenancy import require_feature
@@ -80,6 +81,7 @@ api_router.include_router(
     tags=["notification_deliveries"],
 )
 api_router.include_router(exports.router, prefix="/exports", tags=["exports"])
+api_router.include_router(training_competency.router, tags=["training_competency"])
 api_router.include_router(training.router, tags=["training_compliance"])
 api_router.include_router(permits.router, prefix="/permits", tags=["permits"], dependencies=[Depends(require_feature("permits"))])
 api_router.include_router(ppe.router, prefix="/ppe", tags=["ppe"], dependencies=[Depends(require_feature("ppe"))])

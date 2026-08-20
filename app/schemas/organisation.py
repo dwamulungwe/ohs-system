@@ -5,7 +5,7 @@ from typing import Optional
 
 from pydantic import BaseModel, ConfigDict, EmailStr, Field
 
-from app.models.organisation import default_occupational_health_configuration
+from app.models.organisation import default_occupational_health_configuration, default_training_configuration
 
 
 class OrganisationBase(BaseModel):
@@ -58,6 +58,7 @@ class OrganisationSettingsRead(BaseModel):
     ppe_configuration: dict = {}
     incident_configuration: dict = {}
     occupational_health_configuration: dict = Field(default_factory=default_occupational_health_configuration)
+    training_configuration: dict = Field(default_factory=default_training_configuration)
     created_at: datetime
     updated_at: datetime
 
@@ -79,6 +80,7 @@ class OrganisationSettingsUpdate(BaseModel):
     ppe_configuration: Optional[dict] = None
     incident_configuration: Optional[dict] = None
     occupational_health_configuration: Optional[dict] = None
+    training_configuration: Optional[dict] = None
 
 
 class OrganisationFeatureRead(BaseModel):

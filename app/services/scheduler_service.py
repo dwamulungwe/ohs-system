@@ -52,6 +52,7 @@ from app.services.training_service import (
     generate_overdue_compliance_acknowledgement_notifications,
     generate_overdue_training_notifications,
 )
+from app.services.training_competency_service import generate_reminders as generate_training_competency_reminders
 from app.services.tenancy import current_organisation_id, organisation_has_feature, set_tenant_context, unscoped_session
 
 _scheduler_stop_event = Event()
@@ -145,6 +146,7 @@ def _run_general_reminders_job(db: Session) -> tuple[int, dict]:
         "action_escalations": len(generate_action_escalations(db)) if organisation_has_feature(db, organisation_id, "corrective_actions") else 0,
         "training_overdue": len(generate_overdue_training_notifications(db)) if organisation_has_feature(db, organisation_id, "training") else 0,
         "training_expired": len(generate_expired_training_notifications(db)) if organisation_has_feature(db, organisation_id, "training") else 0,
+        "training_competency_reminders": sum(generate_training_competency_reminders(db).values()) if organisation_has_feature(db, organisation_id, "training") else 0,
         "compliance_acknowledgements_overdue": len(
             generate_overdue_compliance_acknowledgement_notifications(db)
         ) if organisation_has_feature(db, organisation_id, "compliance") else 0,

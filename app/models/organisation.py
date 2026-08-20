@@ -23,6 +23,20 @@ def default_occupational_health_configuration() -> dict:
     }
 
 
+def default_training_configuration() -> dict:
+    return {
+        "default_reminder_windows": [90, 60, 30, 7],
+        "refresher_automation": False,
+        "certificate_verification_required": False,
+        "assessment_required_by_training_type": {},
+        "medical_prerequisite_enforcement": True,
+        "ppe_prerequisite_enforcement": True,
+        "permit_jsa_eligibility_enforcement": False,
+        "authorization_approval_required": True,
+        "competency_validity_default_days": 365,
+    }
+
+
 class Organisation(TimestampMixin, Base):
     __tablename__ = "organisations"
 
@@ -90,6 +104,9 @@ class OrganisationSettings(OrganisationOwnedMixin, TimestampMixin, Base):
     )
     occupational_health_configuration: Mapped[dict] = mapped_column(
         MutableDict.as_mutable(JSON), default=default_occupational_health_configuration, nullable=False
+    )
+    training_configuration: Mapped[dict] = mapped_column(
+        MutableDict.as_mutable(JSON), default=default_training_configuration, nullable=False
     )
 
     organisation: Mapped[Organisation] = relationship(back_populates="settings")

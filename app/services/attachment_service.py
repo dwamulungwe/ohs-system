@@ -34,7 +34,14 @@ from app.models.medical_surveillance import (
 from app.models.permit import PermitToWork
 from app.models.safety_communication import SafetyCommunication
 from app.models.sio import SafetyImprovementObservation
-from app.models.training import ComplianceAcknowledgement, TrainingRecord
+from app.models.training import (
+    ComplianceAcknowledgement,
+    TrainingAssessment,
+    TrainingCertificate,
+    TrainingRecord,
+    TrainingSession,
+    WorkAuthorization,
+)
 from app.models.user import User
 from app.models.ppe import PPEInspection, PPEIssue, PPEItem, PPELossDamageReport
 from app.schemas.attachment import AttachmentRead
@@ -71,6 +78,10 @@ ENTITY_MODELS = {
     AttachmentEntityType.corrective_action: CorrectiveAction,
     AttachmentEntityType.permit: PermitToWork,
     AttachmentEntityType.training: TrainingRecord,
+    AttachmentEntityType.training_session: TrainingSession,
+    AttachmentEntityType.training_assessment: TrainingAssessment,
+    AttachmentEntityType.training_certificate: TrainingCertificate,
+    AttachmentEntityType.work_authorization: WorkAuthorization,
     AttachmentEntityType.compliance_acknowledgement: ComplianceAcknowledgement,
     AttachmentEntityType.safety_communication: SafetyCommunication,
     AttachmentEntityType.behaviour_observation: BehaviourObservation,
@@ -373,6 +384,30 @@ def _ensure_audit_management_access(
 
 
 def ensure_entity_access(user: User, entity_type: AttachmentEntityType, entity, *, write: bool) -> None:
+    if entity_type in {
+        AttachmentEntityType.training_session,
+        AttachmentEntityType.training_assessment,
+        AttachmentEntityType.training_certificate,
+        AttachmentEntityType.work_authorization,
+    }:
+        worker_id = getattr(entity, "worker_user_id", None)
+        site_id = getattr(entity, "site_id", None)
+        if site_id is not None:
+            ensure_site_access(user, site_id)
+        if not write and worker_id == user.id:
+            ensure_permission(user, Permission.TRAINING_SELF_VIEW)
+            return
+        if write:
+            permission = (
+                Permission.TRAINING_AUTHORIZE
+                if entity_type == AttachmentEntityType.work_authorization
+                else Permission.TRAINING_ASSESS
+            )
+            if not (has_permission(user, permission) or has_permission(user, Permission.TRAINING_MANAGE)):
+                raise _not_authorized()
+            return
+        ensure_permission(user, Permission.TRAINING_VIEW_ALL)
+        return
     if entity_type in {
         AttachmentEntityType.ppe_item,
         AttachmentEntityType.ppe_issue,

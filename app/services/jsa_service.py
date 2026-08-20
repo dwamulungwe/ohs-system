@@ -8,7 +8,9 @@ from sqlalchemy.orm import Session
 
 from app.models.jsa import JSAStatus, JobSafetyAnalysis
 from app.models.notification import NotificationSeverity, NotificationType, RelatedEntityType
+from app.models.ppe import PPEItem
 from app.models.site import Site
+from app.models.training import Competency, TrainingCourse
 from app.models.user import User
 from app.schemas.jsa import JSACreate, JSAUpdate
 from app.schemas.notification import NotificationCreate
@@ -45,6 +47,17 @@ def _ensure_site_exists(db: Session, site_id: int) -> None:
 def _ensure_user_exists(db: Session, user_id: Optional[int]) -> None:
     if user_id is not None and db.get(User, user_id) is None:
         raise JSAValidationError("Referenced user not found")
+
+
+def _ensure_eligibility_refs(db: Session, data: dict) -> None:
+    for model, field, label in (
+        (TrainingCourse, "required_course_ids", "training course"),
+        (Competency, "required_competency_ids", "competency"),
+        (PPEItem, "required_ppe_item_ids", "PPE item"),
+    ):
+        for record_id in data.get(field) or []:
+            if db.get(model, record_id) is None:
+                raise JSAValidationError(f"Referenced {label} not found")
 
 
 def _apply_review_expiry(
@@ -147,6 +160,7 @@ def create_jsa(db: Session, jsa_in: JSACreate, *, actor_id: Optional[int]) -> Jo
     data = jsa_in.model_dump()
     _ensure_site_exists(db, data["site_id"])
     _ensure_user_exists(db, data.get("approved_by_user_id"))
+    _ensure_eligibility_refs(db, data)
     _apply_review_expiry(data, review_date=None, existing_status=data.get("status"))
     _apply_approval(data, actor_id=actor_id)
     jsa = JobSafetyAnalysis(**data)
@@ -177,6 +191,7 @@ def update_jsa(
     if "site_id" in update_data and update_data["site_id"] is not None:
         _ensure_site_exists(db, update_data["site_id"])
     _ensure_user_exists(db, update_data.get("approved_by_user_id"))
+    _ensure_eligibility_refs(db, update_data)
     previous_status = jsa.status
     _apply_review_expiry(update_data, review_date=jsa.review_date, existing_status=jsa.status)
     _apply_approval(update_data, actor_id=actor_id, existing_approved_at=jsa.approved_at)

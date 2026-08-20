@@ -243,6 +243,16 @@ export const apiClient = {
   updateOccupationalHealth(token, path, body) {
     return request(`/medical-surveillance/${path.replace(/^\/+/, '')}`, { token, method: 'PATCH', body })
   },
+  getTrainingCompetency(token, path = '', params = {}) {
+    const suffix = path ? `/${path.replace(/^\/+/, '')}` : ''
+    return request(withQuery(`/training${suffix}`, params), { token })
+  },
+  trainingCompetencyCommand(token, path, body = {}) {
+    return request(`/training/${path.replace(/^\/+/, '')}`, { token, method: 'POST', body })
+  },
+  updateTrainingCompetency(token, path, body = {}) {
+    return request(`/training/${path.replace(/^\/+/, '')}`, { token, method: 'PATCH', body })
+  },
   incidentCommand(token, incidentId, command, body = {}) {
     return request(`/incidents/${incidentId}/${command}`, { token, method: 'POST', body })
   },

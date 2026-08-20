@@ -16,6 +16,12 @@ class JSABase(BaseModel):
     hazards: list[str] = Field(default_factory=list)
     controls: list[str] = Field(default_factory=list)
     ppe_required: list[str] = Field(default_factory=list)
+    required_course_ids: list[int] = Field(default_factory=list)
+    required_competency_ids: list[int] = Field(default_factory=list)
+    required_authorization_types: list[str] = Field(default_factory=list)
+    required_ppe_item_ids: list[int] = Field(default_factory=list)
+    required_medical_programme_codes: list[str] = Field(default_factory=list)
+    eligibility_enforcement_enabled: bool = False
     residual_risk_level: ResidualRiskLevel = ResidualRiskLevel.medium
     approved_by_user_id: Optional[int] = None
     approved_at: Optional[datetime] = None
@@ -36,6 +42,12 @@ class JSAUpdate(BaseModel):
     hazards: Optional[list[str]] = None
     controls: Optional[list[str]] = None
     ppe_required: Optional[list[str]] = None
+    required_course_ids: Optional[list[int]] = None
+    required_competency_ids: Optional[list[int]] = None
+    required_authorization_types: Optional[list[str]] = None
+    required_ppe_item_ids: Optional[list[int]] = None
+    required_medical_programme_codes: Optional[list[str]] = None
+    eligibility_enforcement_enabled: Optional[bool] = None
     residual_risk_level: Optional[ResidualRiskLevel] = None
     approved_by_user_id: Optional[int] = None
     approved_at: Optional[datetime] = None

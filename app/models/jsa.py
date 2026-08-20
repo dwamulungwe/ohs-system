@@ -36,6 +36,12 @@ class JobSafetyAnalysis(OrganisationOwnedMixin, TimestampMixin, Base):
     hazards: Mapped[list[str]] = mapped_column(MutableList.as_mutable(JSON), default=list, nullable=False)
     controls: Mapped[list[str]] = mapped_column(MutableList.as_mutable(JSON), default=list, nullable=False)
     ppe_required: Mapped[list[str]] = mapped_column(MutableList.as_mutable(JSON), default=list, nullable=False)
+    required_course_ids: Mapped[list[int]] = mapped_column(MutableList.as_mutable(JSON), default=list, nullable=False)
+    required_competency_ids: Mapped[list[int]] = mapped_column(MutableList.as_mutable(JSON), default=list, nullable=False)
+    required_authorization_types: Mapped[list[str]] = mapped_column(MutableList.as_mutable(JSON), default=list, nullable=False)
+    required_ppe_item_ids: Mapped[list[int]] = mapped_column(MutableList.as_mutable(JSON), default=list, nullable=False)
+    required_medical_programme_codes: Mapped[list[str]] = mapped_column(MutableList.as_mutable(JSON), default=list, nullable=False)
+    eligibility_enforcement_enabled: Mapped[bool] = mapped_column(default=False, nullable=False)
     residual_risk_level: Mapped[ResidualRiskLevel] = mapped_column(
         Enum(ResidualRiskLevel),
         default=ResidualRiskLevel.medium,

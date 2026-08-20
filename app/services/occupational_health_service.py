@@ -818,7 +818,13 @@ def dashboard(db: Session, *, site_id: Optional[int] = None, department_id: Opti
     }
 
 
-def prerequisite_status(db: Session, worker_id: int, *, programme_codes: Optional[list[str]] = None) -> dict[str, Any]:
+def prerequisite_status(
+    db: Session,
+    worker_id: int,
+    *,
+    programme_codes: Optional[list[str]] = None,
+    as_of: Optional[date] = None,
+) -> dict[str, Any]:
     _get(db, User, worker_id, "Worker")
     codes = set(programme_codes or ["CONFINED_SPACE", "DRIVER", "WORK_AT_HEIGHT", "RESPIRATORY"])
     records = list(db.scalars(select(MedicalSurveillanceRecord).where(MedicalSurveillanceRecord.employee_user_id == worker_id)).all())
@@ -826,7 +832,7 @@ def prerequisite_status(db: Session, worker_id: int, *, programme_codes: Optiona
     for record in records:
         code = record.programme.code if record.programme else None
         if code in codes:
-            state = calculate_record_compliance(record)
+            state = calculate_record_compliance(record, as_of=as_of)
             items.append({"programme_code": code, "programme_name": record.programme.name, "status": state.value, "cleared": state in {SurveillanceComplianceStatus.compliant, SurveillanceComplianceStatus.due_soon} and record.fitness_outcome in {FitnessOutcome.fit, FitnessOutcome.fit_with_restrictions}})
     return {"worker_user_id": worker_id, "cleared": bool(items) and all(item["cleared"] for item in items), "prerequisites": items}
 

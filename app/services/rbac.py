@@ -84,6 +84,11 @@ class Permission:
     TRAINING_MANAGE = "training.manage"
     TRAINING_SELF_VIEW = "training.self_view"
     TRAINING_SELF_UPDATE = "training.self_update"
+    TRAINING_ASSIGN = "training.assign"
+    TRAINING_ASSESS = "training.assess"
+    TRAINING_AUTHORIZE = "training.authorize"
+    TRAINING_REQUEST = "training.request"
+    TRAINING_EXPORT = "training.export"
     COMPLIANCE_VIEW_ALL = "compliance.view_all"
     COMPLIANCE_MANAGE = "compliance.manage"
     COMPLIANCE_SELF_VIEW = "compliance.self_view"
@@ -469,6 +474,24 @@ ROLE_PERMISSIONS[ROLE_SAFETY_OFFICER].update({
     Permission.INCIDENT_REGULATORY_MANAGE,
 })
 ROLE_PERMISSIONS[ROLE_SUPERVISOR].update({Permission.INCIDENT_MANAGE})
+
+# Phase 2D training and competency capabilities build on the historical
+# training permissions without introducing a hard-coded global Trainer role.
+ROLE_PERMISSIONS[ROLE_OHS_MANAGER].update({
+    Permission.TRAINING_ASSIGN, Permission.TRAINING_ASSESS,
+    Permission.TRAINING_AUTHORIZE, Permission.TRAINING_REQUEST,
+    Permission.TRAINING_EXPORT,
+})
+ROLE_PERMISSIONS[ROLE_SAFETY_OFFICER].update({
+    Permission.TRAINING_ASSIGN, Permission.TRAINING_ASSESS,
+    Permission.TRAINING_AUTHORIZE, Permission.TRAINING_REQUEST,
+    Permission.TRAINING_EXPORT,
+})
+ROLE_PERMISSIONS[ROLE_SUPERVISOR].update({
+    Permission.TRAINING_VIEW_ALL, Permission.TRAINING_ASSIGN,
+    Permission.TRAINING_REQUEST,
+})
+ROLE_PERMISSIONS[ROLE_EMPLOYEE].update({Permission.TRAINING_REQUEST})
 
 # Occupational-health permissions intentionally separate operational fitness
 # information from confidential clinical detail. Admin retains "*"; safety

@@ -1,11 +1,13 @@
 from typing import Optional
 from datetime import datetime, timedelta, timezone
 
+from fastapi.encoders import jsonable_encoder
 from sqlalchemy import Select, select
 from sqlalchemy.orm import Session
 
 from app.core.config import settings
 from app.models.notification import Notification, NotificationSeverity, NotificationType, RelatedEntityType
+from app.models.organisation import OrganisationSettings
 from app.models.permit import PermitStatus, PermitToWork, PermitType
 from app.models.site import Site
 from app.models.user import User
@@ -81,6 +83,62 @@ def _validate_permit_type_requirements(data: dict) -> None:
         raise PermitValidationError("confined_space permits require gas_test_results when gas testing is required")
 
 
+def _validate_team_references(db: Session, data: dict) -> None:
+    from app.models.training import ContractorWorker
+
+    for worker_id in data.get("required_worker_user_ids") or []:
+        if db.get(User, worker_id) is None:
+            raise PermitUserNotFoundError(f"Worker {worker_id} was not found")
+    for contractor_worker_id in data.get("required_contractor_worker_ids") or []:
+        if db.get(ContractorWorker, contractor_worker_id) is None:
+            raise PermitValidationError(f"Contractor worker {contractor_worker_id} was not found")
+
+
+def _permit_eligibility_enforced(db: Session, data: dict) -> bool:
+    if data.get("eligibility_enforcement_enabled"):
+        return True
+    organisation_settings = db.scalar(select(OrganisationSettings))
+    config = dict(getattr(organisation_settings, "training_configuration", {}) or {}) if organisation_settings else {}
+    return bool(config.get("permit_jsa_eligibility_enforcement", False))
+
+
+def _validate_team_eligibility(db: Session, data: dict) -> None:
+    """Run the Phase 2D hook only when this permit opts into enforcement."""
+    if not _permit_eligibility_enforced(db, data):
+        return
+    if data.get("status") not in {PermitStatus.approved, PermitStatus.active}:
+        return
+    from app.schemas.training import EligibilityQuery
+    from app.services.training_competency_service import TrainingCompetencyError, evaluate_eligibility
+
+    results = []
+    try:
+        for worker_id in data.get("required_worker_user_ids") or []:
+            result = evaluate_eligibility(db, EligibilityQuery(
+                worker_user_id=worker_id,
+                permit_type=getattr(data.get("permit_type"), "value", data.get("permit_type")),
+                site_id=data.get("site_id"),
+            ))
+            results.append(result)
+        for contractor_worker_id in data.get("required_contractor_worker_ids") or []:
+            result = evaluate_eligibility(db, EligibilityQuery(
+                contractor_worker_id=contractor_worker_id,
+                permit_type=getattr(data.get("permit_type"), "value", data.get("permit_type")),
+                site_id=data.get("site_id"),
+            ))
+            results.append(result)
+    except TrainingCompetencyError as exc:
+        raise PermitValidationError("Permit team eligibility could not be validated") from exc
+    data["eligibility_validation"] = {
+        "evaluated_at": _now().isoformat(),
+        "results": jsonable_encoder(results),
+        "eligible": all(item["eligible"] for item in results) if results else None,
+    }
+    failures = [item for item in results if not item["eligible"]]
+    if failures:
+        raise PermitValidationError("Permit team contains workers who are not eligible for this work")
+
+
 def _derive_expired_status(data: dict) -> None:
     status = data.get("status", PermitStatus.draft)
     end_datetime = data.get("end_datetime")
@@ -154,10 +212,12 @@ def create_permit(db: Session, permit_in: PermitCreate) -> PermitToWork:
     _ensure_site_exists(db, data.get("site_id"))
     for user_field in ("requested_by_user_id", "issued_by_user_id", "approved_by_user_id"):
         _ensure_user_exists(db, data.get(user_field))
+    _validate_team_references(db, data)
     _validate_datetime_range(data["start_datetime"], data["end_datetime"])
     _validate_permit_type_requirements(data)
     _derive_expired_status(data)
     _apply_approval_timestamp(data)
+    _validate_team_eligibility(db, data)
 
     permit = PermitToWork(**data)
     db.add(permit)
@@ -185,13 +245,21 @@ def update_permit(db: Session, permit: PermitToWork, permit_in: PermitUpdate) ->
         "precautions_required": update_data.get("precautions_required", permit.precautions_required),
         "gas_test_required": update_data.get("gas_test_required", permit.gas_test_required),
         "gas_test_results": update_data.get("gas_test_results", permit.gas_test_results),
+        "site_id": update_data.get("site_id", permit.site_id),
+        "required_worker_user_ids": update_data.get("required_worker_user_ids", permit.required_worker_user_ids),
+        "required_contractor_worker_ids": update_data.get("required_contractor_worker_ids", permit.required_contractor_worker_ids),
+        "eligibility_enforcement_enabled": update_data.get("eligibility_enforcement_enabled", permit.eligibility_enforcement_enabled),
     }
+    _validate_team_references(db, effective_data)
     previous_status = permit.status
     _validate_datetime_range(effective_data["start_datetime"], effective_data["end_datetime"])
     _validate_status_transition(previous_status, effective_data["status"])
     _validate_permit_type_requirements(effective_data)
     _derive_expired_status(effective_data)
+    _validate_team_eligibility(db, effective_data)
     update_data["status"] = effective_data["status"]
+    if "eligibility_validation" in effective_data:
+        update_data["eligibility_validation"] = effective_data["eligibility_validation"]
     _apply_approval_timestamp(
         update_data,
         previous_status=previous_status,

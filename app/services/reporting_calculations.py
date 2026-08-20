@@ -6,7 +6,7 @@ from functools import cached_property
 from statistics import median
 from typing import Optional
 
-from sqlalchemy import select
+from sqlalchemy import or_, select
 from sqlalchemy.orm import Session
 
 from app.models.audit_management import AuditManagementRecord, AuditStatus
@@ -33,6 +33,10 @@ from app.models.training import TrainingRecord, TrainingStatus
 from app.models.ppe import PPEIssueStatus
 from app.services.ppe_service import ACTIVE_ISSUE_STATUSES, dashboard as ppe_dashboard, list_issues as list_ppe_issues
 from app.services.occupational_health_service import dashboard as occupational_health_dashboard
+from app.services.training_competency_service import (
+    dashboard as training_competency_dashboard,
+    forward_view as training_forward_view,
+)
 
 
 @dataclass(frozen=True)
@@ -570,13 +574,75 @@ def _training_metric(context: CalculationContext, key: str) -> MetricValue:
         "training_expiring_30": expiring(30),
         "training_expiring_60": expiring(60),
         "training_expiring_90": expiring(90),
-        "competency_gaps": sum(item.status in {TrainingStatus.overdue, TrainingStatus.expired} or bool(item.due_date and item.due_date < context.end and item not in completed) for item in required),
     }
     if key in values:
         return MetricValue(float(values[key]), metadata=metadata)
     if key == "training_compliance_rate":
         value = _percent(len(completed), len(required))
         return MetricValue(value, len(completed), len(required), metadata, "No required training assignments in scope" if value is None else None)
+    summary = training_competency_dashboard(
+        context.db, site_id=context.site_id, department_id=context.department_id, as_of=context.end
+    )
+    forward = training_forward_view(
+        context.db, site_id=context.site_id, department_id=context.department_id, days=90, as_of=context.end
+    )
+    competency_expiries = [item for item in forward if item["type"] == "competency_expiry"]
+    certificate_expiries = [item for item in forward if item["type"] == "certificate_expiry"]
+    values = {
+        "workers_requiring_training": summary["workers_requiring_training"],
+        "training_assignments_open": summary["assigned_training"] + summary["overdue_training"],
+        "competencies_required": summary["competencies_required"],
+        "competency_gaps": summary["competency_gaps"],
+        "competency_compliance_rate": summary["competency_compliance_rate"],
+        "competencies_expiring_30": sum(item["date"] <= context.end + timedelta(days=30) for item in competency_expiries),
+        "competencies_expiring_60": sum(item["date"] <= context.end + timedelta(days=60) for item in competency_expiries),
+        "competencies_expiring_90": len(competency_expiries),
+        "certificates_expiring": len(certificate_expiries),
+        "authorizations_expired": summary["authorization_gaps"],
+        "workers_not_eligible": summary["work_eligibility_failures"],
+        "refresher_training_overdue": summary["refresher_backlog"],
+        "failed_assessments": summary["failed_assessments"],
+        "reassessment_backlog": summary["reassessment_backlog"],
+    }
+    if key == "authorizations_active":
+        from app.models.training import AuthorizationStatus, WorkAuthorization
+        statement = select(WorkAuthorization).where(
+            WorkAuthorization.status == AuthorizationStatus.active,
+            WorkAuthorization.valid_from <= context.end,
+            or_(WorkAuthorization.valid_until.is_(None), WorkAuthorization.valid_until >= context.end),
+        )
+        if context.site_id is not None:
+            statement = statement.where(WorkAuthorization.site_id == context.site_id)
+        if context.department_id is not None:
+            statement = statement.where(WorkAuthorization.department_id == context.department_id)
+        return MetricValue(float(len(list(context.db.scalars(statement).all()))), metadata=metadata)
+    if key == "expired_competencies":
+        from app.models.training import CompetencyAward, CompetencyAwardStatus, ContractorWorker
+        from app.models.user import User
+        statement = select(CompetencyAward).where(
+            or_(CompetencyAward.status == CompetencyAwardStatus.expired, CompetencyAward.valid_until < context.end)
+        )
+        if context.site_id is not None or context.department_id is not None:
+            worker_statement = select(User.id).where(User.is_active.is_(True))
+            if context.site_id is not None:
+                worker_statement = worker_statement.where(User.assigned_site_id == context.site_id)
+            if context.department_id is not None:
+                worker_statement = worker_statement.where(User.department_id == context.department_id)
+            subject_scope = CompetencyAward.worker_user_id.in_(worker_statement)
+            # Contractor workers are site-scoped but do not carry a department.
+            # Include them for site-only views and omit them from department views.
+            if context.department_id is None:
+                contractor_statement = select(ContractorWorker.id).where(ContractorWorker.active.is_(True))
+                if context.site_id is not None:
+                    contractor_statement = contractor_statement.where(ContractorWorker.site_id == context.site_id)
+                subject_scope = or_(subject_scope, CompetencyAward.contractor_worker_id.in_(contractor_statement))
+            statement = statement.where(subject_scope)
+        return MetricValue(float(len(list(context.db.scalars(statement).all()))), metadata=metadata)
+    if key in values:
+        value = values[key]
+        if value is None:
+            return MetricValue(None, metadata=metadata, insufficient_reason="No applicable competency requirements in scope")
+        return MetricValue(float(value), metadata=metadata)
     return MetricValue(None, metadata=metadata, insufficient_reason="Calculation is not available")
 
 
@@ -727,7 +793,13 @@ def calculate_kpi(context: CalculationContext, definition: KPIDefinition) -> Met
         result = _inspection_metric(context, key)
     elif key.startswith("audit") or key in {"major_findings", "minor_findings", "open_audit_findings", "overdue_audit_findings", "repeat_audit_findings", "audits_planned", "audits_completed"}:
         result = _audit_metric(context, key)
-    elif key.startswith("training") or key == "competency_gaps":
+    elif key.startswith("training") or key in {
+        "competency_gaps", "workers_requiring_training", "competencies_required",
+        "competency_compliance_rate", "competencies_expiring_30", "competencies_expiring_60",
+        "competencies_expiring_90", "expired_competencies", "certificates_expiring",
+        "authorizations_active", "authorizations_expired", "workers_not_eligible",
+        "refresher_training_overdue", "failed_assessments", "reassessment_backlog",
+    }:
         result = _training_metric(context, key)
     elif key.startswith("permit") or key.startswith("compliance") or key in {"active_permits", "expired_permits"}:
         result = _permit_compliance_metric(context, key)

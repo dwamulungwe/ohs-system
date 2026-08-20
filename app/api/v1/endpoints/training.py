@@ -23,6 +23,7 @@ from app.services.training_service import (
     TrainingRecordNotFoundError,
     TrainingSiteNotFoundError,
     TrainingUserNotFoundError,
+    TrainingCourseNotFoundError,
     create_compliance_acknowledgement,
     create_training_record,
     get_compliance_acknowledgement,
@@ -100,6 +101,8 @@ def create_training(
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Site not found")
     except TrainingUserNotFoundError:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Referenced user not found")
+    except TrainingCourseNotFoundError:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Course not found")
 
 
 @router.get("/training/{training_id}", response_model=TrainingRecordRead, dependencies=[Depends(require_feature("training"))])
@@ -148,6 +151,8 @@ def patch_training(
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Site not found")
     except TrainingUserNotFoundError:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Referenced user not found")
+    except TrainingCourseNotFoundError:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Course not found")
 
 
 @router.get("/compliance-acknowledgements", response_model=ComplianceAcknowledgementListRead, dependencies=[Depends(require_feature("compliance"))])

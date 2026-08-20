@@ -103,6 +103,16 @@ KPI_CATALOGUE = [
         "training_expiring_60", "training_expiring_90", "competency_gaps",
     )],
     _entry("training_compliance_rate", "Training", unit="percent", direction=KPIDirection.higher_is_better, numerator="Completed current training assignments", denominator="Required training assignments"),
+    *[_entry(key, "Training", direction=KPIDirection.lower_is_better) for key in (
+        "training_assignments_open", "competencies_expiring_30", "competencies_expiring_60",
+        "competencies_expiring_90", "expired_competencies", "certificates_expiring",
+        "authorizations_expired", "workers_not_eligible", "refresher_training_overdue",
+        "failed_assessments", "reassessment_backlog",
+    )],
+    *[_entry(key, "Training") for key in (
+        "workers_requiring_training", "competencies_required", "authorizations_active",
+    )],
+    _entry("competency_compliance_rate", "Training", unit="percent", direction=KPIDirection.higher_is_better, numerator="Current required competencies", denominator="Applicable required competencies"),
     # Permits and compliance
     *[_entry(key, "Permits & Compliance", direction=KPIDirection.lower_is_better if key in {"permits_renewal_30", "permits_renewal_60", "permits_renewal_90", "expired_permits", "compliance_due_soon", "compliance_overdue"} else KPIDirection.informational) for key in (
         "active_permits", "permits_renewal_30", "permits_renewal_60", "permits_renewal_90",

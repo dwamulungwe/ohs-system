@@ -10,6 +10,7 @@ from app.models.training import (
     ComplianceAcknowledgement,
     ComplianceAcknowledgementStatus,
     TrainingRecord,
+    TrainingCourse,
     TrainingStatus,
     TrainingType,
 )
@@ -45,6 +46,10 @@ class TrainingUserNotFoundError(TrainingServiceError):
     pass
 
 
+class TrainingCourseNotFoundError(TrainingServiceError):
+    pass
+
+
 COMPLIANCE_OVERDUE_DAYS = 30
 
 
@@ -60,6 +65,11 @@ def _ensure_site_exists(db: Session, site_id: Optional[int]) -> None:
 def _ensure_user_exists(db: Session, user_id: Optional[int]) -> None:
     if user_id is not None and db.get(User, user_id) is None:
         raise TrainingUserNotFoundError(f"User {user_id} was not found")
+
+
+def _ensure_course_exists(db: Session, course_id: Optional[int]) -> None:
+    if course_id is not None and db.get(TrainingCourse, course_id) is None:
+        raise TrainingCourseNotFoundError(f"Course {course_id} was not found")
 
 
 def _dump_certificate_metadata(data: dict) -> None:
@@ -147,6 +157,7 @@ def create_training_record(db: Session, training_in: TrainingRecordCreate, *, cu
     _ensure_site_exists(db, data.get("site_id"))
     _ensure_user_exists(db, data.get("assigned_to_user_id"))
     _ensure_user_exists(db, data.get("assigned_by_user_id"))
+    _ensure_course_exists(db, data.get("course_id"))
     derive_training_status(data)
 
     record = TrainingRecord(**data)
@@ -164,6 +175,8 @@ def update_training_record(db: Session, record: TrainingRecord, training_in: Tra
     for user_field in ("assigned_to_user_id", "assigned_by_user_id"):
         if user_field in update_data:
             _ensure_user_exists(db, update_data.get(user_field))
+    if "course_id" in update_data:
+        _ensure_course_exists(db, update_data.get("course_id"))
 
     effective_data = {
         "status": update_data.get("status", record.status),

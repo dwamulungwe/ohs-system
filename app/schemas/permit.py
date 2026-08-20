@@ -32,6 +32,10 @@ class PermitBase(BaseModel):
     risk_summary: Optional[str] = None
     precautions_required: list[str] = Field(default_factory=list)
     ppe_required: list[str] = Field(default_factory=list)
+    required_worker_user_ids: list[int] = Field(default_factory=list)
+    required_contractor_worker_ids: list[int] = Field(default_factory=list)
+    eligibility_enforcement_enabled: bool = False
+    eligibility_validation: dict = Field(default_factory=dict)
     isolation_required: bool = False
     gas_test_required: bool = False
     gas_test_results: list[GasTestResult] = Field(default_factory=list)
@@ -63,6 +67,10 @@ class PermitUpdate(BaseModel):
     risk_summary: Optional[str] = None
     precautions_required: Optional[list[str]] = None
     ppe_required: Optional[list[str]] = None
+    required_worker_user_ids: Optional[list[int]] = None
+    required_contractor_worker_ids: Optional[list[int]] = None
+    eligibility_enforcement_enabled: Optional[bool] = None
+    eligibility_validation: Optional[dict] = None
     isolation_required: Optional[bool] = None
     gas_test_required: Optional[bool] = None
     gas_test_results: Optional[list[GasTestResult]] = None

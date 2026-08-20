@@ -1232,14 +1232,15 @@ export const resources = [
   },
   {
     key: 'training',
-    label: 'Training',
+    label: 'Training & Competency',
     singular: 'Training Record',
     route: '/training',
     icon: GraduationCap,
     attachmentEntityType: 'training',
     listEndpoint: '/training',
     detailEndpoint: (id) => `/training/${id}`,
-    description: 'Assigned training records with due dates, completion, and certificate evidence.',
+    description: 'Enterprise training, competency, certification, authorization, and explainable work eligibility.',
+    customPage: true,
     columns: [
       { key: 'title', label: 'Title' },
       { key: 'training_type', label: 'Training Type' },
