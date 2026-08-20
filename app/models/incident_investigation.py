@@ -11,8 +11,13 @@ from app.models.common import OrganisationOwnedMixin, TimestampMixin
 
 
 class IncidentInvestigationStatus(str, enum.Enum):
+    not_required = "not_required"
+    assigned = "assigned"
     draft = "draft"
     in_progress = "in_progress"
+    pending_review = "pending_review"
+    completed = "completed"
+    # Historical workflow values.
     pending_approval = "pending_approval"
     approved = "approved"
     closed = "closed"
@@ -33,6 +38,10 @@ class IncidentInvestigation(OrganisationOwnedMixin, TimestampMixin, Base):
         ForeignKey("users.id", ondelete="SET NULL"),
         nullable=True,
     )
+    assigned_by_user_id: Mapped[Optional[int]] = mapped_column(
+        ForeignKey("users.id", ondelete="SET NULL"), nullable=True
+    )
+    assigned_at: Mapped[Optional[datetime]] = mapped_column(DateTime(timezone=True), nullable=True)
     investigation_team: Mapped[list[str]] = mapped_column(MutableList.as_mutable(JSON), default=list, nullable=False)
     witness_statements: Mapped[list[dict]] = mapped_column(MutableList.as_mutable(JSON), default=list, nullable=False)
     immediate_causes: Mapped[list[str]] = mapped_column(MutableList.as_mutable(JSON), default=list, nullable=False)
@@ -40,7 +49,15 @@ class IncidentInvestigation(OrganisationOwnedMixin, TimestampMixin, Base):
     root_cause: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
     five_whys: Mapped[list[str]] = mapped_column(MutableList.as_mutable(JSON), default=list, nullable=False)
     contributing_factors: Mapped[list[str]] = mapped_column(MutableList.as_mutable(JSON), default=list, nullable=False)
+    organisational_factors: Mapped[list[str]] = mapped_column(MutableList.as_mutable(JSON), default=list, nullable=False)
     recommendations: Mapped[list[str]] = mapped_column(MutableList.as_mutable(JSON), default=list, nullable=False)
+    scope: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
+    objectives: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
+    evidence_reviewed: Mapped[list[dict]] = mapped_column(MutableList.as_mutable(JSON), default=list, nullable=False)
+    persons_interviewed: Mapped[list[dict]] = mapped_column(MutableList.as_mutable(JSON), default=list, nullable=False)
+    scene_inspection: Mapped[dict] = mapped_column(JSON, default=dict, nullable=False)
+    documents_reviewed: Mapped[list[dict]] = mapped_column(MutableList.as_mutable(JSON), default=list, nullable=False)
+    equipment_involved: Mapped[list[dict]] = mapped_column(MutableList.as_mutable(JSON), default=list, nullable=False)
     status: Mapped[IncidentInvestigationStatus] = mapped_column(
         Enum(IncidentInvestigationStatus),
         default=IncidentInvestigationStatus.draft,
@@ -48,6 +65,7 @@ class IncidentInvestigation(OrganisationOwnedMixin, TimestampMixin, Base):
         nullable=False,
     )
     target_completion_date: Mapped[Optional[date]] = mapped_column(Date, nullable=True)
+    investigation_started_at: Mapped[Optional[datetime]] = mapped_column(DateTime(timezone=True), nullable=True)
     completed_at: Mapped[Optional[datetime]] = mapped_column(DateTime(timezone=True), nullable=True)
     approved_by_user_id: Mapped[Optional[int]] = mapped_column(
         ForeignKey("users.id", ondelete="SET NULL"),
@@ -70,3 +88,23 @@ class IncidentInvestigation(OrganisationOwnedMixin, TimestampMixin, Base):
         foreign_keys=[approved_by_user_id],
         lazy="selectin",
     )
+    assigned_by: Mapped[Optional["User"]] = relationship(
+        foreign_keys=[assigned_by_user_id], lazy="selectin"
+    )
+
+    @property
+    def due_date(self):
+        return self.target_completion_date
+
+    @property
+    def is_overdue(self) -> bool:
+        return bool(
+            self.target_completion_date
+            and self.target_completion_date < date.today()
+            and self.status not in {
+                IncidentInvestigationStatus.not_required,
+                IncidentInvestigationStatus.completed,
+                IncidentInvestigationStatus.approved,
+                IncidentInvestigationStatus.closed,
+            }
+        )

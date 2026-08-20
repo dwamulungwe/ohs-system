@@ -21,7 +21,28 @@ from app.models.department import Department
 from app.models.document_control import DocumentControlRecord
 from app.models.emergency_drill import EmergencyDrillRecord
 from app.models.hazard import Hazard
-from app.models.incident import Incident
+from app.models.incident import (
+    Incident,
+    IncidentActivity,
+    IncidentCauseAnalysis,
+    IncidentCauseCategory,
+    IncidentClassification,
+    IncidentClosureHistory,
+    IncidentEnvironmentalDetail,
+    IncidentEvent,
+    IncidentFinding,
+    IncidentInjury,
+    IncidentLink,
+    IncidentPerson,
+    IncidentPropertyDamage,
+    IncidentReferenceSequence,
+    IncidentRegulatoryNotification,
+    IncidentReminderDelivery,
+    IncidentReturnToWork,
+    IncidentTreatment,
+    IncidentVehicleDetail,
+    IncidentWitnessStatement,
+)
 from app.models.incident_investigation import IncidentInvestigation
 from app.models.inspection import Inspection
 from app.models.jsa import JobSafetyAnalysis
@@ -97,6 +118,25 @@ __all__ = [
     "EmergencyDrillRecord",
     "Hazard",
     "Incident",
+    "IncidentActivity",
+    "IncidentCauseAnalysis",
+    "IncidentCauseCategory",
+    "IncidentClassification",
+    "IncidentClosureHistory",
+    "IncidentEnvironmentalDetail",
+    "IncidentEvent",
+    "IncidentFinding",
+    "IncidentInjury",
+    "IncidentLink",
+    "IncidentPerson",
+    "IncidentPropertyDamage",
+    "IncidentReferenceSequence",
+    "IncidentRegulatoryNotification",
+    "IncidentReminderDelivery",
+    "IncidentReturnToWork",
+    "IncidentTreatment",
+    "IncidentVehicleDetail",
+    "IncidentWitnessStatement",
     "IncidentInvestigation",
     "Inspection",
     "JobSafetyAnalysis",

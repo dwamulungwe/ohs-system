@@ -72,6 +72,9 @@ class OrganisationSettings(OrganisationOwnedMixin, TimestampMixin, Base):
     ppe_configuration: Mapped[dict] = mapped_column(
         MutableDict.as_mutable(JSON), default=dict, nullable=False
     )
+    incident_configuration: Mapped[dict] = mapped_column(
+        MutableDict.as_mutable(JSON), default=dict, nullable=False
+    )
 
     organisation: Mapped[Organisation] = relationship(back_populates="settings")
 

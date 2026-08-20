@@ -57,7 +57,17 @@ DUE_SOON_DAYS = 7
 TRIFR_LTIFR_MULTIPLIER = 1_000_000
 ACTIVE_PERMIT_EXPIRY_STATUSES = {PermitStatus.approved, PermitStatus.active, PermitStatus.suspended}
 PERMIT_EXPIRY_WARNING_STATUSES = {PermitStatus.active, PermitStatus.suspended}
-OPEN_INCIDENT_STATUSES = {IncidentStatus.open, IncidentStatus.investigating}
+OPEN_INCIDENT_STATUSES = {
+    IncidentStatus.draft,
+    IncidentStatus.reported,
+    IncidentStatus.triaged,
+    IncidentStatus.under_investigation,
+    IncidentStatus.actions_open,
+    IncidentStatus.pending_closure,
+    IncidentStatus.reopened,
+    IncidentStatus.open,
+    IncidentStatus.investigating,
+}
 OPEN_ACTION_STATUSES = {
     CorrectiveActionStatus.open,
     CorrectiveActionStatus.in_progress,
@@ -70,8 +80,10 @@ OPEN_BEHAVIOUR_ISSUE_TYPES = {
     BehaviourObservationType.event_safety_observation,
 }
 OPEN_INVESTIGATION_STATUSES = {
+    IncidentInvestigationStatus.assigned,
     IncidentInvestigationStatus.draft,
     IncidentInvestigationStatus.in_progress,
+    IncidentInvestigationStatus.pending_review,
     IncidentInvestigationStatus.pending_approval,
 }
 

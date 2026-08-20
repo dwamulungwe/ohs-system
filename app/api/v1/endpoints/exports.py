@@ -34,7 +34,7 @@ from app.models.medical_surveillance import (
 )
 from app.models.sio import SIOStatus, SIOUrgency
 from app.models.user import User
-from app.services.rbac import Permission, ensure_permission, ensure_site_access, resolve_site_scope
+from app.services.rbac import Permission, ensure_permission, ensure_site_access, has_permission, resolve_site_scope
 from app.services.tenancy import require_feature
 from app.services.export_service import (
     ExportNotFoundError,
@@ -44,6 +44,9 @@ from app.services.export_service import (
     export_hazards_csv,
     export_incident_investigations_csv,
     export_incidents_csv,
+    export_incident_injuries_csv,
+    export_incident_root_causes_csv,
+    export_regulatory_notifications_csv,
     export_sios_csv,
     export_inspections_csv,
     export_jsas_csv,
@@ -319,6 +322,65 @@ def incidents_csv(
         export_incidents_csv(db, site_id=site_id, status=status, severity=severity, date_from=date_from, date_to=date_to),
         "incidents.csv",
     )
+
+
+@router.get("/incident-register.csv", dependencies=[Depends(require_feature("incidents"))])
+def incident_register_csv(
+    site_id: Optional[int] = None, status: Optional[IncidentStatus] = None,
+    severity: Optional[IncidentSeverity] = None, date_from: Optional[date] = None,
+    date_to: Optional[date] = None, db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+) -> Response:
+    ensure_permission(current_user, Permission.EXPORTS_VIEW)
+    ensure_permission(current_user, Permission.INCIDENTS_VIEW)
+    site_id = resolve_site_scope(current_user, site_id)
+    return _csv_response(export_incidents_csv(
+        db, site_id=site_id, status=status, severity=severity,
+        date_from=date_from, date_to=date_to, enterprise=True,
+    ), "incident-register.csv")
+
+
+@router.get("/incident-injuries.csv", dependencies=[Depends(require_feature("incidents"))])
+def incident_injuries_csv(
+    site_id: Optional[int] = None, date_from: Optional[date] = None, date_to: Optional[date] = None,
+    include_medical_details: bool = False,
+    db: Session = Depends(get_db), current_user: User = Depends(get_current_user),
+) -> Response:
+    ensure_permission(current_user, Permission.EXPORTS_VIEW)
+    ensure_permission(current_user, Permission.INCIDENTS_VIEW)
+    if include_medical_details and not has_permission(current_user, Permission.INCIDENT_MEDICAL_VIEW):
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Medical export permission required")
+    site_id = resolve_site_scope(current_user, site_id)
+    return _csv_response(export_incident_injuries_csv(
+        db, site_id=site_id, date_from=date_from, date_to=date_to,
+        include_medical_details=include_medical_details,
+    ), "incident-injuries.csv")
+
+
+@router.get("/incident-regulatory.csv", dependencies=[Depends(require_feature("incidents"))])
+def incident_regulatory_csv(
+    site_id: Optional[int] = None, date_from: Optional[date] = None, date_to: Optional[date] = None,
+    db: Session = Depends(get_db), current_user: User = Depends(get_current_user),
+) -> Response:
+    ensure_permission(current_user, Permission.EXPORTS_VIEW)
+    ensure_permission(current_user, Permission.INCIDENTS_VIEW)
+    site_id = resolve_site_scope(current_user, site_id)
+    return _csv_response(export_regulatory_notifications_csv(
+        db, site_id=site_id, date_from=date_from, date_to=date_to,
+    ), "incident-regulatory.csv")
+
+
+@router.get("/incident-root-causes.csv", dependencies=[Depends(require_feature("incidents"))])
+def incident_root_causes_csv(
+    site_id: Optional[int] = None, date_from: Optional[date] = None, date_to: Optional[date] = None,
+    db: Session = Depends(get_db), current_user: User = Depends(get_current_user),
+) -> Response:
+    ensure_permission(current_user, Permission.EXPORTS_VIEW)
+    ensure_permission(current_user, Permission.INCIDENTS_VIEW)
+    site_id = resolve_site_scope(current_user, site_id)
+    return _csv_response(export_incident_root_causes_csv(
+        db, site_id=site_id, date_from=date_from, date_to=date_to,
+    ), "incident-root-causes.csv")
 
 
 @router.get("/sios.csv", dependencies=[Depends(require_feature("sios"))])

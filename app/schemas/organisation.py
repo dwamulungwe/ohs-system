@@ -54,6 +54,7 @@ class OrganisationSettingsRead(BaseModel):
     action_workflow_configuration: dict = {}
     reporting_configuration: dict = {}
     ppe_configuration: dict = {}
+    incident_configuration: dict = {}
     created_at: datetime
     updated_at: datetime
 
@@ -73,6 +74,7 @@ class OrganisationSettingsUpdate(BaseModel):
     action_workflow_configuration: Optional[dict] = None
     reporting_configuration: Optional[dict] = None
     ppe_configuration: Optional[dict] = None
+    incident_configuration: Optional[dict] = None
 
 
 class OrganisationFeatureRead(BaseModel):

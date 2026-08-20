@@ -17,7 +17,7 @@ from app.models.corrective_action import (
     CorrectiveActionStatus,
 )
 from app.models.hazard import Hazard, HazardRiskLevel, HazardStatus
-from app.models.incident import Incident, IncidentSeverity, IncidentStatus
+from app.models.incident import Incident, IncidentCauseAnalysis, IncidentSeverity, IncidentStatus
 from app.models.incident_investigation import IncidentInvestigation, IncidentInvestigationStatus
 from app.models.inspection import Inspection, InspectionOverallResult, InspectionStatus
 from app.models.legal_compliance import LegalComplianceItem, LegalComplianceStatus
@@ -126,7 +126,14 @@ class CalculationContext:
 
     @cached_property
     def incidents(self) -> list[Incident]:
-        return [item for item in self._scoped(Incident) if self._in_period(item.occurred_at)]
+        return [item for item in self._scoped(Incident, department_fields=("department_id",)) if self._in_period(item.occurred_at)]
+
+    @cached_property
+    def incident_causes(self) -> list[IncidentCauseAnalysis]:
+        incident_ids = {item.id for item in self.incidents}
+        if not incident_ids:
+            return []
+        return list(self.db.scalars(select(IncidentCauseAnalysis).where(IncidentCauseAnalysis.incident_id.in_(incident_ids))).all())
 
     @cached_property
     def investigations(self) -> list[IncidentInvestigation]:
@@ -412,27 +419,33 @@ def _incident_metric(context: CalculationContext, definition: KPIDefinition) -> 
     key = definition.key
     metadata = _base_metadata(context, source="incidents + incident_investigations", formula=key)
     metadata["source_count"] = len(context.incidents)
-    classified_unavailable = {
-        "near_miss_count", "first_aid_count", "medical_treatment_count", "restricted_work_count",
-        "occupational_illness_count", "fatality_count", "property_damage_count",
-        "environmental_incident_count",
+    classification_keys = {
+        "near_miss_count": "near_miss", "near_misses": "near_miss",
+        "first_aid_count": "first_aid_injury", "first_aid_incidents": "first_aid_injury",
+        "medical_treatment_count": "medical_treatment_injury", "medical_treatment_incidents": "medical_treatment_injury",
+        "restricted_work_count": "restricted_work_case", "restricted_work_incidents": "restricted_work_case",
+        "lost_time_injury_count": "lost_time_injury", "lost_time_incidents": "lost_time_injury",
+        "occupational_illness_count": "occupational_illness", "occupational_illness_incidents": "occupational_illness",
+        "fatality_count": "fatality", "fatalities": "fatality",
+        "property_damage_count": "property_damage", "property_damage_incidents": "property_damage",
+        "environmental_incident_count": "environmental_incident", "environmental_incidents": "environmental_incident",
     }
-    if key in classified_unavailable:
-        return MetricValue(
-            None,
-            metadata=metadata,
-            insufficient_reason="The current incident schema does not store this classification explicitly",
-        )
+    if key in classification_keys:
+        code = classification_keys[key]
+        value = sum(item.incident_type == code for item in context.incidents)
+        # Historical incidents predate structured classification; preserve the
+        # legacy lost-time indicator in the LTI numerator.
+        if code == "lost_time_injury":
+            value = sum(item.incident_type == code or item.is_lost_time for item in context.incidents)
+        return MetricValue(float(value), metadata=metadata)
     if key == "total_incidents":
         return MetricValue(float(len(context.incidents)), metadata=metadata)
-    if key == "lost_time_injury_count":
-        return MetricValue(float(sum(item.is_lost_time for item in context.incidents)), metadata=metadata)
     if key == "high_critical_incidents":
         return MetricValue(float(sum(item.severity in {IncidentSeverity.high, IncidentSeverity.critical} for item in context.incidents)), metadata=metadata)
     if key in {"open_investigations", "overdue_investigations"}:
         open_statuses = {
-            IncidentInvestigationStatus.draft,
-            IncidentInvestigationStatus.in_progress,
+            IncidentInvestigationStatus.draft, IncidentInvestigationStatus.assigned,
+            IncidentInvestigationStatus.in_progress, IncidentInvestigationStatus.pending_review,
             IncidentInvestigationStatus.pending_approval,
         }
         open_items = [item for item in context.investigations if item.status in open_statuses]
@@ -450,6 +463,21 @@ def _incident_metric(context: CalculationContext, definition: KPIDefinition) -> 
         if not durations:
             return MetricValue(None, metadata=metadata, insufficient_reason="No completed investigations in the period")
         return MetricValue(round(sum(durations) / len(durations), 2), metadata=metadata)
+    if key == "average_incident_closure_days":
+        durations = [
+            max(0, (_as_date(item.closed_at) - _as_date(item.reported_at or item.created_at)).days)
+            for item in context.incidents if item.closed_at and context._in_period(item.closed_at)
+        ]
+        if not durations:
+            return MetricValue(None, metadata=metadata, insufficient_reason="No incident closures in the period")
+        return MetricValue(round(sum(durations) / len(durations), 2), metadata=metadata)
+    if key == "repeat_cause_categories":
+        counts = {}
+        for cause in context.incident_causes:
+            category = cause.category_code or "uncategorised"
+            counts[category] = counts.get(category, 0) + 1
+        metadata["repeat_categories"] = {category: count for category, count in counts.items() if count > 1}
+        return MetricValue(float(sum(count - 1 for count in counts.values() if count > 1)), metadata=metadata)
     if key == "days_since_last_lti":
         lti_dates = [_as_date(item.occurred_at) for item in context._scoped(Incident) if item.is_lost_time and _as_date(item.occurred_at) <= context.end]
         if not lti_dates:
@@ -650,6 +678,10 @@ def calculate_kpi(context: CalculationContext, definition: KPIDefinition) -> Met
         "fatality_count", "property_damage_count", "environmental_incident_count",
         "high_critical_incidents", "open_investigations", "overdue_investigations",
         "average_investigation_closure_days", "days_since_last_lti", "trir", "ltifr",
+        "near_misses", "first_aid_incidents", "medical_treatment_incidents",
+        "restricted_work_incidents", "lost_time_incidents", "occupational_illness_incidents",
+        "fatalities", "property_damage_incidents", "environmental_incidents",
+        "average_incident_closure_days", "repeat_cause_categories",
     }:
         result = _incident_metric(context, definition)
     elif key in {

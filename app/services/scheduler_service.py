@@ -34,6 +34,7 @@ from app.services.medical_surveillance_service import (
     generate_medical_surveillance_notifications,
     refresh_medical_surveillance_statuses,
 )
+from app.services.incident_management_service import generate_incident_reminders
 from app.services.notification_service import (
     create_notification_once,
     generate_corrective_action_due_soon_notifications,
@@ -150,6 +151,7 @@ def _run_general_reminders_job(db: Session) -> tuple[int, dict]:
         "permit_due_soon": len(generate_permit_nearing_expiry_notifications(db)) if organisation_has_feature(db, organisation_id, "permits") else 0,
         "permit_expired": len(generate_permit_expired_notifications(db)) if organisation_has_feature(db, organisation_id, "permits") else 0,
         "sio_due_and_overdue": len(generate_sio_due_notifications(db)) if organisation_has_feature(db, organisation_id, "sios") else 0,
+        "incident_reminders": sum(generate_incident_reminders(db).values()) if organisation_has_feature(db, organisation_id, "incidents") else 0,
         "ppe_reminders": sum(generate_ppe_reminders(db).values()) if organisation_has_feature(db, organisation_id, "ppe") else 0,
     }
     total += sum(parts.values())

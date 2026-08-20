@@ -37,6 +37,8 @@ export function OrganisationAdministrationPage({ platform = false }) {
 
   useEffect(() => {
     if (!authorized) {
+      // This branch synchronises loading state with a permission boundary.
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setIsLoading(false)
       return
     }
@@ -87,6 +89,7 @@ export function OrganisationAdministrationPage({ platform = false }) {
           numbering_prefixes: stringify(nextSettings.numbering_prefixes),
           sio_workflow_configuration: stringify(nextSettings.sio_workflow_configuration),
           action_workflow_configuration: stringify(nextSettings.action_workflow_configuration),
+          incident_configuration: stringify(nextSettings.incident_configuration),
         })
         setFeatures(nextFeatures)
       } catch (loadError) {
@@ -150,6 +153,7 @@ export function OrganisationAdministrationPage({ platform = false }) {
         numbering_prefixes: JSON.parse(settingsDraft.numbering_prefixes || '{}'),
         sio_workflow_configuration: JSON.parse(settingsDraft.sio_workflow_configuration || '{}'),
         action_workflow_configuration: JSON.parse(settingsDraft.action_workflow_configuration || '{}'),
+        incident_configuration: JSON.parse(settingsDraft.incident_configuration || '{}'),
       }
       const updated = await apiClient.updateOrganisationSettings(token, selectedId, payload)
       setSettings(updated)
@@ -225,7 +229,7 @@ export function OrganisationAdministrationPage({ platform = false }) {
               </div>
               <label className="mt-4 block text-sm font-medium">Permit expiry warning days<input type="number" min="1" max="365" value={settingsDraft.permit_expiry_warning_days ?? ''} onChange={(event) => setSettingsDraft((current) => ({ ...current, permit_expiry_warning_days: event.target.value }))} className="mt-1 block w-full rounded-lg border border-stone-300 px-3 py-2" /></label>
               <div className="mt-4 grid gap-4 lg:grid-cols-2">
-                {['branding', 'terminology', 'dashboard_preferences', 'notification_preferences', 'numbering_prefixes', 'sio_workflow_configuration', 'action_workflow_configuration'].map((key) => (
+                {['branding', 'terminology', 'dashboard_preferences', 'notification_preferences', 'numbering_prefixes', 'sio_workflow_configuration', 'action_workflow_configuration', 'incident_configuration'].map((key) => (
                   <label key={key} className="block text-sm font-medium">{prettyLabel(key)} (JSON)<textarea rows={6} value={settingsDraft[key] ?? '{}'} onChange={(event) => setSettingsDraft((current) => ({ ...current, [key]: event.target.value }))} className="mt-1 block w-full rounded-lg border border-stone-300 px-3 py-2 font-mono text-xs" /></label>
                 ))}
               </div>

@@ -1,4 +1,5 @@
 from typing import Optional
+from datetime import date, timedelta
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.orm import Session
 
@@ -33,18 +34,28 @@ def read_investigations(
     status: Optional[IncidentInvestigationStatus] = None,
     site_id: Optional[int] = None,
     incident_id: Optional[int] = None,
+    queue: Optional[str] = Query(default=None, pattern="^(my|due|overdue|awaiting_review)$"),
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ) -> dict:
     ensure_permission(current_user, Permission.INVESTIGATIONS_VIEW)
     site_id = resolve_site_scope(current_user, site_id)
+    lead_user_id = current_user.id if queue == "my" else None
+    effective_status = status
+    overdue_only = queue == "overdue"
+    due_before = date.today() + timedelta(days=7) if queue == "due" else None
+    if queue == "awaiting_review":
+        effective_status = IncidentInvestigationStatus.pending_review
     return list_incident_investigations(
         db,
         skip=skip,
         limit=limit,
-        status=status,
+        status=effective_status,
         site_id=site_id,
         incident_id=incident_id,
+        lead_user_id=lead_user_id,
+        overdue_only=overdue_only,
+        due_before=due_before,
     )
 
 

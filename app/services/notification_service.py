@@ -8,6 +8,7 @@ from app.models.corrective_action import CorrectiveAction, CorrectiveActionStatu
 from app.models.hazard import Hazard, HazardRiskLevel
 from app.models.incident import Incident, IncidentSeverity
 from app.models.notification import Notification, NotificationSeverity, NotificationType, RelatedEntityType
+from app.models.organisation import OrganisationSettings
 from app.models.role import Role
 from app.models.user import User
 from app.schemas.notification import NotificationCreate
@@ -214,8 +215,19 @@ def notify_critical_hazard(db: Session, hazard: Hazard) -> list[Notification]:
 def notify_critical_incident(db: Session, incident: Incident) -> list[Notification]:
     if incident.severity != IncidentSeverity.critical:
         return []
+    settings = db.scalar(select(OrganisationSettings))
+    configuration = dict(settings.incident_configuration or {}) if settings else {}
+    configured_roles = configuration.get("critical_incident_escalation_roles", ["ohs_manager", "admin"])
+    configured_users = configuration.get("critical_incident_escalation_user_ids", [])
+    scoped_recipients = get_active_user_ids_for_roles(db, role_names=list(configured_roles), site_id=incident.site_id)
     notifications = []
-    for recipient_user_id in _recipient_ids(incident.reported_by_id):
+    for recipient_user_id in _recipient_ids(
+        incident.reported_by_id,
+        incident.supervisor_user_id,
+        incident.responsible_hs_officer_user_id,
+        *configured_users,
+        *scoped_recipients,
+    ):
         notification = create_notification_once(
             db,
             NotificationCreate(

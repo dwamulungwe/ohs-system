@@ -26,7 +26,10 @@ from app.models.corrective_action import (
 from app.models.document_control import DocumentControlRecord, DocumentStatus, DocumentType
 from app.models.emergency_drill import EmergencyDrillRecord, EmergencyDrillStatus
 from app.models.hazard import Hazard, HazardRiskLevel, HazardStatus
-from app.models.incident import Incident, IncidentSeverity, IncidentStatus
+from app.models.incident import (
+    Incident, IncidentCauseAnalysis, IncidentInjury, IncidentPerson,
+    IncidentRegulatoryNotification, IncidentSeverity, IncidentStatus,
+)
 from app.models.incident_investigation import IncidentInvestigation, IncidentInvestigationStatus
 from app.models.inspection import Inspection, InspectionOverallResult, InspectionStatus
 from app.models.jsa import JSAStatus, JobSafetyAnalysis, ResidualRiskLevel
@@ -670,6 +673,7 @@ def export_incidents_csv(
     severity: Optional[IncidentSeverity] = None,
     date_from: Optional[date] = None,
     date_to: Optional[date] = None,
+    enterprise: bool = False,
 ) -> str:
     statement = _apply_common_filters(select(Incident), Incident, site_id=site_id, date_field=Incident.occurred_at, date_from=date_from, date_to=date_to)
     if status is not None:
@@ -677,21 +681,126 @@ def export_incidents_csv(
     if severity is not None:
         statement = statement.where(Incident.severity == severity)
     records = db.scalars(statement.order_by(Incident.occurred_at.desc(), Incident.id.desc())).all()
-    headers = ["ID", "Site ID", "Title", "Status", "Severity", "Occurred At", "Reported By User ID", "Description"]
+    if not enterprise:
+        headers = ["ID", "Site ID", "Title", "Status", "Severity", "Occurred At", "Reported By User ID", "Description"]
+        return _csv(headers, [{
+            "ID": item.id, "Site ID": item.site_id, "Title": item.title,
+            "Status": _enum_value(item.status), "Severity": _enum_value(item.severity),
+            "Occurred At": _date_value(item.occurred_at),
+            "Reported By User ID": item.reported_by_id or "", "Description": item.description,
+        } for item in records])
+    headers = [
+        "Reference", "External ID", "Site ID", "Department ID", "Area / Location",
+        "Title", "Classification", "Status", "Severity", "Potential Severity",
+        "Occurred At", "Reported At", "Reported By User ID", "Persons Affected",
+        "Investigation Status", "Regulator Status", "Recordable", "Lost Time", "Age Days",
+        "Description",
+    ]
+    investigation_by_incident = {
+        item.incident_id: item.status.value
+        for item in db.scalars(select(IncidentInvestigation).where(IncidentInvestigation.incident_id.in_([record.id for record in records]))).all()
+    } if records else {}
     rows = [
         {
-            "ID": item.id,
+            "Reference": item.incident_reference or item.id,
+            "External ID": item.source_external_id or "",
             "Site ID": item.site_id,
+            "Department ID": item.department_id or "",
+            "Area / Location": item.area_location or "",
             "Title": item.title,
+            "Classification": item.incident_type,
             "Status": _enum_value(item.status),
             "Severity": _enum_value(item.severity),
+            "Potential Severity": item.potential_severity or "",
             "Occurred At": _date_value(item.occurred_at),
+            "Reported At": _date_value(item.reported_at),
             "Reported By User ID": item.reported_by_id or "",
+            "Persons Affected": item.persons_affected,
+            "Investigation Status": investigation_by_incident.get(item.id, "not_assigned"),
+            "Regulator Status": _enum_value(item.regulator_notification_status),
+            "Recordable": item.is_recordable,
+            "Lost Time": item.is_lost_time,
+            "Age Days": item.age_days,
             "Description": item.description,
         }
         for item in records
     ]
     return _csv(headers, rows)
+
+
+def export_incident_injuries_csv(
+    db: Session, *, site_id: Optional[int] = None,
+    date_from: Optional[date] = None, date_to: Optional[date] = None,
+    include_medical_details: bool = False,
+) -> str:
+    statement = select(IncidentInjury, Incident, IncidentPerson).join(
+        Incident, Incident.id == IncidentInjury.incident_id
+    ).join(IncidentPerson, IncidentPerson.id == IncidentInjury.incident_person_id)
+    if site_id is not None:
+        statement = statement.where(Incident.site_id == site_id)
+    statement = apply_date_filters(statement, Incident.occurred_at, date_from=date_from, date_to=date_to)
+    records = db.execute(statement.order_by(Incident.occurred_at.desc())).all()
+    headers = [
+        "Incident Reference", "Site ID", "Classification", "Occurred At", "Injury", "Illness",
+        "Treatment Required", "Days Lost", "Restricted Work Days", "Fatality",
+    ]
+    if include_medical_details:
+        headers += ["Incident Person ID", "External Name", "Body Part", "Injury Type", "Diagnosis / Description", "Notes"]
+    rows = []
+    for injury, incident, person in records:
+        row = {
+            "Incident Reference": incident.incident_reference, "Site ID": incident.site_id,
+            "Classification": incident.incident_type, "Occurred At": _date_value(incident.occurred_at),
+            "Injury": injury.injury_present, "Illness": injury.illness_present,
+            "Treatment Required": injury.treatment_required, "Days Lost": injury.days_lost,
+            "Restricted Work Days": injury.restricted_work_days, "Fatality": injury.fatality,
+        }
+        if include_medical_details:
+            row.update({
+                "Incident Person ID": person.id, "External Name": person.external_name or "",
+                "Body Part": injury.body_part or "", "Injury Type": injury.injury_type or "",
+                "Diagnosis / Description": injury.diagnosis_description or "", "Notes": injury.notes or "",
+            })
+        rows.append(row)
+    return _csv(headers, rows)
+
+
+def export_regulatory_notifications_csv(
+    db: Session, *, site_id: Optional[int] = None,
+    date_from: Optional[date] = None, date_to: Optional[date] = None,
+) -> str:
+    statement = select(IncidentRegulatoryNotification, Incident).join(Incident)
+    if site_id is not None:
+        statement = statement.where(Incident.site_id == site_id)
+    statement = apply_date_filters(statement, Incident.occurred_at, date_from=date_from, date_to=date_to)
+    records = db.execute(statement.order_by(IncidentRegulatoryNotification.notification_deadline)).all()
+    headers = ["Incident Reference", "Site ID", "Regulator", "Legal Basis", "Deadline", "Status", "Notified At", "Notified By User ID", "Regulator Reference", "Follow-Up Required"]
+    return _csv(headers, [{
+        "Incident Reference": incident.incident_reference, "Site ID": incident.site_id,
+        "Regulator": item.regulator_name, "Legal Basis": item.legal_basis_reference or "",
+        "Deadline": _date_value(item.notification_deadline), "Status": _enum_value(item.status),
+        "Notified At": _date_value(item.notified_at), "Notified By User ID": item.notified_by_user_id or "",
+        "Regulator Reference": item.regulator_reference or "", "Follow-Up Required": item.follow_up_required,
+    } for item, incident in records])
+
+
+def export_incident_root_causes_csv(
+    db: Session, *, site_id: Optional[int] = None,
+    date_from: Optional[date] = None, date_to: Optional[date] = None,
+) -> str:
+    statement = select(IncidentCauseAnalysis, Incident).join(Incident)
+    if site_id is not None:
+        statement = statement.where(Incident.site_id == site_id)
+    statement = apply_date_filters(statement, Incident.occurred_at, date_from=date_from, date_to=date_to)
+    records = db.execute(statement.order_by(Incident.occurred_at.desc())).all()
+    headers = ["Incident Reference", "Site ID", "Department ID", "Cause Level", "Category", "Description", "Methodology", "Problem", "Why Steps", "Root Cause"]
+    return _csv(headers, [{
+        "Incident Reference": incident.incident_reference, "Site ID": incident.site_id,
+        "Department ID": incident.department_id or "", "Cause Level": cause.cause_level,
+        "Category": cause.category_code or "", "Description": cause.description,
+        "Methodology": cause.methodology, "Problem": cause.problem_statement or "",
+        "Why Steps": _json_value(cause.why_steps), "Root Cause": cause.is_root_cause,
+    } for cause, incident in records])
 
 
 def export_sios_csv(

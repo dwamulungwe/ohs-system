@@ -53,6 +53,13 @@ class Permission:
     INCIDENTS_CREATE = "incidents.create"
     INCIDENTS_EDIT = "incidents.edit"
     INCIDENTS_CLOSE = "incidents.close"
+    INCIDENT_MANAGE = "incident.manage"
+    INCIDENT_INVESTIGATE = "incident.investigate"
+    INCIDENT_MEDICAL_VIEW = "incident.medical.view"
+    INCIDENT_MEDICAL_MANAGE = "incident.medical.manage"
+    INCIDENT_REGULATORY_MANAGE = "incident.regulatory.manage"
+    INCIDENT_VERIFY = "incident.verify"
+    INCIDENT_CONFIGURE = "incident.configure"
     HAZARDS_VIEW = "hazards.view"
     HAZARDS_CREATE = "hazards.create"
     HAZARDS_EDIT = "hazards.edit"
@@ -440,6 +447,20 @@ ROLE_PERMISSIONS = {
         Permission.PPE_REPORT_LOSS_DAMAGE,
     },
 }
+
+# Phase 2B granular permissions augment the historical incident permissions.
+ROLE_PERMISSIONS[ROLE_OHS_MANAGER].update({
+    Permission.INCIDENT_MANAGE, Permission.INCIDENT_INVESTIGATE,
+    Permission.INCIDENT_MEDICAL_VIEW, Permission.INCIDENT_MEDICAL_MANAGE,
+    Permission.INCIDENT_REGULATORY_MANAGE, Permission.INCIDENT_VERIFY,
+    Permission.INCIDENT_CONFIGURE,
+})
+ROLE_PERMISSIONS[ROLE_SAFETY_OFFICER].update({
+    Permission.INCIDENT_MANAGE, Permission.INCIDENT_INVESTIGATE,
+    Permission.INCIDENT_MEDICAL_VIEW, Permission.INCIDENT_MEDICAL_MANAGE,
+    Permission.INCIDENT_REGULATORY_MANAGE,
+})
+ROLE_PERMISSIONS[ROLE_SUPERVISOR].update({Permission.INCIDENT_MANAGE})
 
 GLOBAL_SITE_ACCESS_ROLES = {ROLE_ADMIN, ROLE_OHS_MANAGER, ROLE_SAFETY_OFFICER}
 SITE_SCOPED_ROLES = {ROLE_SUPERVISOR, ROLE_EMPLOYEE}

@@ -220,6 +220,21 @@ export const apiClient = {
   getPpeDashboard(token, params = {}) {
     return request(withQuery('/ppe/dashboard', params), { token })
   },
+  getIncidentDashboard(token, params = {}) {
+    return request(withQuery('/incidents/dashboard', params), { token })
+  },
+  getIncidents(token, params = {}) {
+    return request(withQuery('/incidents', params), { token }).then((payload) => normalizePaginatedResponse(payload, params.skip ?? 0, params.limit ?? 25))
+  },
+  getIncidentWorkspace(token, incidentId) {
+    return request(`/incidents/${incidentId}/workspace`, { token })
+  },
+  getIncidentMedical(token, incidentId) {
+    return request(`/incidents/${incidentId}/medical`, { token })
+  },
+  incidentCommand(token, incidentId, command, body = {}) {
+    return request(`/incidents/${incidentId}/${command}`, { token, method: 'POST', body })
+  },
   getPpeCollection(token, path, params = {}) {
     return request(withQuery(`/ppe/${path}`, params), { token })
   },

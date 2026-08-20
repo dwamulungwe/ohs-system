@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from typing import Optional
-from datetime import datetime, timezone
+from datetime import date, datetime, timedelta, timezone
 
 from sqlalchemy import Select, select
 from sqlalchemy.orm import Session
@@ -15,6 +15,7 @@ from app.schemas.notification import NotificationCreate
 from app.services.audit_service import write_audit_log
 from app.services.notification_service import create_notification_once
 from app.services.query_utils import paginate
+from app.services.incident_service import add_activity, incident_settings
 
 
 class IncidentInvestigationServiceError(Exception):
@@ -27,6 +28,26 @@ class IncidentInvestigationNotFoundError(IncidentInvestigationServiceError):
 
 class IncidentInvestigationValidationError(IncidentInvestigationServiceError):
     pass
+
+
+COMPLETED_STATUSES = {
+    IncidentInvestigationStatus.not_required,
+    IncidentInvestigationStatus.completed,
+    IncidentInvestigationStatus.approved,
+    IncidentInvestigationStatus.closed,
+}
+
+INVESTIGATION_TRANSITIONS = {
+    IncidentInvestigationStatus.draft: {IncidentInvestigationStatus.assigned, IncidentInvestigationStatus.in_progress, IncidentInvestigationStatus.pending_approval, IncidentInvestigationStatus.not_required},
+    IncidentInvestigationStatus.assigned: {IncidentInvestigationStatus.in_progress, IncidentInvestigationStatus.not_required},
+    IncidentInvestigationStatus.in_progress: {IncidentInvestigationStatus.pending_review, IncidentInvestigationStatus.pending_approval, IncidentInvestigationStatus.completed},
+    IncidentInvestigationStatus.pending_review: {IncidentInvestigationStatus.in_progress, IncidentInvestigationStatus.completed},
+    IncidentInvestigationStatus.completed: {IncidentInvestigationStatus.in_progress, IncidentInvestigationStatus.closed},
+    IncidentInvestigationStatus.pending_approval: {IncidentInvestigationStatus.in_progress, IncidentInvestigationStatus.approved},
+    IncidentInvestigationStatus.approved: {IncidentInvestigationStatus.closed},
+    IncidentInvestigationStatus.not_required: set(),
+    IncidentInvestigationStatus.closed: set(),
+}
 
 
 def _now() -> datetime:
@@ -63,12 +84,16 @@ def _apply_status_side_effects(
     existing_completed_at: Optional[datetime] = None,
 ) -> None:
     status = data.get("status", previous_status or IncidentInvestigationStatus.draft)
+    if status in {IncidentInvestigationStatus.assigned, IncidentInvestigationStatus.in_progress}:
+        data["assigned_at"] = data.get("assigned_at") or _now()
+        if status == IncidentInvestigationStatus.in_progress:
+            data["investigation_started_at"] = data.get("investigation_started_at") or _now()
     if status == IncidentInvestigationStatus.approved:
         data["approved_at"] = data.get("approved_at") or existing_approved_at or _now()
         data["completed_at"] = data.get("completed_at") or existing_completed_at or _now()
         if actor_id is not None:
             data["approved_by_user_id"] = actor_id
-    elif status == IncidentInvestigationStatus.closed:
+    elif status in {IncidentInvestigationStatus.completed, IncidentInvestigationStatus.closed}:
         data["completed_at"] = data.get("completed_at") or existing_completed_at or _now()
 
 
@@ -112,6 +137,23 @@ def _notify_approved(db: Session, investigation: IncidentInvestigation) -> None:
     )
 
 
+def _notify_assigned(db: Session, investigation: IncidentInvestigation) -> None:
+    if investigation.investigation_lead_user_id is None:
+        return
+    create_notification_once(
+        db,
+        NotificationCreate(
+            recipient_user_id=investigation.investigation_lead_user_id,
+            title="Incident investigation assigned",
+            message=f"You have been assigned the investigation for incident #{investigation.incident_id}.",
+            notification_type=NotificationType.investigator_assigned,
+            severity=NotificationSeverity.warning,
+            related_entity_type=RelatedEntityType.incident_investigation,
+            related_entity_id=investigation.id,
+        ),
+    )
+
+
 def list_incident_investigations(
     db: Session,
     *,
@@ -120,6 +162,9 @@ def list_incident_investigations(
     status: Optional[IncidentInvestigationStatus] = None,
     site_id: Optional[int] = None,
     incident_id: Optional[int] = None,
+    lead_user_id: Optional[int] = None,
+    overdue_only: bool = False,
+    due_before: Optional[date] = None,
 ) -> dict:
     statement: Select[tuple[IncidentInvestigation]] = select(IncidentInvestigation)
     if status is not None:
@@ -128,6 +173,15 @@ def list_incident_investigations(
         statement = statement.where(IncidentInvestigation.site_id == site_id)
     if incident_id is not None:
         statement = statement.where(IncidentInvestigation.incident_id == incident_id)
+    if lead_user_id is not None:
+        statement = statement.where(IncidentInvestigation.investigation_lead_user_id == lead_user_id)
+    if overdue_only:
+        statement = statement.where(
+            IncidentInvestigation.target_completion_date < date.today(),
+            IncidentInvestigation.status.notin_(COMPLETED_STATUSES),
+        )
+    elif due_before is not None:
+        statement = statement.where(IncidentInvestigation.target_completion_date <= due_before)
     statement = statement.order_by(
         IncidentInvestigation.created_at.desc(),
         IncidentInvestigation.id.desc(),
@@ -154,15 +208,30 @@ def create_incident_investigation(
     incident = _get_incident_or_error(db, data["incident_id"])
     _ensure_user_exists(db, data.get("investigation_lead_user_id"))
     _ensure_user_exists(db, data.get("approved_by_user_id"))
+    _ensure_user_exists(db, data.get("assigned_by_user_id"))
     existing = db.scalar(
         select(IncidentInvestigation).where(IncidentInvestigation.incident_id == data["incident_id"])
     )
     if existing is not None:
         raise IncidentInvestigationValidationError("This incident already has an investigation")
     data["site_id"] = incident.site_id
+    if data.get("target_completion_date") is None and data.get("status") != IncidentInvestigationStatus.not_required:
+        data["target_completion_date"] = date.today() + timedelta(
+            days=int(incident_settings(db).get("default_investigation_due_days", 14))
+        )
+    if data.get("investigation_lead_user_id"):
+        data["assigned_by_user_id"] = data.get("assigned_by_user_id") or actor_id
+        data["assigned_at"] = data.get("assigned_at") or _now()
     _apply_status_side_effects(data, actor_id=actor_id)
     investigation = IncidentInvestigation(**data)
     db.add(investigation)
+    db.flush()
+    add_activity(
+        db, incident, "investigator_assigned" if investigation.investigation_lead_user_id else "investigation_created",
+        "Incident investigation created and assigned." if investigation.investigation_lead_user_id else "Incident investigation created.",
+        actor_id=actor_id,
+        metadata={"investigation_id": investigation.id, "lead_user_id": investigation.investigation_lead_user_id},
+    )
     db.commit()
     db.refresh(investigation)
     write_audit_log(
@@ -175,6 +244,7 @@ def create_incident_investigation(
     )
     _notify_pending_approval(db, investigation)
     _notify_approved(db, investigation)
+    _notify_assigned(db, investigation)
     return investigation
 
 
@@ -189,7 +259,14 @@ def update_incident_investigation(
     _dump_json_lists(update_data)
     _ensure_user_exists(db, update_data.get("investigation_lead_user_id"))
     _ensure_user_exists(db, update_data.get("approved_by_user_id"))
+    _ensure_user_exists(db, update_data.get("assigned_by_user_id"))
     previous_status = investigation.status
+    previous_lead_user_id = investigation.investigation_lead_user_id
+    next_status = update_data.get("status", previous_status)
+    if next_status != previous_status and next_status not in INVESTIGATION_TRANSITIONS.get(previous_status, set()):
+        raise IncidentInvestigationValidationError(
+            f"Invalid investigation transition from {previous_status.value} to {next_status.value}"
+        )
     _apply_status_side_effects(
         update_data,
         previous_status=previous_status,
@@ -199,6 +276,11 @@ def update_incident_investigation(
     )
     for field, value in update_data.items():
         setattr(investigation, field, value)
+    incident = _get_incident_or_error(db, investigation.incident_id)
+    if investigation.investigation_lead_user_id != previous_lead_user_id:
+        add_activity(db, incident, "investigator_assigned", "Investigation lead changed.", actor_id=actor_id, metadata={"investigation_id": investigation.id, "from": previous_lead_user_id, "to": investigation.investigation_lead_user_id})
+    if investigation.status != previous_status:
+        add_activity(db, incident, "investigation_status_changed", f"Investigation status changed from {previous_status.value} to {investigation.status.value}.", actor_id=actor_id, metadata={"investigation_id": investigation.id, "from": previous_status.value, "to": investigation.status.value})
     db.add(investigation)
     db.commit()
     db.refresh(investigation)
@@ -221,6 +303,8 @@ def update_incident_investigation(
         )
     _notify_pending_approval(db, investigation)
     _notify_approved(db, investigation)
+    if investigation.investigation_lead_user_id != previous_lead_user_id:
+        _notify_assigned(db, investigation)
     return investigation
 
 
@@ -230,7 +314,4 @@ def incident_has_completed_investigation(db: Session, *, incident_id: int) -> bo
     )
     if investigation is None:
         return False
-    return investigation.status in {
-        IncidentInvestigationStatus.approved,
-        IncidentInvestigationStatus.closed,
-    }
+    return investigation.status in COMPLETED_STATUSES
