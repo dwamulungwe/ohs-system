@@ -1,0 +1,1870 @@
+{
+  "workbook": {
+    "path": "C:\\Users\\David Wamulungwe\\Downloads\\SIOs.xlsx",
+    "size_bytes": 425442,
+    "worksheet_names": [
+      "Sheet1"
+    ],
+    "excel_epoch": "1899-12-30T00:00:00"
+  },
+  "sheets": [
+    {
+      "name": "Sheet1",
+      "row_count": 2351,
+      "column_count": 21,
+      "headers": [
+        "ID",
+        "Date",
+        "Department",
+        "Source of Observation",
+        "Description of SIO",
+        "Incident Classification",
+        "Status",
+        "Nature of Observation",
+        "Department Responsible for Corrective Action",
+        "Site",
+        "Responsible H&S Officer",
+        "Urgency",
+        "SIO Category",
+        "Person Responsible for Corrective Action",
+        "Created",
+        "Property Damage",
+        "Created By",
+        "Modified By",
+        "MonthY",
+        "Item Type",
+        "Path"
+      ],
+      "contract": {
+        "exact_match": true,
+        "missing_columns": [],
+        "additional_columns": [],
+        "duplicate_columns": [],
+        "completely_empty_columns": []
+      },
+      "duplicate_source_ids": [],
+      "case_insensitive_duplicate_source_ids": [],
+      "blank_ids": 0,
+      "completely_blank_rows": 0,
+      "malformed_width_rows": [],
+      "column_profiles": {
+        "ID": {
+          "populated_rows": 2351,
+          "blank_rows": 0,
+          "null_percentage": 0.0,
+          "distinct_count": 2351,
+          "type_counts": {
+            "integer": 2351
+          },
+          "malformed_count": 0,
+          "malformed_values": []
+        },
+        "Date": {
+          "populated_rows": 548,
+          "blank_rows": 1803,
+          "null_percentage": 76.691,
+          "distinct_count": 462,
+          "type_counts": {
+            "datetime": 548
+          },
+          "malformed_count": 0,
+          "malformed_values": [],
+          "date_summary": {
+            "minimum": "2025-07-25T00:00:00",
+            "maximum": "2026-07-29T14:21:00",
+            "timezone_aware_count": 0,
+            "timezone_naive_count": 548
+          }
+        },
+        "Department": {
+          "populated_rows": 2351,
+          "blank_rows": 0,
+          "null_percentage": 0.0,
+          "distinct_count": 29,
+          "type_counts": {
+            "string": 2351
+          },
+          "malformed_count": 0,
+          "malformed_values": [],
+          "max_length": 23,
+          "leading_or_trailing_whitespace_count": 0,
+          "line_break_count": 0,
+          "unicode_count": 0
+        },
+        "Source of Observation": {
+          "populated_rows": 2351,
+          "blank_rows": 0,
+          "null_percentage": 0.0,
+          "distinct_count": 11,
+          "type_counts": {
+            "string": 2351
+          },
+          "malformed_count": 0,
+          "malformed_values": [],
+          "max_length": 40,
+          "leading_or_trailing_whitespace_count": 0,
+          "line_break_count": 0,
+          "unicode_count": 0
+        },
+        "Description of SIO": {
+          "populated_rows": 2351,
+          "blank_rows": 0,
+          "null_percentage": 0.0,
+          "distinct_count": 2346,
+          "type_counts": {
+            "string": 2351
+          },
+          "malformed_count": 0,
+          "malformed_values": [],
+          "max_length": 2010,
+          "leading_or_trailing_whitespace_count": 800,
+          "line_break_count": 318,
+          "unicode_count": 36
+        },
+        "Incident Classification": {
+          "populated_rows": 2351,
+          "blank_rows": 0,
+          "null_percentage": 0.0,
+          "distinct_count": 12,
+          "type_counts": {
+            "string": 2351
+          },
+          "malformed_count": 0,
+          "malformed_values": [],
+          "max_length": 24,
+          "leading_or_trailing_whitespace_count": 0,
+          "line_break_count": 0,
+          "unicode_count": 0
+        },
+        "Status": {
+          "populated_rows": 2349,
+          "blank_rows": 2,
+          "null_percentage": 0.085,
+          "distinct_count": 5,
+          "type_counts": {
+            "string": 2349
+          },
+          "malformed_count": 0,
+          "malformed_values": [],
+          "max_length": 30,
+          "leading_or_trailing_whitespace_count": 0,
+          "line_break_count": 0,
+          "unicode_count": 0
+        },
+        "Nature of Observation": {
+          "populated_rows": 2351,
+          "blank_rows": 0,
+          "null_percentage": 0.0,
+          "distinct_count": 2,
+          "type_counts": {
+            "string": 2351
+          },
+          "malformed_count": 0,
+          "malformed_values": [],
+          "max_length": 27,
+          "leading_or_trailing_whitespace_count": 0,
+          "line_break_count": 0,
+          "unicode_count": 0
+        },
+        "Department Responsible for Corrective Action": {
+          "populated_rows": 1881,
+          "blank_rows": 470,
+          "null_percentage": 19.991,
+          "distinct_count": 25,
+          "type_counts": {
+            "string": 1881
+          },
+          "malformed_count": 0,
+          "malformed_values": [],
+          "max_length": 23,
+          "leading_or_trailing_whitespace_count": 0,
+          "line_break_count": 0,
+          "unicode_count": 0
+        },
+        "Site": {
+          "populated_rows": 2351,
+          "blank_rows": 0,
+          "null_percentage": 0.0,
+          "distinct_count": 5,
+          "type_counts": {
+            "string": 2351
+          },
+          "malformed_count": 0,
+          "malformed_values": [],
+          "max_length": 20,
+          "leading_or_trailing_whitespace_count": 0,
+          "line_break_count": 0,
+          "unicode_count": 0
+        },
+        "Responsible H&S Officer": {
+          "populated_rows": 2171,
+          "blank_rows": 180,
+          "null_percentage": 7.656,
+          "distinct_count": 27,
+          "type_counts": {
+            "string": 2171
+          },
+          "malformed_count": 0,
+          "malformed_values": [],
+          "max_length": 24,
+          "leading_or_trailing_whitespace_count": 0,
+          "line_break_count": 0,
+          "unicode_count": 29
+        },
+        "Urgency": {
+          "populated_rows": 2341,
+          "blank_rows": 10,
+          "null_percentage": 0.425,
+          "distinct_count": 5,
+          "type_counts": {
+            "string": 2341
+          },
+          "malformed_count": 0,
+          "malformed_values": [],
+          "max_length": 6,
+          "leading_or_trailing_whitespace_count": 0,
+          "line_break_count": 0,
+          "unicode_count": 0
+        },
+        "SIO Category": {
+          "populated_rows": 2350,
+          "blank_rows": 1,
+          "null_percentage": 0.043,
+          "distinct_count": 30,
+          "type_counts": {
+            "string": 2350
+          },
+          "malformed_count": 0,
+          "malformed_values": [],
+          "max_length": 73,
+          "leading_or_trailing_whitespace_count": 0,
+          "line_break_count": 0,
+          "unicode_count": 0
+        },
+        "Person Responsible for Corrective Action": {
+          "populated_rows": 1695,
+          "blank_rows": 656,
+          "null_percentage": 27.903,
+          "distinct_count": 131,
+          "type_counts": {
+            "string": 1695
+          },
+          "malformed_count": 0,
+          "malformed_values": [],
+          "max_length": 25,
+          "leading_or_trailing_whitespace_count": 0,
+          "line_break_count": 0,
+          "unicode_count": 5
+        },
+        "Created": {
+          "populated_rows": 2351,
+          "blank_rows": 0,
+          "null_percentage": 0.0,
+          "distinct_count": 2349,
+          "type_counts": {
+            "datetime": 2351
+          },
+          "malformed_count": 0,
+          "malformed_values": [],
+          "date_summary": {
+            "minimum": "2022-01-14T15:20:47",
+            "maximum": "2026-07-29T15:37:18",
+            "timezone_aware_count": 0,
+            "timezone_naive_count": 2351
+          }
+        },
+        "Property Damage": {
+          "populated_rows": 2082,
+          "blank_rows": 269,
+          "null_percentage": 11.442,
+          "distinct_count": 2,
+          "type_counts": {
+            "string": 2082
+          },
+          "malformed_count": 0,
+          "malformed_values": [],
+          "max_length": 18,
+          "leading_or_trailing_whitespace_count": 0,
+          "line_break_count": 0,
+          "unicode_count": 0
+        },
+        "Created By": {
+          "populated_rows": 2351,
+          "blank_rows": 0,
+          "null_percentage": 0.0,
+          "distinct_count": 49,
+          "type_counts": {
+            "string": 2351
+          },
+          "malformed_count": 0,
+          "malformed_values": [],
+          "max_length": 24,
+          "leading_or_trailing_whitespace_count": 0,
+          "line_break_count": 0,
+          "unicode_count": 31
+        },
+        "Modified By": {
+          "populated_rows": 2351,
+          "blank_rows": 0,
+          "null_percentage": 0.0,
+          "distinct_count": 34,
+          "type_counts": {
+            "string": 2351
+          },
+          "malformed_count": 0,
+          "malformed_values": [],
+          "max_length": 22,
+          "leading_or_trailing_whitespace_count": 0,
+          "line_break_count": 0,
+          "unicode_count": 21
+        },
+        "MonthY": {
+          "populated_rows": 2351,
+          "blank_rows": 0,
+          "null_percentage": 0.0,
+          "distinct_count": 14,
+          "type_counts": {
+            "string": 2351
+          },
+          "malformed_count": 1803,
+          "malformed_values": [
+            {
+              "row_number": 2,
+              "value": "1899-12",
+              "reason": "artifact"
+            },
+            {
+              "row_number": 3,
+              "value": "1899-12",
+              "reason": "artifact"
+            },
+            {
+              "row_number": 5,
+              "value": "1899-12",
+              "reason": "artifact"
+            },
+            {
+              "row_number": 6,
+              "value": "1899-12",
+              "reason": "artifact"
+            },
+            {
+              "row_number": 7,
+              "value": "1899-12",
+              "reason": "artifact"
+            },
+            {
+              "row_number": 8,
+              "value": "1899-12",
+              "reason": "artifact"
+            },
+            {
+              "row_number": 9,
+              "value": "1899-12",
+              "reason": "artifact"
+            },
+            {
+              "row_number": 10,
+              "value": "1899-12",
+              "reason": "artifact"
+            },
+            {
+              "row_number": 11,
+              "value": "1899-12",
+              "reason": "artifact"
+            },
+            {
+              "row_number": 12,
+              "value": "1899-12",
+              "reason": "artifact"
+            },
+            {
+              "row_number": 13,
+              "value": "1899-12",
+              "reason": "artifact"
+            },
+            {
+              "row_number": 14,
+              "value": "1899-12",
+              "reason": "artifact"
+            },
+            {
+              "row_number": 15,
+              "value": "1899-12",
+              "reason": "artifact"
+            },
+            {
+              "row_number": 16,
+              "value": "1899-12",
+              "reason": "artifact"
+            },
+            {
+              "row_number": 17,
+              "value": "1899-12",
+              "reason": "artifact"
+            },
+            {
+              "row_number": 18,
+              "value": "1899-12",
+              "reason": "artifact"
+            },
+            {
+              "row_number": 19,
+              "value": "1899-12",
+              "reason": "artifact"
+            },
+            {
+              "row_number": 20,
+              "value": "1899-12",
+              "reason": "artifact"
+            },
+            {
+              "row_number": 21,
+              "value": "1899-12",
+              "reason": "artifact"
+            },
+            {
+              "row_number": 22,
+              "value": "1899-12",
+              "reason": "artifact"
+            },
+            {
+              "row_number": 23,
+              "value": "1899-12",
+              "reason": "artifact"
+            },
+            {
+              "row_number": 24,
+              "value": "1899-12",
+              "reason": "artifact"
+            },
+            {
+              "row_number": 25,
+              "value": "1899-12",
+              "reason": "artifact"
+            },
+            {
+              "row_number": 26,
+              "value": "1899-12",
+              "reason": "artifact"
+            },
+            {
+              "row_number": 27,
+              "value": "1899-12",
+              "reason": "artifact"
+            },
+            {
+              "row_number": 28,
+              "value": "1899-12",
+              "reason": "artifact"
+            },
+            {
+              "row_number": 29,
+              "value": "1899-12",
+              "reason": "artifact"
+            },
+            {
+              "row_number": 30,
+              "value": "1899-12",
+              "reason": "artifact"
+            },
+            {
+              "row_number": 31,
+              "value": "1899-12",
+              "reason": "artifact"
+            },
+            {
+              "row_number": 32,
+              "value": "1899-12",
+              "reason": "artifact"
+            },
+            {
+              "row_number": 33,
+              "value": "1899-12",
+              "reason": "artifact"
+            },
+            {
+              "row_number": 34,
+              "value": "1899-12",
+              "reason": "artifact"
+            },
+            {
+              "row_number": 35,
+              "value": "1899-12",
+              "reason": "artifact"
+            },
+            {
+              "row_number": 36,
+              "value": "1899-12",
+              "reason": "artifact"
+            },
+            {
+              "row_number": 37,
+              "value": "1899-12",
+              "reason": "artifact"
+            },
+            {
+              "row_number": 38,
+              "value": "1899-12",
+              "reason": "artifact"
+            },
+            {
+              "row_number": 39,
+              "value": "1899-12",
+              "reason": "artifact"
+            },
+            {
+              "row_number": 40,
+              "value": "1899-12",
+              "reason": "artifact"
+            },
+            {
+              "row_number": 41,
+              "value": "1899-12",
+              "reason": "artifact"
+            },
+            {
+              "row_number": 42,
+              "value": "1899-12",
+              "reason": "artifact"
+            },
+            {
+              "row_number": 43,
+              "value": "1899-12",
+              "reason": "artifact"
+            },
+            {
+              "row_number": 44,
+              "value": "1899-12",
+              "reason": "artifact"
+            },
+            {
+              "row_number": 45,
+              "value": "1899-12",
+              "reason": "artifact"
+            },
+            {
+              "row_number": 46,
+              "value": "1899-12",
+              "reason": "artifact"
+            },
+            {
+              "row_number": 47,
+              "value": "1899-12",
+              "reason": "artifact"
+            },
+            {
+              "row_number": 48,
+              "value": "1899-12",
+              "reason": "artifact"
+            },
+            {
+              "row_number": 49,
+              "value": "1899-12",
+              "reason": "artifact"
+            },
+            {
+              "row_number": 50,
+              "value": "1899-12",
+              "reason": "artifact"
+            },
+            {
+              "row_number": 51,
+              "value": "1899-12",
+              "reason": "artifact"
+            },
+            {
+              "row_number": 52,
+              "value": "1899-12",
+              "reason": "artifact"
+            }
+          ],
+          "max_length": 7,
+          "leading_or_trailing_whitespace_count": 0,
+          "line_break_count": 0,
+          "unicode_count": 0
+        },
+        "Item Type": {
+          "populated_rows": 2351,
+          "blank_rows": 0,
+          "null_percentage": 0.0,
+          "distinct_count": 1,
+          "type_counts": {
+            "string": 2351
+          },
+          "malformed_count": 0,
+          "malformed_values": [],
+          "max_length": 4,
+          "leading_or_trailing_whitespace_count": 0,
+          "line_break_count": 0,
+          "unicode_count": 0
+        },
+        "Path": {
+          "populated_rows": 2351,
+          "blank_rows": 0,
+          "null_percentage": 0.0,
+          "distinct_count": 1,
+          "type_counts": {
+            "string": 2351
+          },
+          "malformed_count": 0,
+          "malformed_values": [],
+          "max_length": 30,
+          "leading_or_trailing_whitespace_count": 0,
+          "line_break_count": 0,
+          "unicode_count": 0
+        }
+      },
+      "exact_values": {
+        "Site": [
+          {
+            "value": "Kitwe",
+            "count": 187
+          },
+          {
+            "value": "Lusaka",
+            "count": 247
+          },
+          {
+            "value": "Siavonga",
+            "count": 1663
+          },
+          {
+            "value": "Third Party Premises",
+            "count": 10
+          },
+          {
+            "value": "Yalelo Stores",
+            "count": 244
+          }
+        ],
+        "Status": [
+          {
+            "value": "Assigned to action tracker",
+            "count": 310
+          },
+          {
+            "value": "Assigned to Responsible Person",
+            "count": 943
+          },
+          {
+            "value": "Complete",
+            "count": 318
+          },
+          {
+            "value": "No Action required",
+            "count": 433
+          },
+          {
+            "value": "Unassigned",
+            "count": 345
+          }
+        ],
+        "Nature of Observation": [
+          {
+            "value": "Negative Safety Observation",
+            "count": 1904
+          },
+          {
+            "value": "Positive Safety Observation",
+            "count": 447
+          }
+        ],
+        "Urgency": [
+          {
+            "value": "High",
+            "count": 389
+          },
+          {
+            "value": "Low",
+            "count": 669
+          },
+          {
+            "value": "Medium",
+            "count": 888
+          },
+          {
+            "value": "N/A",
+            "count": 296
+          },
+          {
+            "value": "Urgent",
+            "count": 99
+          }
+        ],
+        "Source of Observation": [
+          {
+            "value": "Audit",
+            "count": 30
+          },
+          {
+            "value": "Clinic Attendance",
+            "count": 136
+          },
+          {
+            "value": "Hazard Identification & Risk Assessments",
+            "count": 6
+          },
+          {
+            "value": "HS Field Check",
+            "count": 90
+          },
+          {
+            "value": "Incident Investigation",
+            "count": 41
+          },
+          {
+            "value": "Inspection",
+            "count": 966
+          },
+          {
+            "value": "Legal Requirement",
+            "count": 25
+          },
+          {
+            "value": "Medical examinations",
+            "count": 3
+          },
+          {
+            "value": "Safety Meetings and Communication",
+            "count": 46
+          },
+          {
+            "value": "SIO",
+            "count": 596
+          },
+          {
+            "value": "Walkabout",
+            "count": 412
+          }
+        ],
+        "Incident Classification": [
+          {
+            "value": "Fatality",
+            "count": 1
+          },
+          {
+            "value": "Fire",
+            "count": 1
+          },
+          {
+            "value": "First Aid Injury",
+            "count": 213
+          },
+          {
+            "value": "LTI",
+            "count": 3
+          },
+          {
+            "value": "Medical Treatment Injury",
+            "count": 14
+          },
+          {
+            "value": "N/A",
+            "count": 842
+          },
+          {
+            "value": "Near Miss",
+            "count": 46
+          },
+          {
+            "value": "Occupational Illness",
+            "count": 42
+          },
+          {
+            "value": "Other",
+            "count": 8
+          },
+          {
+            "value": "Product Loss",
+            "count": 3
+          },
+          {
+            "value": "Property Damage",
+            "count": 51
+          },
+          {
+            "value": "Undesired Circumstance",
+            "count": 1127
+          }
+        ],
+        "Department Responsible for Corrective Action": [
+          {
+            "value": "Administration",
+            "count": 108
+          },
+          {
+            "value": "Commercial Operations",
+            "count": 7
+          },
+          {
+            "value": "Commercial Services",
+            "count": 25
+          },
+          {
+            "value": "Contractor",
+            "count": 28
+          },
+          {
+            "value": "Engineering",
+            "count": 498
+          },
+          {
+            "value": "Environmental & Social",
+            "count": 36
+          },
+          {
+            "value": "Executive",
+            "count": 3
+          },
+          {
+            "value": "Farm Services",
+            "count": 73
+          },
+          {
+            "value": "Finance",
+            "count": 62
+          },
+          {
+            "value": "Hatchery",
+            "count": 76
+          },
+          {
+            "value": "Health & Safety",
+            "count": 352
+          },
+          {
+            "value": "Human Resource",
+            "count": 13
+          },
+          {
+            "value": "IT",
+            "count": 6
+          },
+          {
+            "value": "Lake OPS",
+            "count": 116
+          },
+          {
+            "value": "Logistic & Distribution",
+            "count": 46
+          },
+          {
+            "value": "Management",
+            "count": 10
+          },
+          {
+            "value": "Marketing",
+            "count": 3
+          },
+          {
+            "value": "Other",
+            "count": 6
+          },
+          {
+            "value": "Processing Plant",
+            "count": 216
+          },
+          {
+            "value": "Procurement",
+            "count": 3
+          },
+          {
+            "value": "Quality",
+            "count": 5
+          },
+          {
+            "value": "Quality & Assurance",
+            "count": 37
+          },
+          {
+            "value": "Sales",
+            "count": 77
+          },
+          {
+            "value": "Security",
+            "count": 11
+          },
+          {
+            "value": "Warehouse",
+            "count": 64
+          }
+        ],
+        "Responsible H&S Officer": [
+          {
+            "value": "Amanda Mwale",
+            "count": 309
+          },
+          {
+            "value": "Amos Lupupulala",
+            "count": 209
+          },
+          {
+            "value": "Brian Amupuela",
+            "count": 1
+          },
+          {
+            "value": "Cecilia Kanchele",
+            "count": 2
+          },
+          {
+            "value": "Chabala Mutanuka",
+            "count": 33
+          },
+          {
+            "value": "Daniel Chisanga",
+            "count": 23
+          },
+          {
+            "value": "Edward Mukuka",
+            "count": 1
+          },
+          {
+            "value": "Emmanuel Mukuka",
+            "count": 2
+          },
+          {
+            "value": "Esther Phiri",
+            "count": 377
+          },
+          {
+            "value": "Gidlas Mambwe",
+            "count": 1
+          },
+          {
+            "value": "Health & Safety Intern",
+            "count": 1
+          },
+          {
+            "value": "Isabelle A. Amoako-Duodu",
+            "count": 1
+          },
+          {
+            "value": "Jane Namwawa",
+            "count": 76
+          },
+          {
+            "value": "Judas Mwale",
+            "count": 105
+          },
+          {
+            "value": "Kaleb  Muunga",
+            "count": 2
+          },
+          {
+            "value": "Kanche Mwansa",
+            "count": 30
+          },
+          {
+            "value": "Lazarous Banda",
+            "count": 226
+          },
+          {
+            "value": "Lisa Jempa",
+            "count": 8
+          },
+          {
+            "value": "Lombe Mulilo",
+            "count": 1
+          },
+          {
+            "value": "Lydia Mufaya",
+            "count": 1
+          },
+          {
+            "value": "Manny Ntilima",
+            "count": 1
+          },
+          {
+            "value": "Maysen Likonge",
+            "count": 53
+          },
+          {
+            "value": "Muma Lamya",
+            "count": 8
+          },
+          {
+            "value": "Nasilele  Phiri",
+            "count": 1
+          },
+          {
+            "value": "Sonjiwe Akufuna",
+            "count": 159
+          },
+          {
+            "value": "Vincent Chikang’a",
+            "count": 29
+          },
+          {
+            "value": "Weston Musonda",
+            "count": 511
+          }
+        ],
+        "Person Responsible for Corrective Action": [
+          {
+            "value": "Aaron Nkondo",
+            "count": 4
+          },
+          {
+            "value": "Abigail Chishala",
+            "count": 47
+          },
+          {
+            "value": "Abishai Siambo",
+            "count": 52
+          },
+          {
+            "value": "Ackim  Tembo",
+            "count": 1
+          },
+          {
+            "value": "Adrian Kasashi",
+            "count": 7
+          },
+          {
+            "value": "Albert Silavwe",
+            "count": 8
+          },
+          {
+            "value": "Amanda Mwale",
+            "count": 1
+          },
+          {
+            "value": "Amos Lupupulala",
+            "count": 34
+          },
+          {
+            "value": "Bernard Fundi",
+            "count": 4
+          },
+          {
+            "value": "Boyd Mazila",
+            "count": 1
+          },
+          {
+            "value": "Brian Amupuela",
+            "count": 31
+          },
+          {
+            "value": "Brian Munganga Pelekelo",
+            "count": 2
+          },
+          {
+            "value": "Brian Sinyangwe",
+            "count": 6
+          },
+          {
+            "value": "Bright Mumba",
+            "count": 1
+          },
+          {
+            "value": "Busiku Hanzala",
+            "count": 2
+          },
+          {
+            "value": "Bwalya Mulombwa",
+            "count": 3
+          },
+          {
+            "value": "Ceaser Kapalangwe",
+            "count": 16
+          },
+          {
+            "value": "Chalilembwa  Simusokwe",
+            "count": 1
+          },
+          {
+            "value": "Chilobe Hazemba",
+            "count": 6
+          },
+          {
+            "value": "Chisala Chitungulu",
+            "count": 2
+          },
+          {
+            "value": "Christine Nanyangwe",
+            "count": 7
+          },
+          {
+            "value": "Christopher Chishinji",
+            "count": 17
+          },
+          {
+            "value": "Chungu Xavier Chenda",
+            "count": 1
+          },
+          {
+            "value": "Dailes Lungu",
+            "count": 1
+          },
+          {
+            "value": "Daliso Phiri",
+            "count": 8
+          },
+          {
+            "value": "Daniel Chisanga",
+            "count": 168
+          },
+          {
+            "value": "Daniel Ndola",
+            "count": 5
+          },
+          {
+            "value": "Danny Chanda",
+            "count": 4
+          },
+          {
+            "value": "Danny Kruger",
+            "count": 1
+          },
+          {
+            "value": "Darren Fourie",
+            "count": 66
+          },
+          {
+            "value": "David Musa",
+            "count": 1
+          },
+          {
+            "value": "Deborah Bwalya",
+            "count": 1
+          },
+          {
+            "value": "Deluckys Kaunda",
+            "count": 1
+          },
+          {
+            "value": "Diana Mwanambiya",
+            "count": 26
+          },
+          {
+            "value": "Dominic Bwalya",
+            "count": 2
+          },
+          {
+            "value": "Douglas Chisenga",
+            "count": 2
+          },
+          {
+            "value": "Elijah Bwalya",
+            "count": 1
+          },
+          {
+            "value": "Emmanuel Mukuka",
+            "count": 1
+          },
+          {
+            "value": "Emmanuel Silwamba",
+            "count": 3
+          },
+          {
+            "value": "Eric  Aongola",
+            "count": 6
+          },
+          {
+            "value": "Esther Kilasa",
+            "count": 3
+          },
+          {
+            "value": "Esther Phiri",
+            "count": 18
+          },
+          {
+            "value": "Fanwell Chabasulula",
+            "count": 3
+          },
+          {
+            "value": "Franklin Valdivia",
+            "count": 1
+          },
+          {
+            "value": "Garvin Kalaluka",
+            "count": 6
+          },
+          {
+            "value": "Gasper Musamba",
+            "count": 1
+          },
+          {
+            "value": "Geoffrey Fredman",
+            "count": 10
+          },
+          {
+            "value": "George Chanda",
+            "count": 3
+          },
+          {
+            "value": "George Kateka",
+            "count": 1
+          },
+          {
+            "value": "Gilbert Kaunda",
+            "count": 32
+          },
+          {
+            "value": "Girland Siakoola",
+            "count": 36
+          },
+          {
+            "value": "Gregory Kasanga",
+            "count": 4
+          },
+          {
+            "value": "Highson Siluonde",
+            "count": 6
+          },
+          {
+            "value": "Hilary Terrence Kupapaala",
+            "count": 1
+          },
+          {
+            "value": "Humphrey Chitundu",
+            "count": 13
+          },
+          {
+            "value": "Ignatius Tembo",
+            "count": 11
+          },
+          {
+            "value": "Isabelle A. Amoako-Duodu",
+            "count": 10
+          },
+          {
+            "value": "John Mutale",
+            "count": 4
+          },
+          {
+            "value": "John Nkhata",
+            "count": 2
+          },
+          {
+            "value": "John Phiri",
+            "count": 1
+          },
+          {
+            "value": "Joy Kalaba",
+            "count": 4
+          },
+          {
+            "value": "Judas Mwale",
+            "count": 3
+          },
+          {
+            "value": "Kafula Chanda",
+            "count": 1
+          },
+          {
+            "value": "Kanche Mwansa",
+            "count": 4
+          },
+          {
+            "value": "Kasonde Chomba",
+            "count": 28
+          },
+          {
+            "value": "Kasonde Mutupa",
+            "count": 2
+          },
+          {
+            "value": "Kelvin Mbangweta",
+            "count": 28
+          },
+          {
+            "value": "Kennedy Kangwa",
+            "count": 17
+          },
+          {
+            "value": "Kennedy Mpandashulu",
+            "count": 4
+          },
+          {
+            "value": "Kenneth Sialula",
+            "count": 1
+          },
+          {
+            "value": "Ketty  Namwanja",
+            "count": 3
+          },
+          {
+            "value": "Kondwani Nkhata",
+            "count": 2
+          },
+          {
+            "value": "Kunda Ndashe",
+            "count": 1
+          },
+          {
+            "value": "Larry Mupengu",
+            "count": 43
+          },
+          {
+            "value": "Lazarous Banda",
+            "count": 2
+          },
+          {
+            "value": "Levy Mwale",
+            "count": 2
+          },
+          {
+            "value": "Lewis Musonda",
+            "count": 1
+          },
+          {
+            "value": "Lilian Ngosa",
+            "count": 6
+          },
+          {
+            "value": "Lionel Mambwe Chabaila",
+            "count": 2
+          },
+          {
+            "value": "Lolanji Siwale",
+            "count": 2
+          },
+          {
+            "value": "Lombe Mulilo",
+            "count": 124
+          },
+          {
+            "value": "Louis Mwamba",
+            "count": 25
+          },
+          {
+            "value": "Lucy Chilombo Mkandawire",
+            "count": 4
+          },
+          {
+            "value": "Lukman Adi Saksono",
+            "count": 45
+          },
+          {
+            "value": "Mabvuto Banda",
+            "count": 19
+          },
+          {
+            "value": "Manny Ntilima",
+            "count": 29
+          },
+          {
+            "value": "Mark Sakuwaha",
+            "count": 2
+          },
+          {
+            "value": "Mashiba Kangote",
+            "count": 20
+          },
+          {
+            "value": "Mathews Mumba",
+            "count": 15
+          },
+          {
+            "value": "Maxas Ng'onga",
+            "count": 34
+          },
+          {
+            "value": "Maysen Likonge",
+            "count": 2
+          },
+          {
+            "value": "Michael Ouya",
+            "count": 3
+          },
+          {
+            "value": "Michael Shaka Maila",
+            "count": 1
+          },
+          {
+            "value": "Michael Sweatman",
+            "count": 6
+          },
+          {
+            "value": "Moonga Mwiinga",
+            "count": 2
+          },
+          {
+            "value": "Mungacha Banda",
+            "count": 24
+          },
+          {
+            "value": "Musunga Mwansa",
+            "count": 1
+          },
+          {
+            "value": "Mutale Simwanza",
+            "count": 2
+          },
+          {
+            "value": "Muwaso Kadantu",
+            "count": 155
+          },
+          {
+            "value": "Mwangala Chaala",
+            "count": 1
+          },
+          {
+            "value": "Mwenya Kambikambi",
+            "count": 4
+          },
+          {
+            "value": "Nairobi Sichone",
+            "count": 5
+          },
+          {
+            "value": "Nasilele  Phiri",
+            "count": 11
+          },
+          {
+            "value": "Ndawambi  Mwale",
+            "count": 3
+          },
+          {
+            "value": "Nelson Mumba",
+            "count": 2
+          },
+          {
+            "value": "Nicholas Mwashibulukwa",
+            "count": 2
+          },
+          {
+            "value": "Niza Silungwe",
+            "count": 7
+          },
+          {
+            "value": "Noah  Musutu",
+            "count": 32
+          },
+          {
+            "value": "Nosiku Siyumbwa",
+            "count": 1
+          },
+          {
+            "value": "Obed Tembo",
+            "count": 1
+          },
+          {
+            "value": "Orrison Shayawa",
+            "count": 5
+          },
+          {
+            "value": "Patrick K. Malupande",
+            "count": 6
+          },
+          {
+            "value": "Patrick Kapasa",
+            "count": 41
+          },
+          {
+            "value": "Paul Simengwa",
+            "count": 9
+          },
+          {
+            "value": "Peter Junior Malambo",
+            "count": 2
+          },
+          {
+            "value": "Pethias Kema",
+            "count": 1
+          },
+          {
+            "value": "Phenice Nkhuwa",
+            "count": 2
+          },
+          {
+            "value": "Pochereth Chibuye",
+            "count": 3
+          },
+          {
+            "value": "Prince Sichula",
+            "count": 41
+          },
+          {
+            "value": "Sarah Makurunje",
+            "count": 39
+          },
+          {
+            "value": "Scott Day",
+            "count": 3
+          },
+          {
+            "value": "Shushanta Swain",
+            "count": 24
+          },
+          {
+            "value": "Sonjiwe Akufuna",
+            "count": 21
+          },
+          {
+            "value": "Spencer Mpombo",
+            "count": 8
+          },
+          {
+            "value": "Stephen Mukuka",
+            "count": 9
+          },
+          {
+            "value": "Suwilanji Mumba",
+            "count": 5
+          },
+          {
+            "value": "Sydney  Chikwamo",
+            "count": 2
+          },
+          {
+            "value": "Tendai Mwiinga",
+            "count": 1
+          },
+          {
+            "value": "Themba Lungu",
+            "count": 3
+          },
+          {
+            "value": "Vincent Chikang’a",
+            "count": 5
+          },
+          {
+            "value": "Weston Musonda",
+            "count": 10
+          }
+        ],
+        "Property Damage": [
+          {
+            "value": "No Property Damage",
+            "count": 1984
+          },
+          {
+            "value": "Property Damage",
+            "count": 98
+          }
+        ],
+        "MonthY": [
+          {
+            "value": "1899-12",
+            "count": 1803
+          },
+          {
+            "value": "2025-07",
+            "count": 2
+          },
+          {
+            "value": "2025-08",
+            "count": 16
+          },
+          {
+            "value": "2025-09",
+            "count": 21
+          },
+          {
+            "value": "2025-10",
+            "count": 31
+          },
+          {
+            "value": "2025-11",
+            "count": 17
+          },
+          {
+            "value": "2025-12",
+            "count": 18
+          },
+          {
+            "value": "2026-01",
+            "count": 22
+          },
+          {
+            "value": "2026-02",
+            "count": 95
+          },
+          {
+            "value": "2026-03",
+            "count": 62
+          },
+          {
+            "value": "2026-04",
+            "count": 65
+          },
+          {
+            "value": "2026-05",
+            "count": 67
+          },
+          {
+            "value": "2026-06",
+            "count": 88
+          },
+          {
+            "value": "2026-07",
+            "count": 44
+          }
+        ],
+        "Item Type": [
+          {
+            "value": "Item",
+            "count": 2351
+          }
+        ],
+        "Path": [
+          {
+            "value": "sites/OHS/Lists/YZ SIO Tracker",
+            "count": 2351
+          }
+        ]
+      },
+      "value_counts": {
+        "SIO Category": [
+          {
+            "value": "Unsafe Condition",
+            "count": 628
+          },
+          {
+            "value": "Health and Wellness",
+            "count": 332
+          },
+          {
+            "value": "Condition/Use of equipment",
+            "count": 235
+          },
+          {
+            "value": "Housekeeping",
+            "count": 131
+          },
+          {
+            "value": "Implementation / Adherence to Policy & Standards",
+            "count": 111
+          },
+          {
+            "value": "Condition/Use of PPE",
+            "count": 109
+          },
+          {
+            "value": "Driving/Operation of Plant / Vehicles",
+            "count": 107
+          },
+          {
+            "value": "Protective Defenses (Barricades, Tape, Tags, Tie-off,Warning Signs, etc.)",
+            "count": 87
+          },
+          {
+            "value": "Tidiness/ Cleanliness",
+            "count": 81
+          },
+          {
+            "value": "Training",
+            "count": 58
+          },
+          {
+            "value": "Sanitation",
+            "count": 48
+          },
+          {
+            "value": "Storage/Containment",
+            "count": 47
+          },
+          {
+            "value": "Unsafe Behavior/Positions/Actions of People",
+            "count": 47
+          },
+          {
+            "value": "Commendable Attitude/Behavior/Actions of People",
+            "count": 46
+          },
+          {
+            "value": "Occupational Hygiene (air quality, noise, lighting, ergonomics etc)",
+            "count": 42
+          },
+          {
+            "value": "Other",
+            "count": 42
+          },
+          {
+            "value": "Condition/Use of Tools",
+            "count": 34
+          },
+          {
+            "value": "N/A",
+            "count": 33
+          },
+          {
+            "value": "Accessibility",
+            "count": 24
+          },
+          {
+            "value": "Hazardous Chemical Management",
+            "count": 24
+          },
+          {
+            "value": "Procedures (Planning, permit to work, JSA, Lock Out, Tag Out  etc.)",
+            "count": 23
+          },
+          {
+            "value": "Inspections",
+            "count": 22
+          },
+          {
+            "value": "Food Safety",
+            "count": 16
+          },
+          {
+            "value": "Eyes on path/work",
+            "count": 7
+          },
+          {
+            "value": "Safety Culture",
+            "count": 5
+          },
+          {
+            "value": "Leadership commitment and support for safety",
+            "count": 4
+          },
+          {
+            "value": "Participation in safety programme",
+            "count": 2
+          },
+          {
+            "value": "Fire",
+            "count": 2
+          },
+          {
+            "value": "Community H&S / Public Protection",
+            "count": 2
+          },
+          {
+            "value": "Non work-related illness",
+            "count": 1
+          }
+        ],
+        "Department": [
+          {
+            "value": "Health & Safety",
+            "count": 1342
+          },
+          {
+            "value": "Processing Plant",
+            "count": 176
+          },
+          {
+            "value": "Lake OPS",
+            "count": 148
+          },
+          {
+            "value": "Engineering",
+            "count": 89
+          },
+          {
+            "value": "Hatchery",
+            "count": 84
+          },
+          {
+            "value": "Management",
+            "count": 73
+          },
+          {
+            "value": "Farm Services",
+            "count": 61
+          },
+          {
+            "value": "Administration",
+            "count": 55
+          },
+          {
+            "value": "Sales",
+            "count": 54
+          },
+          {
+            "value": "Security",
+            "count": 45
+          },
+          {
+            "value": "Data & Analytics",
+            "count": 36
+          },
+          {
+            "value": "Contractor",
+            "count": 28
+          },
+          {
+            "value": "Environmental & Social",
+            "count": 21
+          },
+          {
+            "value": "Warehouse",
+            "count": 21
+          },
+          {
+            "value": "Other",
+            "count": 21
+          },
+          {
+            "value": "Quality",
+            "count": 14
+          },
+          {
+            "value": "Executive",
+            "count": 14
+          },
+          {
+            "value": "N/A",
+            "count": 12
+          },
+          {
+            "value": "Human Resource",
+            "count": 11
+          },
+          {
+            "value": "Finance",
+            "count": 10
+          },
+          {
+            "value": "Visitor",
+            "count": 10
+          },
+          {
+            "value": "IT",
+            "count": 8
+          },
+          {
+            "value": "Logistic & Distribution",
+            "count": 7
+          },
+          {
+            "value": "Quality & Assurance",
+            "count": 4
+          },
+          {
+            "value": "Commercial Operations",
+            "count": 2
+          },
+          {
+            "value": "Marketing",
+            "count": 2
+          },
+          {
+            "value": "Customer Service",
+            "count": 1
+          },
+          {
+            "value": "Procurement",
+            "count": 1
+          },
+          {
+            "value": "Commercial Services",
+            "count": 1
+          }
+        ]
+      },
+      "description_quality": {
+        "max_length": 2010,
+        "line_break_count": 318,
+        "unicode_count": 36,
+        "leading_or_trailing_whitespace_count": 800
+      },
+      "property_damage_semantics": {
+        "type_counts": {
+          "string": 2082
+        },
+        "distinct_count": 2
+      },
+      "monthy_quality": {
+        "artifact": 1803,
+        "valid_string": 548
+      }
+    }
+  ]
+}
