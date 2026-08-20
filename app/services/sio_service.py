@@ -265,6 +265,8 @@ def list_sios(
     overdue: Optional[bool] = None,
     date_from: Optional[date] = None,
     date_to: Optional[date] = None,
+    source_created_from: Optional[date] = None,
+    source_created_to: Optional[date] = None,
     search: Optional[str] = None,
     view: Optional[str] = None,
     current_user_id: Optional[int] = None,
@@ -303,6 +305,16 @@ def list_sios(
         statement = statement.where(SafetyImprovementObservation.observation_date >= date_from)
     if date_to is not None:
         statement = statement.where(SafetyImprovementObservation.observation_date <= date_to)
+    if source_created_from is not None:
+        statement = statement.where(
+            SafetyImprovementObservation.source_created_at
+            >= datetime.combine(source_created_from, time.min, tzinfo=timezone.utc)
+        )
+    if source_created_to is not None:
+        statement = statement.where(
+            SafetyImprovementObservation.source_created_at
+            <= datetime.combine(source_created_to, time.max, tzinfo=timezone.utc)
+        )
     if view and current_user_id is not None:
         if view == "assigned_to_me":
             statement = statement.where(SafetyImprovementObservation.responsible_user_id == current_user_id)
@@ -330,7 +342,13 @@ def list_sios(
                 SafetyImprovementObservation.category.ilike(term),
                 SafetyImprovementObservation.incident_classification.ilike(term),
                 SafetyImprovementObservation.external_reference_id.ilike(term),
+                SafetyImprovementObservation.responsible_hs_officer_name.ilike(term),
                 SafetyImprovementObservation.responsible_person_name.ilike(term),
+                SafetyImprovementObservation.property_damage.ilike(term),
+                SafetyImprovementObservation.source_created_by.ilike(term),
+                SafetyImprovementObservation.source_modified_by.ilike(term),
+                SafetyImprovementObservation.source_path.ilike(term),
+                SafetyImprovementObservation.site.has(Site.name.ilike(term)),
             )
         )
     statement = statement.order_by(
@@ -406,11 +424,12 @@ def create_sio(
     *,
     actor_id: Optional[int],
     is_import: bool = False,
+    commit: bool = True,
 ) -> SafetyImprovementObservation:
     data = sio_in.model_dump()
     _validate_references(db, data)
     _sync_names_and_responsibility(db, data)
-    if data.get("due_date") is None:
+    if data.get("due_date") is None and not is_import:
         data["due_date"] = _default_due_date(db, data.get("urgency"))
     if data.get("responsible_user_id") is not None and not is_import:
         data["assignment_status"] = SIOAssignmentStatus.assigned
@@ -438,13 +457,18 @@ def create_sio(
             actor_id=actor_id,
             metadata={"source_system": sio.source_system} if sio.source_system else {},
         )
-        db.commit()
+        if commit:
+            db.commit()
+        else:
+            db.flush()
     except IntegrityError as exc:
-        db.rollback()
+        if commit:
+            db.rollback()
         raise SIODuplicateError(
             "An SIO with this source reference or organisation reference already exists"
         ) from exc
-    db.refresh(sio)
+    if commit:
+        db.refresh(sio)
     write_audit_log(
         db,
         actor_id=actor_id,
@@ -452,6 +476,7 @@ def create_sio(
         resource_type="sio",
         resource_id=sio.id,
         details={"reference_number": sio.reference_number, "site_id": sio.site_id},
+        commit=commit,
     )
     if not is_import:
         _notify_urgent_sio(db, sio)
@@ -1343,11 +1368,19 @@ def get_sio_analytics(
     statement = select(SafetyImprovementObservation)
     if site_id is not None:
         statement = statement.where(SafetyImprovementObservation.site_id == site_id)
-    if date_from is not None:
-        statement = statement.where(SafetyImprovementObservation.observation_date >= date_from)
-    if date_to is not None:
-        statement = statement.where(SafetyImprovementObservation.observation_date <= date_to)
     records = list(db.scalars(statement).unique().all())
+
+    def reporting_date(item: SafetyImprovementObservation) -> date:
+        return (
+            item.observation_date
+            or (item.source_created_at.date() if item.source_created_at else None)
+            or item.created_at.date()
+        )
+
+    if date_from is not None:
+        records = [item for item in records if reporting_date(item) >= date_from]
+    if date_to is not None:
+        records = [item for item in records if reporting_date(item) <= date_to]
 
     def count(predicate) -> int:
         return sum(1 for item in records if predicate(item))
@@ -1366,9 +1399,7 @@ def get_sio_analytics(
     created_trend: Counter[str] = Counter()
     closed_trend: Counter[str] = Counter()
     for item in records:
-        created_on = item.observation_date or (
-            item.source_created_at.date() if item.source_created_at else item.created_at.date()
-        )
+        created_on = reporting_date(item)
         created_trend[created_on.strftime("%Y-%m")] += 1
         if item.closed_at:
             closed_trend[item.closed_at.strftime("%Y-%m")] += 1
@@ -1469,4 +1500,14 @@ def get_sio_analytics(
         "responsible_users_with_overdue_sios": dict(overdue_users.most_common(10)),
         "recurring_categories": dict(Counter(item.category or "Unspecified" for item in records).most_common(10)),
         "open_unassigned_observations": open_unassigned,
+        "reporting_date_basis": (
+            "observation_date; source_created_at fallback when observation_date is null; "
+            "system created_at final fallback"
+        ),
+        "observations_using_source_created_at_fallback": count(
+            lambda item: item.observation_date is None and item.source_created_at is not None
+        ),
+        "observations_using_system_created_at_fallback": count(
+            lambda item: item.observation_date is None and item.source_created_at is None
+        ),
     }

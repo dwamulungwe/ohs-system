@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import re
+from collections import Counter
 from datetime import date, datetime, time, timezone
 from io import BytesIO
 from typing import Any, Optional
@@ -57,7 +58,6 @@ YALELO_REQUIRED_VALUES = (
     "Department",
     "Source of Observation",
     "Description of SIO",
-    "Status",
     "Nature of Observation",
     "Site",
 )
@@ -108,8 +108,10 @@ STATUS_MAP = {
 NATURE_MAP = {
     "positive": SIOObservationNature.positive,
     "positive_observation": SIOObservationNature.positive,
+    "positive_safety_observation": SIOObservationNature.positive,
     "negative": SIOObservationNature.negative,
     "negative_observation": SIOObservationNature.negative,
+    "negative_safety_observation": SIOObservationNature.negative,
 }
 URGENCY_MAP = {
     "low": SIOUrgency.low,
@@ -121,6 +123,21 @@ URGENCY_MAP = {
     "n_a": SIOUrgency.not_applicable,
     "na": SIOUrgency.not_applicable,
     "not_applicable": SIOUrgency.not_applicable,
+}
+
+YALELO_KNOWN_INCIDENT_CLASSIFICATIONS = {
+    "fatality",
+    "fire",
+    "first_aid_injury",
+    "lti",
+    "medical_treatment_injury",
+    "n_a",
+    "near_miss",
+    "occupational_illness",
+    "other",
+    "product_loss",
+    "property_damage",
+    "undesired_circumstance",
 }
 
 
@@ -139,6 +156,15 @@ def _text(value: Any) -> Optional[str]:
         value = int(value)
     text = str(value).strip()
     return text or None
+
+
+def _preserved_text(value: Any) -> Optional[str]:
+    if value is None:
+        return None
+    if isinstance(value, float) and value.is_integer():
+        value = int(value)
+    text = str(value)
+    return text if text.strip() else None
 
 
 def parse_excel_date(value: Any, *, epoch, as_datetime: bool) -> Optional[date | datetime]:
@@ -170,6 +196,9 @@ def parse_excel_date(value: Any, *, epoch, as_datetime: bool) -> Optional[date |
     else:
         raise ValueError(f"Unsupported Excel date value: {value}")
 
+    if isinstance(parsed, time):
+        raise ValueError(f"Excel date value resolves to time only: {value}")
+
     if as_datetime:
         result = parsed if isinstance(parsed, datetime) else datetime.combine(parsed, time.min)
         return result if result.tzinfo is not None else result.replace(tzinfo=timezone.utc)
@@ -187,20 +216,22 @@ def _enum_value(value: Any, mapping: dict, field: str, *, optional: bool = False
     return normalized
 
 
-def _exact_user_id(db: Session, name: Optional[str]) -> Optional[int]:
+def _exact_user_match(db: Session, name: Optional[str]) -> tuple[Optional[int], str]:
     if not name:
-        return None
+        return None, "blank"
     matches = list(
         db.scalars(
             select(User).where(func.lower(User.full_name) == name.strip().lower())
         ).all()
     )
-    return matches[0].id if len(matches) == 1 else None
+    if len(matches) == 1:
+        return matches[0].id, "resolved"
+    return None, "ambiguous" if len(matches) > 1 else "unresolved"
 
 
-def _exact_department_id(db: Session, name: Optional[str]) -> Optional[int]:
+def _exact_department_match(db: Session, name: Optional[str]) -> tuple[Optional[int], str]:
     if not name:
-        return None
+        return None, "blank"
     normalized = name.strip().lower()
     matches = list(
         db.scalars(
@@ -210,7 +241,25 @@ def _exact_department_id(db: Session, name: Optional[str]) -> Optional[int]:
             )
         ).all()
     )
-    return matches[0].id if len(matches) == 1 else None
+    if len(matches) == 1:
+        return matches[0].id, "resolved"
+    return None, "ambiguous" if len(matches) > 1 else "unresolved"
+
+
+def _mapping_message(field: str, value: Optional[str], match: str) -> Optional[dict]:
+    if not value or match in {"blank", "resolved"}:
+        return None
+    if match == "ambiguous":
+        message = "Multiple exact tenant matches exist; source text was preserved without mapping"
+    else:
+        message = "No exact tenant match exists; source text was preserved without mapping"
+    return {
+        "field": field,
+        "level": "warning",
+        "code": f"{match}_mapping",
+        "source_value": value,
+        "message": message,
+    }
 
 
 def _site_lookup(db: Session) -> tuple[dict[str, int], set[str]]:
@@ -245,26 +294,74 @@ def _normalize_yalelo_row(db: Session, raw: dict[str, Any], *, epoch) -> tuple[d
                 source_created_at = parsed
         except (ValueError, OverflowError) as exc:
             messages.append({"field": source_field, "level": "error", "message": str(exc)})
+    raw_status = _text(raw.get("Status"))
+    if raw_status is None:
+        status = SIOStatus.unassigned
+        messages.append(
+            {
+                "field": "Status",
+                "level": "warning",
+                "code": "blank_historical_status",
+                "message": (
+                    "Blank historical status mapped to unassigned; the blank source value is preserved"
+                ),
+            }
+        )
+    else:
+        try:
+            status = _enum_value(raw_status, STATUS_MAP, "Status")
+        except ValueError as exc:
+            messages.append({"field": "Status", "level": "error", "message": str(exc)})
+
     for source_field, mapping, target in (
-        ("Status", STATUS_MAP, "status"),
         ("Nature of Observation", NATURE_MAP, "nature"),
         ("Urgency", URGENCY_MAP, "urgency"),
     ):
         try:
             value = _enum_value(raw.get(source_field), mapping, source_field, optional=source_field == "Urgency")
-            if target == "status":
-                status = value
-            elif target == "nature":
+            if target == "nature":
                 nature = value
             else:
                 urgency = value
         except ValueError as exc:
             messages.append({"field": source_field, "level": "error", "message": str(exc)})
 
-    officer_name = _text(raw.get("Responsible H&S Officer"))
-    responsible_name = _text(raw.get("Person Responsible for Corrective Action"))
-    department_name = _text(raw.get("Department"))
-    responsible_department_name = _text(raw.get("Department Responsible for Corrective Action"))
+    officer_name = _preserved_text(raw.get("Responsible H&S Officer"))
+    responsible_name = _preserved_text(raw.get("Person Responsible for Corrective Action"))
+    department_name = _preserved_text(raw.get("Department"))
+    responsible_department_name = _preserved_text(
+        raw.get("Department Responsible for Corrective Action")
+    )
+    department_id, department_match = _exact_department_match(db, _text(department_name))
+    responsible_department_id, responsible_department_match = _exact_department_match(
+        db, _text(responsible_department_name)
+    )
+    officer_id, officer_match = _exact_user_match(db, _text(officer_name))
+    responsible_person_id, responsible_person_match = _exact_user_match(
+        db, _text(responsible_name)
+    )
+    for mapping_message in (
+        _mapping_message("Department", department_name, department_match),
+        _mapping_message(
+            "Department Responsible for Corrective Action",
+            responsible_department_name,
+            responsible_department_match,
+        ),
+        _mapping_message("Responsible H&S Officer", officer_name, officer_match),
+        _mapping_message(
+            "Person Responsible for Corrective Action",
+            responsible_name,
+            responsible_person_match,
+        ),
+    ):
+        if mapping_message:
+            messages.append(mapping_message)
+
+    unexpected_source_fields = {
+        key: _json_value(value)
+        for key, value in raw.items()
+        if key not in YALELO_SIO_COLUMNS and _text(value) is not None
+    }
     legacy_metadata = {
         "MonthY": _json_value(raw.get("MonthY")),
         "Item Type": _json_value(raw.get("Item Type")),
@@ -272,31 +369,33 @@ def _normalize_yalelo_row(db: Session, raw: dict[str, Any], *, epoch) -> tuple[d
         "source_observation_nature": _json_value(raw.get("Nature of Observation")),
         "source_urgency": _json_value(raw.get("Urgency")),
     }
+    if unexpected_source_fields:
+        legacy_metadata["unexpected_source_fields"] = unexpected_source_fields
     normalized = {
         "external_reference_id": _text(raw.get("ID")),
         "source_system": YALELO_SOURCE_SYSTEM,
         "observation_date": observation_date.isoformat() if observation_date else None,
         "department": department_name,
-        "department_id": _exact_department_id(db, department_name),
-        "source_type": _text(raw.get("Source of Observation")),
-        "description": _text(raw.get("Description of SIO")),
-        "incident_classification": _text(raw.get("Incident Classification")),
+        "department_id": department_id,
+        "source_type": _preserved_text(raw.get("Source of Observation")),
+        "description": _preserved_text(raw.get("Description of SIO")),
+        "incident_classification": _preserved_text(raw.get("Incident Classification")),
         "status": status.value if status else None,
         "observation_nature": nature.value if nature else None,
         "responsible_department": responsible_department_name,
-        "responsible_department_id": _exact_department_id(db, responsible_department_name),
-        "responsible_hs_officer_user_id": _exact_user_id(db, officer_name),
+        "responsible_department_id": responsible_department_id,
+        "responsible_hs_officer_user_id": officer_id,
         "responsible_hs_officer_name": officer_name,
         "urgency": urgency.value if urgency else None,
-        "category": _text(raw.get("SIO Category")),
-        "responsible_person_user_id": _exact_user_id(db, responsible_name),
-        "responsible_user_id": _exact_user_id(db, responsible_name),
+        "category": _preserved_text(raw.get("SIO Category")),
+        "responsible_person_user_id": responsible_person_id,
+        "responsible_user_id": responsible_person_id,
         "responsible_person_name": responsible_name,
-        "property_damage": _text(raw.get("Property Damage")),
+        "property_damage": _preserved_text(raw.get("Property Damage")),
         "source_created_at": source_created_at.isoformat() if source_created_at else None,
-        "source_created_by": _text(raw.get("Created By")),
-        "source_modified_by": _text(raw.get("Modified By")),
-        "source_path": _text(raw.get("Path")),
+        "source_created_by": _preserved_text(raw.get("Created By")),
+        "source_modified_by": _preserved_text(raw.get("Modified By")),
+        "source_path": _preserved_text(raw.get("Path")),
         "legacy_metadata": legacy_metadata,
     }
     return normalized, messages
@@ -323,12 +422,22 @@ def preview_yalelo_sio_import(
         except StopIteration as exc:
             raise ImportValidationError("The workbook is empty") from exc
         headers = [_text(value) for value in header_values]
+        duplicate_columns = sorted(
+            column for column, count in Counter(headers).items() if column is not None and count > 1
+        )
+        if duplicate_columns:
+            raise ImportValidationError(
+                "Workbook contains duplicate columns: " + ", ".join(duplicate_columns)
+            )
+        if any(header is None for header in headers):
+            raise ImportValidationError("Workbook contains one or more unnamed columns")
         missing_columns = [column for column in YALELO_SIO_COLUMNS if column not in headers]
         if missing_columns:
             raise ImportValidationError(
                 "Workbook does not match the Yalelo SIO format; missing columns: "
                 + ", ".join(missing_columns)
             )
+        additional_columns = [column for column in headers if column not in YALELO_SIO_COLUMNS]
 
         job = DataImportJob(
             importer_type=YALELO_SIO_IMPORTER,
@@ -346,7 +455,27 @@ def preview_yalelo_sio_import(
         unresolved_sites: set[str] = set()
         site_mappings: dict[str, int] = {}
         validation_messages: list[dict] = []
+        if additional_columns:
+            validation_messages.append(
+                {
+                    "level": "warning",
+                    "field": "Workbook",
+                    "code": "additional_columns",
+                    "message": "Additional columns are preserved in legacy metadata: "
+                    + ", ".join(additional_columns),
+                }
+            )
         detected = valid = duplicates = failed = 0
+        populated_columns: set[str] = set()
+        unresolved_departments: set[str] = set()
+        unresolved_responsible_departments: set[str] = set()
+        resolved_users: set[str] = set()
+        unresolved_users: set[str] = set()
+        ambiguous_users: set[str] = set()
+        unexpected_statuses: set[str] = set()
+        unexpected_urgencies: set[str] = set()
+        unexpected_classifications: set[str] = set()
+        malformed_dates: list[dict] = []
 
         for row_number, values in enumerate(rows, start=2):
             if not any(value is not None and str(value).strip() for value in values):
@@ -357,7 +486,48 @@ def preview_yalelo_sio_import(
                 for index, header in enumerate(headers)
                 if header is not None
             }
+            populated_columns.update(
+                key for key, value in raw.items() if _text(value) is not None
+            )
             normalized, messages = _normalize_yalelo_row(db, raw, epoch=workbook.epoch)
+            if normalized.get("department") and normalized.get("department_id") is None:
+                unresolved_departments.add(normalized["department"])
+            if (
+                normalized.get("responsible_department")
+                and normalized.get("responsible_department_id") is None
+            ):
+                unresolved_responsible_departments.add(normalized["responsible_department"])
+            for name_key, id_key in (
+                ("responsible_hs_officer_name", "responsible_hs_officer_user_id"),
+                ("responsible_person_name", "responsible_person_user_id"),
+            ):
+                if normalized.get(name_key) and normalized.get(id_key) is not None:
+                    resolved_users.add(normalized[name_key])
+            for message in messages:
+                field = message.get("field")
+                code = message.get("code")
+                if field in {"Responsible H&S Officer", "Person Responsible for Corrective Action"}:
+                    source_value = message.get("source_value")
+                    if source_value and code == "ambiguous_mapping":
+                        ambiguous_users.add(source_value)
+                    elif source_value and code == "unresolved_mapping":
+                        unresolved_users.add(source_value)
+                if field == "Status" and message.get("level") == "error":
+                    unexpected_statuses.add(_text(raw.get("Status")) or "<blank>")
+                if field == "Urgency" and message.get("level") == "error":
+                    unexpected_urgencies.add(_text(raw.get("Urgency")) or "<blank>")
+                if field in {"Date", "Created"} and message.get("level") == "error":
+                    malformed_dates.append(
+                        {
+                            "row_number": row_number,
+                            "field": field,
+                            "value": _json_value(raw.get(field)),
+                            "message": message.get("message"),
+                        }
+                    )
+            classification = _text(raw.get("Incident Classification"))
+            if classification and _key(classification) not in YALELO_KNOWN_INCIDENT_CLASSIFICATIONS:
+                unexpected_classifications.add(classification)
             external_id = normalized.get("external_reference_id")
             site_name = _text(raw.get("Site"))
             resolved_site_id = site_by_name.get(site_name.lower()) if site_name else None
@@ -422,6 +592,27 @@ def preview_yalelo_sio_import(
         job.skipped_rows = duplicates
         job.failed_rows = failed
         job.validation_messages = validation_messages
+        completely_empty_columns = [
+            column for column in YALELO_SIO_COLUMNS if column not in populated_columns
+        ]
+        warning_summaries: dict[tuple, dict] = {}
+        for message in validation_messages:
+            if message.get("level") != "warning":
+                continue
+            key = (
+                message.get("field"),
+                message.get("code"),
+                message.get("source_value"),
+                message.get("message"),
+            )
+            if key not in warning_summaries:
+                warning_summaries[key] = {
+                    item_key: item_value
+                    for item_key, item_value in message.items()
+                    if item_key != "row_number"
+                }
+                warning_summaries[key]["count"] = 0
+            warning_summaries[key]["count"] += 1
         job.report = {
             "rows_detected": detected,
             "rows_valid": valid,
@@ -430,6 +621,24 @@ def preview_yalelo_sio_import(
             "rows_failed": failed,
             "unresolved_sites": sorted(unresolved_sites),
             "site_mappings": site_mappings,
+            "column_contract": {
+                "expected_columns": list(YALELO_SIO_COLUMNS),
+                "detected_columns": headers,
+                "missing_columns": missing_columns,
+                "additional_columns": additional_columns,
+                "duplicate_columns": duplicate_columns,
+                "completely_empty_columns": completely_empty_columns,
+            },
+            "unresolved_departments": sorted(unresolved_departments),
+            "unresolved_responsible_departments": sorted(unresolved_responsible_departments),
+            "resolved_users": sorted(resolved_users),
+            "unresolved_users": sorted(unresolved_users),
+            "ambiguous_users": sorted(ambiguous_users),
+            "unexpected_statuses": sorted(unexpected_statuses),
+            "unexpected_urgency_values": sorted(unexpected_urgencies),
+            "unexpected_classifications": sorted(unexpected_classifications),
+            "malformed_dates": malformed_dates,
+            "other_warnings": list(warning_summaries.values()),
             "failure_reasons": [message for message in validation_messages if message["level"] == "error"],
         }
         db.add(job)
@@ -534,6 +743,7 @@ def confirm_yalelo_sio_import(
     if job.status != ImportJobStatus.previewed:
         raise ImportStateError(f"Import job cannot be confirmed while it is {job.status.value}")
 
+    preview_report = dict(job.report or {})
     confirmation_mappings = _resolve_confirmation_sites(db, request, actor_id=actor_id)
     job.status = ImportJobStatus.processing
     job.is_dry_run = False
@@ -544,6 +754,7 @@ def confirm_yalelo_sio_import(
     duplicates = 0
     failed = 0
     failure_reasons: list[dict] = []
+    rows_since_commit = 0
     for row in sorted(job.rows, key=lambda item: item.row_number):
         if row.status == ImportRowStatus.invalid:
             failed += 1
@@ -577,23 +788,26 @@ def confirm_yalelo_sio_import(
             continue
 
         try:
-            sio = create_sio(
-                db,
-                _sio_input_from_row(row, site_id),
-                actor_id=actor_id,
-                is_import=True,
-            )
-            row.resolved_site_id = site_id
-            row.imported_sio_id = sio.id
-            row.status = ImportRowStatus.imported
-            row.failure_reason = None
+            with db.begin_nested():
+                sio = create_sio(
+                    db,
+                    _sio_input_from_row(row, site_id),
+                    actor_id=actor_id,
+                    is_import=True,
+                    commit=False,
+                )
+                row.resolved_site_id = site_id
+                row.imported_sio_id = sio.id
+                row.status = ImportRowStatus.imported
+                row.failure_reason = None
+                db.add(row)
+                db.flush()
             imported += 1
         except SIODuplicateError:
             row.status = ImportRowStatus.duplicate
             row.failure_reason = None
             duplicates += 1
         except Exception as exc:
-            db.rollback()
             row.status = ImportRowStatus.failed
             row.failure_reason = str(exc)
             failure = {
@@ -605,6 +819,12 @@ def confirm_yalelo_sio_import(
             failure_reasons.append(failure)
             failed += 1
         db.add(row)
+        rows_since_commit += 1
+        if rows_since_commit >= 100:
+            db.commit()
+            rows_since_commit = 0
+
+    if rows_since_commit:
         db.commit()
 
     job.successful_rows = imported
@@ -631,6 +851,23 @@ def confirm_yalelo_sio_import(
             if row.source_site_name and row.resolved_site_id
         },
         "failure_reasons": failure_reasons,
+        **{
+            key: preview_report[key]
+            for key in (
+                "column_contract",
+                "unresolved_departments",
+                "unresolved_responsible_departments",
+                "resolved_users",
+                "unresolved_users",
+                "ambiguous_users",
+                "unexpected_statuses",
+                "unexpected_urgency_values",
+                "unexpected_classifications",
+                "malformed_dates",
+                "other_warnings",
+            )
+            if key in preview_report
+        },
     }
     job.validation_messages = [*job.validation_messages, *failure_reasons]
     db.add(job)

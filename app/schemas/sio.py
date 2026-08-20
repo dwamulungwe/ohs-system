@@ -75,6 +75,7 @@ class SIORead(SIOBase):
     id: int
     organisation_id: int
     reference_number: str
+    site_name: Optional[str] = None
     assigned_by_user_id: Optional[int] = None
     assigned_at: Optional[datetime] = None
     assignment_status: SIOAssignmentStatus
@@ -248,3 +249,6 @@ class SIOAnalyticsRead(BaseModel):
     recurring_categories: dict[str, int]
     # Compatibility fields retained for existing dashboard consumers.
     open_unassigned_observations: int
+    reporting_date_basis: str
+    observations_using_source_created_at_fallback: int
+    observations_using_system_created_at_fallback: int

@@ -239,6 +239,10 @@ class SafetyImprovementObservation(OrganisationOwnedMixin, TimestampMixin, Base)
     )
 
     @property
+    def site_name(self) -> Optional[str]:
+        return self.site.name if self.site else None
+
+    @property
     def age_days(self) -> int:
         started_on = (
             self.observation_date

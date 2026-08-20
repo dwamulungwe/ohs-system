@@ -554,7 +554,7 @@ export function DashboardPage() {
       <section className="grid gap-4 xl:grid-cols-2">
         <DistributionPanel
           title="SIO Trend Over Time"
-          description="Observations grouped by their actual observation month; missing dates are not inferred."
+          description="Observation date is authoritative; source-created date is the explicit historical fallback when it is missing."
           values={sioAnalytics?.observation_trend_by_month}
         />
         <DistributionPanel
@@ -598,6 +598,12 @@ export function DashboardPage() {
           values={sioAnalytics?.observations_by_urgency}
         />
       </section>
+
+      {sioAnalytics?.reporting_date_basis ? (
+        <p className="rounded-lg border border-sky-200 bg-sky-50 px-4 py-3 text-sm text-sky-900">
+          Historical SIO reporting date: {sioAnalytics.reporting_date_basis}. The current view uses source-created fallback for {formatNumber(sioAnalytics.observations_using_source_created_at_fallback ?? 0)} record(s) and system-created fallback for {formatNumber(sioAnalytics.observations_using_system_created_at_fallback ?? 0)} record(s).
+        </p>
+      ) : null}
 
       <section className="grid gap-4 xl:grid-cols-2">
         <RecordListPanel

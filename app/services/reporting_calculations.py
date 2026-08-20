@@ -391,6 +391,18 @@ def _sio_metric(context: CalculationContext, key: str) -> MetricValue:
     closures = [item for item in context.sios if item.closed_at and context._in_period(item.closed_at)]
     metadata = _base_metadata(context, source="safety_improvement_observations", formula=key)
     metadata["source_count"] = len(context.sios)
+    metadata["reporting_date_basis"] = (
+        "observation_date; source_created_at fallback when observation_date is null; "
+        "system created_at final fallback"
+    )
+    metadata["source_created_at_fallback_count"] = sum(
+        item.observation_date is None and item.source_created_at is not None
+        for item in raised
+    )
+    metadata["system_created_at_fallback_count"] = sum(
+        item.observation_date is None and item.source_created_at is None
+        for item in raised
+    )
     values = {
         "sio_raised": len(raised),
         "sio_positive": sum(item.observation_nature == SIOObservationNature.positive for item in raised),

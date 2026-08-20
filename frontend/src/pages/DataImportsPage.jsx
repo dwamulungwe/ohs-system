@@ -25,6 +25,20 @@ function ReportCard({ label, value, tone = 'stone' }) {
   )
 }
 
+function DiagnosticList({ title, values, tone = 'amber' }) {
+  if (!values?.length) return null
+  const colors = tone === 'red'
+    ? 'border-rose-200 bg-rose-50 text-rose-950'
+    : 'border-amber-200 bg-amber-50 text-amber-950'
+  const visible = values.slice(0, 20)
+  return (
+    <div className={`rounded-lg border p-4 ${colors}`}>
+      <h3 className="font-semibold">{title} ({formatNumber(values.length)})</h3>
+      <p className="mt-2 text-sm leading-6">{visible.join(' · ')}{values.length > visible.length ? ` · +${formatNumber(values.length - visible.length)} more` : ''}</p>
+    </div>
+  )
+}
+
 export function DataImportsPage() {
   const { token, user } = useAuth()
   const [file, setFile] = useState(null)
@@ -214,6 +228,26 @@ export function DataImportsPage() {
                   </div>
                 ))}
               </div>
+            </div>
+          ) : null}
+
+          <div className="grid gap-3 lg:grid-cols-2">
+            <DiagnosticList title="Unresolved originating departments" values={report.unresolved_departments} />
+            <DiagnosticList title="Unresolved responsible departments" values={report.unresolved_responsible_departments} />
+            <DiagnosticList title="Resolved exact user matches" values={report.resolved_users} />
+            <DiagnosticList title="Unresolved user/person names" values={report.unresolved_users} />
+            <DiagnosticList title="Ambiguous exact user matches" values={report.ambiguous_users} tone="red" />
+            <DiagnosticList title="Unexpected statuses" values={report.unexpected_statuses} tone="red" />
+            <DiagnosticList title="Unexpected urgency values" values={report.unexpected_urgency_values} tone="red" />
+            <DiagnosticList title="Unexpected classifications" values={report.unexpected_classifications} tone="red" />
+            <DiagnosticList title="Additional workbook columns" values={report.column_contract?.additional_columns} />
+            <DiagnosticList title="Completely empty workbook columns" values={report.column_contract?.completely_empty_columns} />
+          </div>
+
+          {report.malformed_dates?.length ? (
+            <div className="rounded-lg border border-rose-200 bg-rose-50 p-4 text-sm text-rose-950">
+              <h3 className="font-semibold">Malformed dates ({formatNumber(report.malformed_dates.length)})</h3>
+              <p className="mt-2">{report.malformed_dates.slice(0, 10).map((item) => `row ${item.row_number} ${item.field}: ${item.value ?? 'blank'}`).join(' · ')}</p>
             </div>
           ) : null}
 

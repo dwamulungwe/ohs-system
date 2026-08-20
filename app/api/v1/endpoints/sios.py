@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import csv
+import json
 from datetime import date
 from io import StringIO
 from typing import Optional
@@ -120,6 +121,8 @@ def read_sios(
     overdue: Optional[bool] = None,
     date_from: Optional[date] = None,
     date_to: Optional[date] = None,
+    source_created_from: Optional[date] = None,
+    source_created_to: Optional[date] = None,
     search: Optional[str] = Query(default=None, max_length=200),
     view: Optional[str] = Query(default=None, max_length=60),
     db: Session = Depends(get_db),
@@ -148,6 +151,8 @@ def read_sios(
             overdue=overdue,
             date_from=date_from,
             date_to=date_to,
+            source_created_from=source_created_from,
+            source_created_to=source_created_to,
             search=search,
             view=view,
             current_user_id=current_user.id,
@@ -211,19 +216,29 @@ def bulk_update_sio_records(
 SIO_EXPORT_HEADERS = (
     "reference_number",
     "external_reference_id",
+    "source_system",
     "observation_date",
     "site_id",
     "department",
     "department_id",
     "responsible_department",
     "responsible_department_id",
+    "responsible_hs_officer_user_id",
+    "responsible_hs_officer_name",
     "responsible_user_id",
     "responsible_person_name",
     "source_type",
+    "incident_classification",
     "category",
     "observation_nature",
     "urgency",
     "status",
+    "property_damage",
+    "source_created_at",
+    "source_created_by",
+    "source_modified_by",
+    "source_path",
+    "legacy_metadata",
     "due_date",
     "age_days",
     "days_overdue",
@@ -244,17 +259,19 @@ SIO_EXPORT_HEADERS = (
 
 
 def _sio_csv(records: list[SafetyImprovementObservation]) -> str:
+    def export_value(value):
+        if isinstance(value, date):
+            return value.isoformat()
+        if isinstance(value, (dict, list)):
+            return json.dumps(value, ensure_ascii=False, sort_keys=True)
+        return getattr(value, "value", value)
+
     stream = StringIO()
     writer = csv.writer(stream, lineterminator="\n")
     writer.writerow(SIO_EXPORT_HEADERS)
     for sio in records:
         writer.writerow(
-            [
-                getattr(value, "value", value).isoformat()
-                if isinstance(value := getattr(sio, field), (date,))
-                else getattr(value, "value", value)
-                for field in SIO_EXPORT_HEADERS
-            ]
+            [export_value(getattr(sio, field)) for field in SIO_EXPORT_HEADERS]
         )
     return stream.getvalue()
 

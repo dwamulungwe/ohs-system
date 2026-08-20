@@ -13,6 +13,7 @@ def write_audit_log(
     resource_id: Optional[int] = None,
     details: Optional[dict] = None,
     ip_address: Optional[str] = None,
+    commit: bool = True,
 ) -> AuditLog:
     audit_log = AuditLog(
         actor_id=actor_id,
@@ -23,6 +24,9 @@ def write_audit_log(
         ip_address=ip_address,
     )
     db.add(audit_log)
-    db.commit()
-    db.refresh(audit_log)
+    if commit:
+        db.commit()
+        db.refresh(audit_log)
+    else:
+        db.flush()
     return audit_log
