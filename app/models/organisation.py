@@ -10,6 +10,19 @@ from app.db.base_class import Base
 from app.models.common import OrganisationOwnedMixin, TimestampMixin
 
 
+def default_occupational_health_configuration() -> dict:
+    return {
+        "default_reminder_windows": [90, 60, 30, 7],
+        "appointment_reminder_days": [7, 1],
+        "certificate_expiry_reminders": [90, 60, 30, 7],
+        "missed_appointment_escalation_count": 2,
+        "provider_required": False,
+        "restriction_review_reminder_days": 30,
+        "return_to_work_review_required": True,
+        "retention_days": None,
+    }
+
+
 class Organisation(TimestampMixin, Base):
     __tablename__ = "organisations"
 
@@ -74,6 +87,9 @@ class OrganisationSettings(OrganisationOwnedMixin, TimestampMixin, Base):
     )
     incident_configuration: Mapped[dict] = mapped_column(
         MutableDict.as_mutable(JSON), default=dict, nullable=False
+    )
+    occupational_health_configuration: Mapped[dict] = mapped_column(
+        MutableDict.as_mutable(JSON), default=default_occupational_health_configuration, nullable=False
     )
 
     organisation: Mapped[Organisation] = relationship(back_populates="settings")

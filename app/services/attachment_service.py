@@ -24,7 +24,13 @@ from app.models.incident_investigation import IncidentInvestigation
 from app.models.inspection import Inspection
 from app.models.jsa import JobSafetyAnalysis
 from app.models.legal_compliance import LegalComplianceItem
-from app.models.medical_surveillance import MedicalSurveillanceRecord
+from app.models.medical_surveillance import (
+    ClinicEncounter,
+    FitnessCertificate,
+    MedicalAssessment,
+    MedicalSurveillanceRecord,
+    OccupationalIllnessCase,
+)
 from app.models.permit import PermitToWork
 from app.models.safety_communication import SafetyCommunication
 from app.models.sio import SafetyImprovementObservation
@@ -74,6 +80,10 @@ ENTITY_MODELS = {
     AttachmentEntityType.contractor: ContractorRecord,
     AttachmentEntityType.asset_register: AssetRegisterItem,
     AttachmentEntityType.medical_surveillance: MedicalSurveillanceRecord,
+    AttachmentEntityType.medical_assessment: MedicalAssessment,
+    AttachmentEntityType.fitness_certificate: FitnessCertificate,
+    AttachmentEntityType.occupational_illness: OccupationalIllnessCase,
+    AttachmentEntityType.clinic_encounter: ClinicEncounter,
     AttachmentEntityType.emergency_drill: EmergencyDrillRecord,
     AttachmentEntityType.document_control: DocumentControlRecord,
     AttachmentEntityType.audit_management: AuditManagementRecord,
@@ -312,10 +322,21 @@ def _ensure_medical_surveillance_access(
     write: bool,
 ) -> None:
     ensure_site_access(user, record.site_id)
-    ensure_permission(
-        user,
-        Permission.MEDICAL_SURVEILLANCE_EDIT if write else Permission.MEDICAL_SURVEILLANCE_VIEW,
-    )
+    # Attachments on the historical medical entity may contain certificates or
+    # test reports. Operational compliance access alone never grants download.
+    ensure_permission(user, Permission.OCCUPATIONAL_HEALTH_MEDICAL_DETAIL_MANAGE if write else Permission.OCCUPATIONAL_HEALTH_MEDICAL_DETAIL_VIEW)
+
+
+def _ensure_confidential_medical_attachment_access(user: User, entity, *, write: bool) -> None:
+    worker_id = getattr(entity, "worker_user_id", None)
+    worker = getattr(entity, "worker", None)
+    site_id = getattr(entity, "site_id", None) or getattr(worker, "assigned_site_id", None)
+    if site_id is None and worker_id is not None:
+        # Tenant filtering protects the guessed worker ID; site scope is applied
+        # by entity endpoints and medical-detail permission still fails closed.
+        site_id = None
+    ensure_site_access(user, site_id)
+    ensure_permission(user, Permission.OCCUPATIONAL_HEALTH_MEDICAL_DETAIL_MANAGE if write else Permission.OCCUPATIONAL_HEALTH_MEDICAL_DETAIL_VIEW)
 
 
 def _ensure_emergency_drill_access(
@@ -423,6 +444,14 @@ def ensure_entity_access(user: User, entity_type: AttachmentEntityType, entity, 
         return
     if entity_type == AttachmentEntityType.medical_surveillance:
         _ensure_medical_surveillance_access(user, entity, write=write)
+        return
+    if entity_type in {
+        AttachmentEntityType.medical_assessment,
+        AttachmentEntityType.fitness_certificate,
+        AttachmentEntityType.occupational_illness,
+        AttachmentEntityType.clinic_encounter,
+    }:
+        _ensure_confidential_medical_attachment_access(user, entity, write=write)
         return
     if entity_type == AttachmentEntityType.emergency_drill:
         _ensure_emergency_drill_access(user, entity, write=write)

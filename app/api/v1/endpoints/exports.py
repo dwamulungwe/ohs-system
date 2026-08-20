@@ -35,6 +35,8 @@ from app.models.medical_surveillance import (
 from app.models.sio import SIOStatus, SIOUrgency
 from app.models.user import User
 from app.services.rbac import Permission, ensure_permission, ensure_site_access, has_permission, resolve_site_scope
+from app.services.audit_service import write_audit_log
+from app.services.occupational_health_service import export_csv as export_occupational_health_csv, OccupationalHealthValidation
 from app.services.tenancy import require_feature
 from app.services.export_service import (
     ExportNotFoundError,
@@ -244,13 +246,19 @@ def medical_surveillance_report(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ) -> str:
-    ensure_permission(current_user, Permission.EXPORTS_VIEW)
+    ensure_permission(current_user, Permission.OCCUPATIONAL_HEALTH_MEDICAL_DETAIL_VIEW)
     record = db.get(MedicalSurveillanceRecord, record_id)
     if record is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Medical surveillance record not found")
     ensure_site_access(current_user, record.site_id)
     try:
-        return render_medical_surveillance_report(db, record_id)
+        content = render_medical_surveillance_report(db, record_id)
+        write_audit_log(
+            db, actor_id=current_user.id, action="occupational_health.export",
+            resource_type="medical_export", resource_id=record_id,
+            details={"export_type": "legacy_medical_detail_report", "medical_detail": True},
+        )
+        return content
     except ExportNotFoundError:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Medical surveillance record not found")
 
@@ -620,9 +628,9 @@ def medical_surveillance_csv(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ) -> Response:
-    ensure_permission(current_user, Permission.EXPORTS_VIEW)
+    ensure_permission(current_user, Permission.OCCUPATIONAL_HEALTH_REPORTS_VIEW)
     site_id = resolve_site_scope(current_user, site_id)
-    return _csv_response(
+    response = _csv_response(
         export_medical_surveillance_csv(
             db,
             site_id=site_id,
@@ -634,6 +642,30 @@ def medical_surveillance_csv(
         ),
         "medical-surveillance.csv",
     )
+    write_audit_log(db, actor_id=current_user.id, action="occupational_health.export", resource_type="medical_export", details={"export_type": "compliance", "medical_detail": False})
+    return response
+
+
+@router.get("/occupational-health/{export_type}.csv", dependencies=[Depends(require_feature("medical_surveillance"))])
+def occupational_health_csv(
+    export_type: str,
+    site_id: Optional[int] = None,
+    department_id: Optional[int] = None,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+) -> Response:
+    ensure_permission(current_user, Permission.OCCUPATIONAL_HEALTH_REPORTS_VIEW)
+    site_id = resolve_site_scope(current_user, site_id)
+    medical_detail = has_permission(current_user, Permission.OCCUPATIONAL_HEALTH_MEDICAL_DETAIL_VIEW)
+    try:
+        content = export_occupational_health_csv(
+            db, export_type, site_id=site_id, department_id=department_id,
+            medical_detail=medical_detail,
+        )
+    except OccupationalHealthValidation as exc:
+        raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail=str(exc))
+    write_audit_log(db, actor_id=current_user.id, action="occupational_health.export", resource_type="medical_export", details={"export_type": export_type, "medical_detail": export_type == "medical-detail"})
+    return _csv_response(content, f"occupational-health-{export_type}.csv")
 
 
 @router.get("/emergency-drills.csv", dependencies=[Depends(require_feature("emergency_drills"))])

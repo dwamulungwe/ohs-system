@@ -232,6 +232,17 @@ export const apiClient = {
   getIncidentMedical(token, incidentId) {
     return request(`/incidents/${incidentId}/medical`, { token })
   },
+  getOccupationalHealth(token, path = '', params = {}) {
+    const suffix = path ? `/${path.replace(/^\/+/, '')}` : ''
+    return request(withQuery(`/medical-surveillance${suffix}`, params), { token })
+  },
+  createOccupationalHealth(token, path, body) {
+    const suffix = path ? `/${path.replace(/^\/+/, '')}` : ''
+    return request(`/medical-surveillance${suffix}`, { token, method: 'POST', body })
+  },
+  updateOccupationalHealth(token, path, body) {
+    return request(`/medical-surveillance/${path.replace(/^\/+/, '')}`, { token, method: 'PATCH', body })
+  },
   incidentCommand(token, incidentId, command, body = {}) {
     return request(`/incidents/${incidentId}/${command}`, { token, method: 'POST', body })
   },

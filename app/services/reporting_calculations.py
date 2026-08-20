@@ -32,6 +32,7 @@ from app.models.sio import (
 from app.models.training import TrainingRecord, TrainingStatus
 from app.models.ppe import PPEIssueStatus
 from app.services.ppe_service import ACTIVE_ISSUE_STATUSES, dashboard as ppe_dashboard, list_issues as list_ppe_issues
+from app.services.occupational_health_service import dashboard as occupational_health_dashboard
 
 
 @dataclass(frozen=True)
@@ -666,6 +667,38 @@ def _ppe_metric(context: CalculationContext, key: str) -> MetricValue:
     return MetricValue(None, metadata=metadata, insufficient_reason="Calculation is not available")
 
 
+def _occupational_health_metric(context: CalculationContext, key: str) -> MetricValue:
+    metadata = _base_metadata(context, source="occupational health surveillance, appointments, certificates, restrictions and illness cases", formula=key)
+    summary = occupational_health_dashboard(
+        context.db, site_id=context.site_id, department_id=context.department_id, as_of=context.end,
+    )
+    values = {
+        "medical_workers_requiring": summary["workers_requiring_surveillance"],
+        "medical_surveillance_compliant": summary["compliant_workers"],
+        "medical_surveillance_compliance_rate": summary["compliance_rate"],
+        "medical_assessments_due_30": summary["due_30"],
+        "medical_assessments_due_60": summary["due_60"],
+        "medical_assessments_due_90": summary["due_90"],
+        "medical_assessments_overdue": summary["overdue_assessments"],
+        "medical_certificates_expired": summary["expired_certificates"],
+        "medical_active_restrictions": summary["active_restrictions"],
+        "medical_rtw_reviews_due": summary["return_to_work_reviews_due"],
+        "occupational_illness_suspected": summary["occupational_illness_suspected"],
+        "occupational_illness_confirmed": summary["occupational_illness_confirmed"],
+        "medical_missed_appointments": summary["missed_appointments"],
+    }
+    if key == "medical_average_completion_delay":
+        value = summary["average_completion_delay_days"]
+        return MetricValue(float(value), metadata=metadata) if value is not None else MetricValue(None, metadata=metadata, insufficient_reason="No completed surveillance records in scope")
+    value = values.get(key)
+    if value is None:
+        reason = "No workers require surveillance in scope" if key == "medical_surveillance_compliance_rate" else "Calculation is not available"
+        return MetricValue(None, metadata=metadata, insufficient_reason=reason)
+    if key == "medical_surveillance_compliance_rate":
+        return MetricValue(float(value), float(summary["compliant_workers"]), float(summary["workers_requiring_surveillance"]), metadata)
+    return MetricValue(float(value), metadata=metadata)
+
+
 def calculate_kpi(context: CalculationContext, definition: KPIDefinition) -> MetricValue:
     key = definition.key
     if key.startswith("action_"):
@@ -700,6 +733,8 @@ def calculate_kpi(context: CalculationContext, definition: KPIDefinition) -> Met
         result = _permit_compliance_metric(context, key)
     elif key.startswith("ppe_"):
         result = _ppe_metric(context, key)
+    elif key.startswith("medical_") or key.startswith("occupational_illness_"):
+        result = _occupational_health_metric(context, key)
     else:
         result = MetricValue(
             None,

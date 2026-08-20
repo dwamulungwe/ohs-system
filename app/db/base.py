@@ -48,7 +48,21 @@ from app.models.inspection import Inspection
 from app.models.jsa import JobSafetyAnalysis
 from app.models.job_run import JobRun
 from app.models.legal_compliance import LegalComplianceItem
-from app.models.medical_surveillance import MedicalSurveillanceRecord
+from app.models.medical_surveillance import (
+    ClinicEncounter,
+    FitnessCertificate,
+    MedicalAppointment,
+    MedicalAssessment,
+    MedicalProvider,
+    MedicalReminderDelivery,
+    MedicalSurveillanceRecord,
+    OccupationalExposureType,
+    OccupationalIllnessCase,
+    SurveillanceProgramme,
+    SurveillanceRequirement,
+    WorkerExposureAssignment,
+    WorkRestriction,
+)
 from app.models.notification import Notification
 from app.models.notification_delivery import NotificationDeliveryLog
 from app.models.organisation import Organisation, OrganisationFeature, OrganisationSettings
@@ -143,6 +157,18 @@ __all__ = [
     "JobRun",
     "LegalComplianceItem",
     "MedicalSurveillanceRecord",
+    "SurveillanceProgramme",
+    "SurveillanceRequirement",
+    "OccupationalExposureType",
+    "WorkerExposureAssignment",
+    "MedicalProvider",
+    "MedicalAppointment",
+    "MedicalAssessment",
+    "FitnessCertificate",
+    "WorkRestriction",
+    "OccupationalIllnessCase",
+    "ClinicEncounter",
+    "MedicalReminderDelivery",
     "Notification",
     "NotificationDeliveryLog",
     "Organisation",

@@ -127,6 +127,14 @@ class Permission:
     MEDICAL_SURVEILLANCE_VIEW = "medical_surveillance.view"
     MEDICAL_SURVEILLANCE_CREATE = "medical_surveillance.create"
     MEDICAL_SURVEILLANCE_EDIT = "medical_surveillance.edit"
+    MEDICAL_SURVEILLANCE_VIEW_COMPLIANCE = "medical_surveillance.view_compliance"
+    MEDICAL_SURVEILLANCE_MANAGE = "medical_surveillance.manage"
+    OCCUPATIONAL_HEALTH_MEDICAL_DETAIL_VIEW = "occupational_health.medical_detail.view"
+    OCCUPATIONAL_HEALTH_MEDICAL_DETAIL_MANAGE = "occupational_health.medical_detail.manage"
+    OCCUPATIONAL_HEALTH_FITNESS_MANAGE = "occupational_health.fitness.manage"
+    OCCUPATIONAL_HEALTH_RESTRICTIONS_VIEW = "occupational_health.restrictions.view"
+    OCCUPATIONAL_HEALTH_REPORTS_VIEW = "occupational_health.reports.view"
+    OCCUPATIONAL_HEALTH_SELF_VIEW = "occupational_health.self.view"
     EMERGENCY_DRILLS_VIEW = "emergency_drills.view"
     EMERGENCY_DRILLS_CREATE = "emergency_drills.create"
     EMERGENCY_DRILLS_EDIT = "emergency_drills.edit"
@@ -461,6 +469,34 @@ ROLE_PERMISSIONS[ROLE_SAFETY_OFFICER].update({
     Permission.INCIDENT_REGULATORY_MANAGE,
 })
 ROLE_PERMISSIONS[ROLE_SUPERVISOR].update({Permission.INCIDENT_MANAGE})
+
+# Occupational-health permissions intentionally separate operational fitness
+# information from confidential clinical detail. Admin retains "*"; safety
+# officers are the default medical-professional role until tenants add custom
+# permission-bearing roles.
+ROLE_PERMISSIONS[ROLE_OHS_MANAGER].update({
+    Permission.MEDICAL_SURVEILLANCE_VIEW_COMPLIANCE,
+    Permission.MEDICAL_SURVEILLANCE_MANAGE,
+    Permission.OCCUPATIONAL_HEALTH_FITNESS_MANAGE,
+    Permission.OCCUPATIONAL_HEALTH_RESTRICTIONS_VIEW,
+    Permission.OCCUPATIONAL_HEALTH_REPORTS_VIEW,
+})
+ROLE_PERMISSIONS[ROLE_SAFETY_OFFICER].update({
+    Permission.MEDICAL_SURVEILLANCE_VIEW_COMPLIANCE,
+    Permission.MEDICAL_SURVEILLANCE_MANAGE,
+    Permission.OCCUPATIONAL_HEALTH_MEDICAL_DETAIL_VIEW,
+    Permission.OCCUPATIONAL_HEALTH_MEDICAL_DETAIL_MANAGE,
+    Permission.OCCUPATIONAL_HEALTH_FITNESS_MANAGE,
+    Permission.OCCUPATIONAL_HEALTH_RESTRICTIONS_VIEW,
+    Permission.OCCUPATIONAL_HEALTH_REPORTS_VIEW,
+})
+ROLE_PERMISSIONS[ROLE_SUPERVISOR].update({
+    Permission.MEDICAL_SURVEILLANCE_VIEW_COMPLIANCE,
+    Permission.OCCUPATIONAL_HEALTH_RESTRICTIONS_VIEW,
+})
+ROLE_PERMISSIONS[ROLE_EMPLOYEE].update({
+    Permission.OCCUPATIONAL_HEALTH_SELF_VIEW,
+})
 
 GLOBAL_SITE_ACCESS_ROLES = {ROLE_ADMIN, ROLE_OHS_MANAGER, ROLE_SAFETY_OFFICER}
 SITE_SCOPED_ROLES = {ROLE_SUPERVISOR, ROLE_EMPLOYEE}

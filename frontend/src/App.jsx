@@ -12,6 +12,7 @@ import { ActionCentrePage } from './pages/ActionCentrePage.jsx'
 import { ReportingCentrePage } from './pages/ReportingCentrePage.jsx'
 import { PPEManagementPage } from './pages/PPEManagementPage.jsx'
 import { IncidentManagementPage } from './pages/IncidentManagementPage.jsx'
+import { OccupationalHealthPage } from './pages/OccupationalHealthPage.jsx'
 import { resources } from './config/resources.jsx'
 import { useAuth } from './context/AuthContext.jsx'
 import { getDefaultRoute } from './lib/rbac.js'
@@ -39,6 +40,7 @@ function App() {
           <Route path="/ppe" element={<PPEManagementPage />} />
           <Route path="/incidents" element={<IncidentManagementPage />} />
           <Route path="/incidents/:id" element={<IncidentManagementPage />} />
+          <Route path="/medical-surveillance" element={<OccupationalHealthPage />} />
           <Route path="/corrective-actions" element={<ActionCentrePage resource={actionResource} />} />
           <Route path="/corrective-actions/:id" element={<ResourceDetailPage resource={actionResource} />} />
           {resources.filter((resource) => !resource.customPage).map((resource) => (

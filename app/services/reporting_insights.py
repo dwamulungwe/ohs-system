@@ -15,10 +15,20 @@ from app.models.hazard import Hazard, HazardRiskLevel, HazardStatus
 from app.models.incident_investigation import IncidentInvestigation, IncidentInvestigationStatus
 from app.models.inspection import Inspection, InspectionStatus
 from app.models.legal_compliance import LegalComplianceItem
-from app.models.medical_surveillance import MedicalSurveillanceRecord, MedicalSurveillanceStatus
+from app.models.medical_surveillance import (
+    ClinicEncounter,
+    FitnessCertificate,
+    MedicalAppointment,
+    MedicalAppointmentStatus,
+    MedicalSurveillanceRecord,
+    WorkRestriction,
+    WorkRestrictionStatus,
+)
+from app.models.incident import Incident, IncidentReturnToWork, ReturnToWorkStatus
 from app.models.permit import PermitStatus, PermitToWork
 from app.models.sio import SIOStatus, SafetyImprovementObservation
 from app.models.training import TrainingRecord, TrainingStatus
+from app.models.user import User
 
 
 def _as_date(value) -> Optional[date]:
@@ -83,8 +93,40 @@ def get_forward_view(
         due = item.expiry_date or item.due_date
         if item.status != TrainingStatus.cancelled:
             add("training", item.id, item.title, due, item_site_id=item.site_id, route=f"/training/{item.id}")
-    for item in _scoped(db, MedicalSurveillanceRecord, site_id=site_id):
+    for item in _scoped(db, MedicalSurveillanceRecord, site_id=site_id, department_id=department_id, department_fields=("department_id",)):
         add("medical_surveillance", item.id, item.surveillance_type, item.next_due_date or item.due_date, item_site_id=item.site_id, route=f"/medical-surveillance/{item.id}")
+    appointment_statement = select(MedicalAppointment)
+    if site_id is not None: appointment_statement = appointment_statement.where(MedicalAppointment.site_id == site_id)
+    if department_id is not None: appointment_statement = appointment_statement.join(User, User.id == MedicalAppointment.worker_user_id).where(User.department_id == department_id)
+    for item in db.scalars(appointment_statement).all():
+        if item.status == MedicalAppointmentStatus.scheduled:
+            add("medical_appointment", item.id, "Scheduled medical appointment", _as_date(item.appointment_at), item_site_id=item.site_id, route="/medical-surveillance")
+    certificate_statement = select(FitnessCertificate)
+    if site_id is not None:
+        certificate_statement = certificate_statement.join(User, User.id == FitnessCertificate.worker_user_id).where(User.assigned_site_id == site_id)
+    if department_id is not None:
+        if site_id is None: certificate_statement = certificate_statement.join(User, User.id == FitnessCertificate.worker_user_id)
+        certificate_statement = certificate_statement.where(User.department_id == department_id)
+    for item in db.scalars(certificate_statement).all():
+        add("fitness_certificate", item.id, "Fitness certificate expiry", item.expiry_date, route="/medical-surveillance")
+    restriction_statement = select(WorkRestriction).where(WorkRestriction.status == WorkRestrictionStatus.active)
+    if site_id is not None:
+        restriction_statement = restriction_statement.join(User, User.id == WorkRestriction.worker_user_id).where(User.assigned_site_id == site_id)
+    if department_id is not None:
+        if site_id is None: restriction_statement = restriction_statement.join(User, User.id == WorkRestriction.worker_user_id)
+        restriction_statement = restriction_statement.where(User.department_id == department_id)
+    for item in db.scalars(restriction_statement).all():
+        add("restriction_review", item.id, "Work restriction review", item.review_date, route="/medical-surveillance")
+    clinic_statement = select(ClinicEncounter).where(ClinicEncounter.follow_up_required.is_(True))
+    if site_id is not None: clinic_statement = clinic_statement.where(ClinicEncounter.site_id == site_id)
+    if department_id is not None: clinic_statement = clinic_statement.join(User, User.id == ClinicEncounter.worker_user_id).where(User.department_id == department_id)
+    for item in db.scalars(clinic_statement).all():
+        add("medical_follow_up", item.id, "Occupational-health follow-up", item.follow_up_date, item_site_id=item.site_id, route="/medical-surveillance")
+    rtw_statement = select(IncidentReturnToWork).join(Incident, Incident.id == IncidentReturnToWork.incident_id).where(IncidentReturnToWork.status.notin_([ReturnToWorkStatus.not_required, ReturnToWorkStatus.returned_to_work]))
+    if site_id is not None: rtw_statement = rtw_statement.where(Incident.site_id == site_id)
+    if department_id is not None: rtw_statement = rtw_statement.where(Incident.department_id == department_id)
+    for item in db.scalars(rtw_statement).all():
+        add("return_to_work_review", item.id, "Return-to-work review", item.review_due_date, route="/medical-surveillance")
     for item in _scoped(db, LegalComplianceItem, site_id=site_id):
         add("legal_compliance", item.id, item.title, item.next_review_date, item_site_id=item.site_id, route=f"/legal-compliance/{item.id}")
     for item in _scoped(db, DocumentControlRecord, site_id=site_id):
@@ -165,6 +207,10 @@ def get_management_exceptions(
         due = item.expiry_date or item.due_date
         if item.status in {TrainingStatus.overdue, TrainingStatus.expired} or (due and due < as_of and item.status != TrainingStatus.completed):
             add("training", item.id, item.title, "high" if item.status == TrainingStatus.expired else "medium", due, "Training is expired or overdue", item_site_id=item.site_id, route=f"/training/{item.id}")
+    for item in _scoped(db, MedicalSurveillanceRecord, site_id=site_id, department_id=department_id, department_fields=("department_id",)):
+        due = item.next_due_date or item.expiry_date or item.due_date
+        if due and due < as_of:
+            add("medical_surveillance", item.id, item.surveillance_type, "high", due, "Mandatory medical surveillance is overdue", item_site_id=item.site_id, item_department_id=item.department_id, route="/medical-surveillance")
     for item in _scoped(db, AuditManagementRecord, site_id=site_id):
         if item.status == AuditStatus.open and item.non_conformances and item.audit_date < as_of:
             add("audit", item.id, f"{item.audit_type.value.title()} audit", "medium", item.audit_date, "Audit findings remain outstanding", item_site_id=item.site_id, route=f"/audits/{item.id}")

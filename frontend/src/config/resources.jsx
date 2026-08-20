@@ -636,15 +636,15 @@ export const resources = [
   },
   {
     key: 'medical-surveillance',
-    label: 'Medical Surveillance',
+    label: 'Occupational Health',
     singular: 'Medical Surveillance Record',
     route: '/medical-surveillance',
-    workflowForm: true,
+    customPage: true,
     icon: Activity,
     attachmentEntityType: 'medical_surveillance',
     listEndpoint: '/medical-surveillance',
     detailEndpoint: (id) => `/medical-surveillance/${id}`,
-    description: 'Occupational health surveillance scheduling, completion, and medical clearance tracking.',
+    description: 'Exposure-linked surveillance, fitness, appointments, restrictions, illness cases, and compliance.',
     columns: [
       { key: 'employee_user_id', label: 'Employee', type: 'number' },
       { key: 'surveillance_type', label: 'Type' },

@@ -19,6 +19,7 @@ CATEGORY_FEATURES = {
     "Training": "training",
     "Permits & Compliance": "compliance",
     "PPE": "ppe",
+    "Occupational Health": "medical_surveillance",
 }
 
 
@@ -119,6 +120,17 @@ KPI_CATALOGUE = [
     _entry("ppe_compliance_rate", "PPE", unit="percent", direction=KPIDirection.higher_is_better, numerator="Fully PPE compliant employees", denominator="Employees with applicable PPE requirements"),
     _entry("ppe_issue_cost", "PPE", unit="currency"),
     _entry("ppe_replacement_cost", "PPE", unit="currency"),
+    # Occupational health (aggregate only; no diagnosis fields are exposed).
+    *[_entry(key, "Occupational Health", direction=KPIDirection.lower_is_better) for key in (
+        "medical_assessments_due_30", "medical_assessments_due_60", "medical_assessments_due_90",
+        "medical_assessments_overdue", "medical_certificates_expired", "medical_rtw_reviews_due",
+        "occupational_illness_suspected", "occupational_illness_confirmed", "medical_missed_appointments",
+        "medical_average_completion_delay",
+    )],
+    *[_entry(key, "Occupational Health") for key in (
+        "medical_workers_requiring", "medical_surveillance_compliant", "medical_active_restrictions",
+    )],
+    _entry("medical_surveillance_compliance_rate", "Occupational Health", unit="percent", direction=KPIDirection.higher_is_better, numerator="Workers with current mandatory surveillance", denominator="Workers requiring surveillance"),
 ]
 
 

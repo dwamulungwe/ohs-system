@@ -63,6 +63,7 @@ class CorrectiveActionSourceType(str, enum.Enum):
     emergency_drill = "emergency_drill"
     document_control = "document_control"
     ppe = "ppe"
+    occupational_health = "occupational_health"
     fleet = "fleet"
     environmental = "environmental"
     management_of_change = "management_of_change"
@@ -373,6 +374,7 @@ class CorrectiveAction(OrganisationOwnedMixin, TimestampMixin, Base):
             CorrectiveActionSourceType.emergency_drill: "emergency-drills",
             CorrectiveActionSourceType.document_control: "documents",
             CorrectiveActionSourceType.ppe: "ppe",
+            CorrectiveActionSourceType.occupational_health: "medical-surveillance",
         }
         route = routes.get(self.source_type)
         return f"/{route}/{self.source_id}" if route else None

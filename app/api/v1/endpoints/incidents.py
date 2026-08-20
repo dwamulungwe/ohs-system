@@ -163,10 +163,26 @@ def get_workspace(incident_id: int, db: Session = Depends(get_db), current_user:
 def get_medical(incident_id: int, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)) -> dict:
     ensure_permission(current_user, Permission.INCIDENT_MEDICAL_VIEW)
     incident = _incident(db, current_user, incident_id)
+    injuries = list(db.scalars(select(IncidentInjury).where(IncidentInjury.incident_id == incident.id)).all())
+    treatments = list(db.scalars(select(IncidentTreatment).where(IncidentTreatment.incident_id == incident.id)).all())
+    return_to_work = list(db.scalars(select(IncidentReturnToWork).where(IncidentReturnToWork.incident_id == incident.id)).all())
+    has_medical_detail = has_permission(current_user, Permission.OCCUPATIONAL_HEALTH_MEDICAL_DETAIL_VIEW)
+    if not has_medical_detail:
+        injuries = [IncidentInjuryRead.model_validate(item).model_dump() for item in injuries]
+        treatments = [IncidentTreatmentRead.model_validate(item).model_dump() for item in treatments]
+        return_to_work = [ReturnToWorkRead.model_validate(item).model_dump() for item in return_to_work]
+        for item in injuries:
+            for field in ("diagnosis_description", "treated_by", "notes"):
+                item[field] = None
+        for item in treatments:
+            for field in ("provider_name", "treatment_summary", "referral", "medical_certificate_reference"):
+                item[field] = None
+        for item in return_to_work:
+            item["notes"] = None
     return {
-        "injuries": list(db.scalars(select(IncidentInjury).where(IncidentInjury.incident_id == incident.id)).all()),
-        "treatments": list(db.scalars(select(IncidentTreatment).where(IncidentTreatment.incident_id == incident.id)).all()),
-        "return_to_work_records": list(db.scalars(select(IncidentReturnToWork).where(IncidentReturnToWork.incident_id == incident.id)).all()),
+        "injuries": injuries,
+        "treatments": treatments,
+        "return_to_work_records": return_to_work,
     }
 
 
@@ -195,6 +211,7 @@ def add_person(incident_id: int, payload: IncidentPersonCreate, db: Session = De
 @router.post("/{incident_id}/injuries", response_model=IncidentInjuryRead, status_code=201)
 def add_injury(incident_id: int, payload: IncidentInjuryCreate, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
     ensure_permission(current_user, Permission.INCIDENT_MEDICAL_MANAGE)
+    ensure_permission(current_user, Permission.OCCUPATIONAL_HEALTH_MEDICAL_DETAIL_MANAGE)
     try: return create_injury(db, _incident(db, current_user, incident_id), payload, current_user.id)
     except IncidentManagementError as exc: raise _management_error(exc)
 
@@ -202,6 +219,7 @@ def add_injury(incident_id: int, payload: IncidentInjuryCreate, db: Session = De
 @router.post("/{incident_id}/treatments", response_model=IncidentTreatmentRead, status_code=201)
 def add_treatment(incident_id: int, payload: IncidentTreatmentCreate, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
     ensure_permission(current_user, Permission.INCIDENT_MEDICAL_MANAGE)
+    ensure_permission(current_user, Permission.OCCUPATIONAL_HEALTH_MEDICAL_DETAIL_MANAGE)
     try: return create_treatment(db, _incident(db, current_user, incident_id), payload, current_user.id)
     except IncidentManagementError as exc: raise _management_error(exc)
 
@@ -251,6 +269,7 @@ def add_regulatory(incident_id: int, payload: RegulatoryNotificationCreate, db: 
 @router.post("/{incident_id}/return-to-work", response_model=ReturnToWorkRead, status_code=201)
 def add_return_to_work(incident_id: int, payload: ReturnToWorkCreate, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
     ensure_permission(current_user, Permission.INCIDENT_MEDICAL_MANAGE)
+    if payload.notes: ensure_permission(current_user, Permission.OCCUPATIONAL_HEALTH_MEDICAL_DETAIL_MANAGE)
     try: return create_return_to_work(db, _incident(db, current_user, incident_id), payload, current_user.id)
     except IncidentManagementError as exc: raise _management_error(exc)
 
@@ -258,6 +277,7 @@ def add_return_to_work(incident_id: int, payload: ReturnToWorkCreate, db: Sessio
 @router.patch("/{incident_id}/return-to-work/{record_id}", response_model=ReturnToWorkRead)
 def patch_return_to_work(incident_id: int, record_id: int, payload: ReturnToWorkUpdate, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
     ensure_permission(current_user, Permission.INCIDENT_MEDICAL_MANAGE)
+    if "notes" in payload.model_fields_set: ensure_permission(current_user, Permission.OCCUPATIONAL_HEALTH_MEDICAL_DETAIL_MANAGE)
     try: return update_return_to_work(db, _incident(db, current_user, incident_id), record_id, payload, current_user.id)
     except IncidentManagementError as exc: raise _management_error(exc)
 
